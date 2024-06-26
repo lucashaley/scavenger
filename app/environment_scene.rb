@@ -3,7 +3,7 @@ class EnvironmentScene < Zif::Scene
 
   def initialize
     @tile_dimensions = 64
-    @map_dimensions = 5
+    @map_dimensions = 10
 
     @ui_viewscreen_border = 32
     @ui_viewscreen_dimensions = 656
@@ -79,17 +79,73 @@ class EnvironmentScene < Zif::Scene
       height: 64
     )
 
+    # Create the ship
     @ship = Ship.new()
     @ship.y = 1000
     @ship.x = 400
     $game.services.named(:action_service).register_actionable(@ship)
 
-    wall_tile = Zif::Sprite.new.tap do |s|
-      s.w = 16
-      s.h = 16
-      s.path = 'sprites/wall-16.png'
+    # Create the tiled grid
+    @tilemap = Zif::Layers::LayerGroup.new(
+      tile_width:     @tile_dimensions,
+      tile_height:    @tile_dimensions,
+      logical_width:  @map_dimensions,
+      logical_height: @map_dimensions
+    )
+    @tilemap.new_tiled_layer(:tiles)
+    @tilemap.layers[:tiles].width = 640
+    @tilemap.layers[:tiles].height = 640
+
+    # Starfield
+    @starfield = {
+      x: 0,
+      y: 0,
+      w: 640,
+      h: 640,
+      angle: rand(4) * 90,
+      path: "sprites/starfield_01.png" }
+
+    @tile_array = Array.new(@map_dimensions){Array.new(@map_dimensions)}
+    @map_dimensions.times do |x|
+      @map_dimensions.times do |y|
+        # @tile_array[x][y] = { x: x * 64, y: y * 64, w: 64, h: 64, path: "sprites/walltop_64.png" }
+        @tile_array[x][y] = {
+          x: x * 64,
+          y: y * 64,
+          w: 64,
+          h: 64,
+          angle: rand(4) * 90,
+          path: "sprites/1bit_floor_64_0#{rand(6)}.png" }
+      end
     end
 
+    # wall_tile = Zif::Sprite.new.tap do |s|
+    #   s.x = 0
+    #   s.y = 640 - 64
+    #   s.w = 64
+    #   s.h = 64
+    #   s.path = 'sprites/walltop_64.png'
+    # end
+    @tiles_target = { x: 40,
+                      y: 600,
+                      w: 640,
+                      h: 640,
+                      path: :tiles,
+                      source_x: 0,
+                      source_y: 0,
+                      source_w: 640,
+                      source_h: 640
+                    }
+    # $gtk.args.outputs[:tiles].sprites << { x: 0, y: 0, w: 64, h: 64, path: "sprites/square/blue.png" }
+    # $gtk.args.outputs[:tiles].sprites << wall_tile
+
+    # @map_dimensions.times do |x|
+    #   @map_dimensions.times do |y|
+    #     $gtk.args.outputs[:tiles].sprites << { x: x * 64, y: y * 64, w: 64, h: 64, path: "sprites/square/blue.png" }
+    #   end
+    # end
+
+    # Create pickups and hazards
     boost_thrust = BoostThrust.new(
       $services[:sprite_registry].construct(:pickup_64),
       360 + 10,
@@ -104,14 +160,16 @@ class EnvironmentScene < Zif::Scene
       900
     )
     @pickups << mine
-    # repulsor = Repulsor.new(
-    #   $services[:sprite_registry].construct(:effector_64),
-    #   600,
-    #   900
-    # )
-    # repulsor.effect_target = @ship
-    # $game.services[:effect_service].register_effectable repulsor
-    # @pickups << repulsor
+
+    repulsor = Repulsor.new(
+      $services[:sprite_registry].construct(:effector_64),
+      600,
+      900
+    )
+    repulsor.effect_target = @ship
+    $game.services[:effect_service].register_effectable repulsor
+    @pickups << repulsor
+
     # attractor = Attractor.new(
     #   $services[:sprite_registry].construct(:effector_64),
     #   100,
@@ -199,20 +257,36 @@ class EnvironmentScene < Zif::Scene
       s.path = 'sprites/ui_01.png'
     end
 
+    # We're now putting this in tick, so we can use a render target
     # Render everything without layers
-    $gtk.args.outputs.static_sprites << [
-      @backdrop,
-      @pickups,
-      @ship,
-      @door_tiles,
-      @ui,
-      @buttons
-    ]
+    # $gtk.args.outputs.static_sprites << [
+    #   @backdrop,
+    #   @tilemap.layer_containing_sprites,
+    #   @pickups,
+    #   @ship,
+    #   @door_tiles,
+    #   @ui,
+    #   @buttons
+    # ]
   end
 
   def perform_tick
     # $gtk.add_caller_to_puts!
     $gtk.args.gtk.request_quit if $gtk.args.inputs.keyboard.q
+
+    # $gtk.args.outputs[:tiles].sprites << { x: 0, y: 0, w: 640, h: 640, path: "sprites/square/blue.png" }
+    # @map_dimensions.times do |x|
+    #   @map_dimensions.times do |y|
+    #     $gtk.args.outputs[:tiles].sprites << { x: x * 64, y: y * 64, w: 64, h: 64, path: "sprites/walltop_64.png" }
+    #   end
+    # end
+    # $gtk.args.outputs[:tiles].sprites << @starfield
+    $gtk.args.outputs[:tiles].transient! # This apparently speeds up render
+    @map_dimensions.times do |x|
+      @map_dimensions.times do |y|
+        $gtk.args.outputs[:tiles].sprites << @tile_array[x][y]
+      end
+    end
 
     # Deads cleanup
     @pickups.reject! { |p| p.is_dead }
@@ -296,8 +370,21 @@ class EnvironmentScene < Zif::Scene
     # Then we can apply drag
     @ship.apply_drag
 
+
+    # Render everything
+    $gtk.args.outputs.sprites << [
+      # @backdrop,
+      @tiles_target,
+      @pickups,
+      @ship,
+      @door_tiles,
+      @ui,
+      @buttons
+    ]
+
     # Player info
-    # $gtk.args.outputs.debug.watch pretty_format([@ship.angle, @player.angle, @player.facing]), label_style: @label_style, background_style: @background_style
+    $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
     # $gtk.args.outputs.debug.watch pretty_format(@map.layers[:ship].sprites), label_style: @label_style, background_style: @background_style
+    # $gtk.args.outputs.debug.watch pretty_format(@tile_array), label_style: @label_style, background_style: @background_style
   end
 end
