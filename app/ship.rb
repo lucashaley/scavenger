@@ -2,11 +2,11 @@ class Ship < Zif::CompoundSprite
   include Faceable
 
   attr_accessor :health_thrust, :health_ccw, :health_cw
-  attr_accessor :momentum
+  attr_accessor :momentum, :energy, :effect
   attr_accessor :thrust, :angular_thrust
   attr_accessor :drag, :angular_drag
   attr_accessor :is_player, :player_control
-  attr_accessor :is_rotating
+  attr_accessor :is_rotating, :is_effectable
   attr_accessor :thrust_sprite
 
   def initialize (
@@ -14,7 +14,7 @@ class Ship < Zif::CompoundSprite
     x=0,
     y=0,
     scale_factor=1,
-    thrust=4.0,
+    thrust=4,
     angular_thrust=6, # This is irritatingly in ticks
     drag=0.9,
     angular_drag=0.9
@@ -29,7 +29,7 @@ class Ship < Zif::CompoundSprite
       s.y = 10
       s.w = 64
       s.h = 64
-      s.path = "sprites/ship_64.png"
+      s.path = "sprites/1bit_ship_64.png"
     end
 
     @thrust_sprite_north = Zif::Sprite.new.tap do |s|
@@ -90,6 +90,14 @@ class Ship < Zif::CompoundSprite
       y: 0,
       rotation: 0
     }
+    @energy = {
+      x: 0,
+      y: 0
+    }
+    @effect = {
+      x: 0,
+      y: 0
+    }
 
     @thrust_default = thrust
     @thrust = thrust
@@ -103,27 +111,36 @@ class Ship < Zif::CompoundSprite
     @is_player = true
     @player_control = true
     @is_rotating = false
+    @is_effectable = true
   end
 
   def add_thrust_x input
-    @momentum.x += input * @thrust * @health_thrust
+    @energy.x = input * @thrust * @health_thrust
   end
   def add_thrust_y input
-    @momentum.y += input * @thrust * @health_thrust
+    @energy.y = input * @thrust * @health_thrust
   end
   def add_thrust x=0, y=0
-    @momentum.x += x * @thrust * @health_thrust
-    @momentum.y += y * @thrust * @health_thrust
+    @energy.x = x * @thrust * @health_thrust
+    @energy.y = y * @thrust * @health_thrust
   end
 
   def calc_rotation
     @angle += @momentum.rotation
   end
   def calc_position_x
+    @momentum.x += @energy.x
+    @momentum.x += @effect.x if @is_effectable
     @x += @momentum.x
+    @x.truncate
+    @effect.x = 0
   end
   def calc_positon_y
+    @momentum.y += @energy.y
+    @momentum.y += @effect.y if @is_effectable
     @y += @momentum.y
+    @y.truncate
+    @effect.y = 0
   end
 
   def rotate_ccw
@@ -190,20 +207,33 @@ class Ship < Zif::CompoundSprite
     @momentum.y = (@momentum.y * @drag).truncate
     @momentum.rotation = @momentum.rotation * @angular_drag
 
-    if @thrust > 0
-      if @momentum.y >= 0
-        @thrust_sprite_north.path = "sprites/ship_thrust_0#{@momentum.y.clamp(0, 3)}.png"
-      elsif @momentum.y <= 0
-        @thrust_sprite_south.path = "sprites/ship_thrust_0#{@momentum.y.abs.clamp(0, 3)}.png"
-      end
+    # if @thrust > 0
+    #   if @momentum.y >= 0
+    #     @thrust_sprite_north.path = "sprites/ship_thrust_0#{@momentum.y.clamp(0, 3)}.png"
+    #   elsif @momentum.y <= 0
+    #     @thrust_sprite_south.path = "sprites/ship_thrust_0#{@momentum.y.abs.clamp(0, 3)}.png"
+    #   end
+    #
+    #   if @momentum.x >= 0
+    #     @thrust_sprite_east.path = "sprites/ship_thrust_0#{@momentum.x.clamp(0, 3)}.png"
+    #   elsif @momentum.x <= 0
+    #     @thrust_sprite_west.path = "sprites/ship_thrust_0#{@momentum.x.abs.clamp(0, 3)}.png"
+    #   end
+    # else
+    #   puts "Thrust: #{@thrust}"
+    # end
 
-      if @momentum.x >= 0
-        @thrust_sprite_east.path = "sprites/ship_thrust_0#{@momentum.x.clamp(0, 3)}.png"
-      elsif @momentum.x <= 0
-        @thrust_sprite_west.path = "sprites/ship_thrust_0#{@momentum.x.abs.clamp(0, 3)}.png"
-      end
-    else
-      puts "Thrust: #{@thrust}"
+    if @energy.y >= 0
+      @thrust_sprite_north.path = "sprites/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png"
+    end
+    if @energy.y <= 0
+      @thrust_sprite_south.path = "sprites/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png"
+    end
+    if @energy.x >= 0
+      @thrust_sprite_east.path = "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png"
+    end
+    if @energy.x <= 0
+      @thrust_sprite_west.path = "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png"
     end
   end
 

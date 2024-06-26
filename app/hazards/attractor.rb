@@ -1,4 +1,4 @@
-class Repulsor < Zif::Sprite
+class Attractor < Zif::Sprite
   include Collideable
   include Bounceable
   include Deadable
@@ -8,17 +8,17 @@ class Repulsor < Zif::Sprite
     prototype,
     x=0, y=0
   )
-    puts 'New Repulsor!'
+    puts 'New Attractor!'
     super()
     assign(prototype.to_h)
 
     @x = x
     @y = y
 
-    @bounce = 0.9 # This is defined in the Bounceable module
+    @bounce = 0.9
     @sound_collide = "sounds/thump.wav"
 
-    @effect_strength = 50 # This is defined in the Effectable module
+    @effect_strength = 80
   end
 
   def collide_action(collidee, facing)
@@ -45,7 +45,7 @@ class Repulsor < Zif::Sprite
     # puts effect_vector
 
     # Do we want to be just adding to the momentum? Seems wrong
-    @effect_target.momentum.x -= effect_vector.x
-    @effect_target.momentum.y -= effect_vector.y
+    @effect_target.effect.x += effect_vector.x
+    @effect_target.effect.y += effect_vector.y
   end
 end
