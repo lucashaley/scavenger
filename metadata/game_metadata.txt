@@ -1,5 +1,5 @@
 # Remove the pound sign and leading space for the properties below before publishing your game.
-# devid=myname
+devid=animatology
 devtitle=Animatology Studios
 gameid=scavengr
 gametitle=Scavengr
@@ -40,6 +40,7 @@ scale_quality=0
 
 # Setting this property to true will enable High DPI rendering (try in combination with scale_quality to see what looks best)
 # highdpi=false
+highdpi=true
 
 # === Portrait Mode ===
 # The orientation can be set to either landscape (1280x720) or portrait (720x1280)
@@ -51,6 +52,7 @@ orientation=portrait
 # Check out the following YouTube Video for a demo of DragonRuby's HD Capabilities
 # https://youtu.be/Rnc6z84zaa4
 # hd=false
+# hd=true
 
 # === Texture Atlases ===
 # See sample app for texture atlas usage: =./samples/07_advanced_rendering_hd/02_texture_atlases=
@@ -69,6 +71,7 @@ orientation=portrait
 # means "stretch to fit" (while retaining a 16:9 aspect ratio). This scaling method is not
 # pixel perfect, but is a reasonable default for most games.
 # hd_max_scale=0
+hd_max_scale=400
 
 # hd_max_scale values other than 0 *will* be pixel perfect. Resolutions higher than your max scale
 # will give more area outside of your safe area that can be rendered to (if hd_letterbox=false)
