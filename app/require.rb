@@ -19,6 +19,8 @@ require 'app/mixins/faceable.rb'
 require 'app/mixins/effectable.rb'
 
 # require 'app/player.rb'
+require 'app/room.rb'
+require 'app/husk.rb'
 require 'app/ship.rb'
 require 'app/wall.rb'
 require 'app/door.rb'

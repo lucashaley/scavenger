@@ -13,7 +13,8 @@ require 'app/base_game.rb'
 # require 'app/class_scene.rb'
 # require 'app/pickup_scene.rb'
 # require 'app/animation_scene.rb'
-require 'app/environment_scene.rb'
+# require 'app/environment_scene.rb'
+require 'app/room_scene.rb'
 
 def tick args
   if args.tick_count == 2
@@ -21,6 +22,10 @@ def tick args
     args.gtk.set_window_fullscreen false
     $game = BaseGame.new
     $game.scene.prepare_scene
+
+    # Shader stuff
+    # args.outputs.shader_path ||= "shaders/crt.glsl"
+    # args.outputs.shader_tex1 = :tiles
   end
   $game&.perform_tick
 end

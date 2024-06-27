@@ -6,6 +6,7 @@ class BaseGame < Zif::Game
     # register_scene(:movement, MovementScene)
 
     # @scene = MovementScene.new
-    @scene = EnvironmentScene.new
+    # @scene = EnvironmentScene.new
+    @scene = RoomScene.new
   end
 end

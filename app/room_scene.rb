@@ -1,4 +1,4 @@
-class EnvironmentScene < Zif::Scene
+class RoomScene < Zif::Scene
   # include Zif::Traceable
 
   def initialize
@@ -85,47 +85,9 @@ class EnvironmentScene < Zif::Scene
     @ship.x = 400
     $game.services.named(:action_service).register_actionable(@ship)
 
-    # Create the tiled grid
-    @tilemap = Zif::Layers::LayerGroup.new(
-      tile_width:     @tile_dimensions,
-      tile_height:    @tile_dimensions,
-      logical_width:  @map_dimensions,
-      logical_height: @map_dimensions
-    )
-    @tilemap.new_tiled_layer(:tiles)
-    @tilemap.layers[:tiles].width = 640
-    @tilemap.layers[:tiles].height = 640
+    # Create a room
+    @room = Room.new('Level 1', 10)
 
-    # Starfield
-    @starfield = {
-      x: 0,
-      y: 0,
-      w: 640,
-      h: 640,
-      angle: rand(4) * 90,
-      path: "sprites/starfield_01.png" }
-
-    @tile_array = Array.new(@map_dimensions){Array.new(@map_dimensions)}
-    @map_dimensions.times do |x|
-      @map_dimensions.times do |y|
-        # @tile_array[x][y] = { x: x * 64, y: y * 64, w: 64, h: 64, path: "sprites/walltop_64.png" }
-        @tile_array[x][y] = {
-          x: x * 64,
-          y: y * 64,
-          w: 64,
-          h: 64,
-          angle: rand(4) * 90,
-          path: "sprites/1bit_floor_64_0#{rand(6)}.png" }
-      end
-    end
-
-    # wall_tile = Zif::Sprite.new.tap do |s|
-    #   s.x = 0
-    #   s.y = 640 - 64
-    #   s.w = 64
-    #   s.h = 64
-    #   s.path = 'sprites/walltop_64.png'
-    # end
     @tiles_target = { x: 40,
                       y: 600,
                       w: 640,
@@ -136,65 +98,6 @@ class EnvironmentScene < Zif::Scene
                       source_w: 640,
                       source_h: 640
                     }
-    # $gtk.args.outputs[:tiles].sprites << { x: 0, y: 0, w: 64, h: 64, path: "sprites/square/blue.png" }
-    # $gtk.args.outputs[:tiles].sprites << wall_tile
-
-    # @map_dimensions.times do |x|
-    #   @map_dimensions.times do |y|
-    #     $gtk.args.outputs[:tiles].sprites << { x: x * 64, y: y * 64, w: 64, h: 64, path: "sprites/square/blue.png" }
-    #   end
-    # end
-
-    # Create pickups and hazards
-    boost_thrust = BoostThrust.new(
-      $services[:sprite_registry].construct(:pickup_64),
-      360 + 10,
-      800,
-      0.8,
-      1
-    )
-    @pickups << boost_thrust
-    mine = Mine.new(
-      $services[:sprite_registry].construct(:mine_64),
-      360,
-      900
-    )
-    @pickups << mine
-
-    repulsor = Repulsor.new(
-      $services[:sprite_registry].construct(:effector_64),
-      600,
-      900
-    )
-    repulsor.effect_target = @ship
-    $game.services[:effect_service].register_effectable repulsor
-    @pickups << repulsor
-
-    # attractor = Attractor.new(
-    #   $services[:sprite_registry].construct(:effector_64),
-    #   100,
-    #   700
-    # )
-    # attractor.effect_target = @ship
-    # $game.services[:effect_service].register_effectable attractor
-    # @pickups << attractor
-
-    # Create doors
-    door = Door.new(
-      $services[:sprite_registry].construct(:doorh_128),
-      360 - 64,
-      1200
-    )
-    @door_tiles << door
-    door_left = Door.new(
-      $services[:sprite_registry].construct(:doorv_128),
-      32,
-      900,
-      1.5,
-      Faceable::FACING::east
-    )
-    puts door_left
-    @door_tiles << door_left
 
     # Handle audio
     # $gtk.args.audio[:bg_music] = { input: "sounds/ambient.ogg", looping: true }
@@ -254,42 +157,27 @@ class EnvironmentScene < Zif::Scene
     @ui = Zif::Sprite.new.tap do |s|
       s.w = 720
       s.h = 1280
-      s.path = 'sprites/ui_01.png'
+      s.path = 'sprites/1bit_ui.png'
     end
-
-    # We're now putting this in tick, so we can use a render target
-    # Render everything without layers
-    # $gtk.args.outputs.static_sprites << [
-    #   @backdrop,
-    #   @tilemap.layer_containing_sprites,
-    #   @pickups,
-    #   @ship,
-    #   @door_tiles,
-    #   @ui,
-    #   @buttons
-    # ]
   end
 
   def perform_tick
     # $gtk.add_caller_to_puts!
     $gtk.args.gtk.request_quit if $gtk.args.inputs.keyboard.q
 
-    # $gtk.args.outputs[:tiles].sprites << { x: 0, y: 0, w: 640, h: 640, path: "sprites/square/blue.png" }
-    # @map_dimensions.times do |x|
-    #   @map_dimensions.times do |y|
-    #     $gtk.args.outputs[:tiles].sprites << { x: x * 64, y: y * 64, w: 64, h: 64, path: "sprites/walltop_64.png" }
-    #   end
-    # end
-    # $gtk.args.outputs[:tiles].sprites << @starfield
+    # Render out the tiles
+    # This should probably only happen once somewhere
     $gtk.args.outputs[:tiles].transient! # This apparently speeds up render
-    @map_dimensions.times do |x|
-      @map_dimensions.times do |y|
-        $gtk.args.outputs[:tiles].sprites << @tile_array[x][y]
+    @room.room_dimensions.times do |x|
+      @room.room_dimensions.times do |y|
+        $gtk.args.outputs[:tiles].sprites << @room.tiles[x][y]
       end
     end
 
     # Deads cleanup
-    @pickups.reject! { |p| p.is_dead }
+    # @pickups.reject! { |p| p.is_dead }
+    # @room.pickups.reject! { |p| p.is_dead }
+    @room.purge_deads
 
     # stop sound if space key is pressed
     if $gtk.args.inputs.keyboard.key_down.space
@@ -297,6 +185,15 @@ class EnvironmentScene < Zif::Scene
       # OR
       $gtk.args.audio.delete :bg_music
     end
+
+    # return if !@player_control
+    return if !@ship.player_control
+
+    # Movement is based on thrust, so that the player continues to move
+    # even after the key is released.
+    # The way we handle this is by an intermediary variable between input
+    # and movement, called thrust.
+    # That way we can softly decrement thrust after the input stops.
 
     # Handle mouse clicks in directional buttons
     # We do this in the tick because button needs to repeat while held
@@ -312,15 +209,6 @@ class EnvironmentScene < Zif::Scene
     if @button_west.is_pressed
       @ship.add_thrust_x -1.0
     end
-
-    return if !@player_control
-    return if !@ship.player_control
-
-    # Movement is based on thrust, so that the player continues to move
-    # even after the key is released.
-    # The way we handle this is by an intermediary variable between input
-    # and movement, called thrust.
-    # That way we can softly decrement thrust after the input stops.
 
     # Handle the basic movement.
     # The left_right and up_down convenience methods are great
@@ -343,11 +231,11 @@ class EnvironmentScene < Zif::Scene
     @ship.calc_position_x
 
     # Check door collisions
-    collision_doors_x = $gtk.args.geometry.find_intersect_rect @ship, @door_tiles
+    collision_doors_x = $gtk.args.geometry.find_intersect_rect @ship, @room.doors
     collision_doors_x.collide_x_with @ship if collision_doors_x
 
     # Check pickup collisions
-    collision_pickups_x = $gtk.args.geometry.find_intersect_rect @ship, @pickups.reject{ |p| p.is_dead }
+    collision_pickups_x = $gtk.args.geometry.find_intersect_rect @ship, @room.collidables
     collision_pickups_x.collide_x_with @ship if collision_pickups_x
 
     # Check if the player is out of screen area, and bounce them back
@@ -357,11 +245,11 @@ class EnvironmentScene < Zif::Scene
     @ship.calc_positon_y
 
     # Check door collisions
-    collision_doors_y = $gtk.args.geometry.find_intersect_rect @ship, @door_tiles
+    collision_doors_y = $gtk.args.geometry.find_intersect_rect @ship, @room.doors
     collision_doors_y.collide_y_with @ship if collision_doors_y
 
     # Check pickup collisions
-    collision_pickups_y = $gtk.args.geometry.find_intersect_rect @ship, @pickups.reject{ |p| p.is_dead }
+    collision_pickups_y = $gtk.args.geometry.find_intersect_rect @ship, @room.collidables
     collision_pickups_y.collide_y_with @ship if collision_pickups_y
 
     # check if the player is out of screen area, and bounce them back
@@ -375,15 +263,15 @@ class EnvironmentScene < Zif::Scene
     $gtk.args.outputs.sprites << [
       # @backdrop,
       @tiles_target,
-      @pickups,
+      @room.collidables,
       @ship,
-      @door_tiles,
+      @room.doors,
       @ui,
       @buttons
     ]
 
     # Player info
-    $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
+    # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
     # $gtk.args.outputs.debug.watch pretty_format(@map.layers[:ship].sprites), label_style: @label_style, background_style: @background_style
     # $gtk.args.outputs.debug.watch pretty_format(@tile_array), label_style: @label_style, background_style: @background_style
   end
