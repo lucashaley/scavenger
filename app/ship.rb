@@ -2,6 +2,7 @@ class Ship < Zif::CompoundSprite
   include Faceable
 
   attr_accessor :health_thrust, :health_ccw, :health_cw
+  attr_accessor :health_east, :health_west, :health_north, :health_south
   attr_accessor :momentum, :energy, :effect
   attr_accessor :thrust, :angular_thrust
   attr_accessor :drag, :angular_drag
@@ -105,6 +106,7 @@ class Ship < Zif::CompoundSprite
     @drag = drag
     @angular_drag = angular_drag
     @health_thrust = @health_ccw = @health_cw = 1.0
+    @health_north = @health_south = @health_east = @health_west = 1.0
 
     @facing = 0
 
@@ -115,14 +117,18 @@ class Ship < Zif::CompoundSprite
   end
 
   def add_thrust_x input
-    @energy.x = input * @thrust * @health_thrust
+    health_multiplier = input < 0 ? @health_west : @health_east
+    @energy.x += input * @thrust * health_multiplier
   end
   def add_thrust_y input
-    @energy.y = input * @thrust * @health_thrust
+    health_multiplier = input < 0 ? @health_south : @health_north
+    @energy.y += input * @thrust * health_multiplier
   end
   def add_thrust x=0, y=0
-    @energy.x = x * @thrust * @health_thrust
-    @energy.y = y * @thrust * @health_thrust
+    health_multiplier_x = x < 0 ? @health_west : @health_east
+    health_multiplier_y = y < 0 ? @health_south : @health_north
+    @energy.x += x * @thrust * health_multiplier_x
+    @energy.y += y * @thrust * health_multiplier_y
   end
 
   def calc_rotation
@@ -133,14 +139,36 @@ class Ship < Zif::CompoundSprite
     @momentum.x += @effect.x if @is_effectable
     @x += @momentum.x
     @x.truncate
+
+    # Render the jets here, not a great place
+    if @energy.x >= 0
+      @thrust_sprite_east.path = "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png"
+    end
+    if @energy.x <= 0
+      @thrust_sprite_west.path = "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png"
+    end
+
+    # Reset the movement
     @effect.x = 0
+    @energy.x = 0
   end
   def calc_positon_y
     @momentum.y += @energy.y
     @momentum.y += @effect.y if @is_effectable
     @y += @momentum.y
     @y.truncate
+
+    # Render the jets here, not a great place
+    if @energy.y >= 0
+      @thrust_sprite_north.path = "sprites/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png"
+    end
+    if @energy.y <= 0
+      @thrust_sprite_south.path = "sprites/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png"
+    end
+
+    # Reset the movement
     @effect.y = 0
+    @energy.y = 0
   end
 
   def rotate_ccw
@@ -223,18 +251,18 @@ class Ship < Zif::CompoundSprite
     #   puts "Thrust: #{@thrust}"
     # end
 
-    if @energy.y >= 0
-      @thrust_sprite_north.path = "sprites/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png"
-    end
-    if @energy.y <= 0
-      @thrust_sprite_south.path = "sprites/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png"
-    end
-    if @energy.x >= 0
-      @thrust_sprite_east.path = "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png"
-    end
-    if @energy.x <= 0
-      @thrust_sprite_west.path = "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png"
-    end
+    # if @energy.y >= 0
+    #   @thrust_sprite_north.path = "sprites/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png"
+    # end
+    # if @energy.y <= 0
+    #   @thrust_sprite_south.path = "sprites/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png"
+    # end
+    # if @energy.x >= 0
+    #   @thrust_sprite_east.path = "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png"
+    # end
+    # if @energy.x <= 0
+    #   @thrust_sprite_west.path = "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png"
+    # end
   end
 
   def handle_collision

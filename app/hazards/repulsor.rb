@@ -8,7 +8,6 @@ class Repulsor < Zif::Sprite
     prototype,
     x=0, y=0
   )
-    puts 'New Repulsor!'
     super()
     assign(prototype.to_h)
 
@@ -49,7 +48,5 @@ class Repulsor < Zif::Sprite
     # @effect_target.momentum.y -= effect_vector.y
     @effect_target.effect.x -= effect_vector.x
     @effect_target.effect.y -= effect_vector.y
-
-    puts "test"
   end
 end
