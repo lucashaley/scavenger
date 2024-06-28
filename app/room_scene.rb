@@ -85,6 +85,9 @@ class RoomScene < Zif::Scene
     @ship.x = 400
     $game.services.named(:action_service).register_actionable(@ship)
 
+    # Create a husk
+    @husk = Husk.new
+    
     # Create a room
     @room = Room.new('Level 1', 10)
 
@@ -168,8 +171,8 @@ class RoomScene < Zif::Scene
     # Render out the tiles
     # This should probably only happen once somewhere
     $gtk.args.outputs[:tiles].transient! # This apparently speeds up render
-    @room.room_dimensions.times do |x|
-      @room.room_dimensions.times do |y|
+    @room.tile_dimensions.times do |x|
+      @room.tile_dimensions.times do |y|
         $gtk.args.outputs[:tiles].sprites << @room.tiles[x][y]
       end
     end

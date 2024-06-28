@@ -18,7 +18,7 @@ require 'app/room_scene.rb'
 
 def tick args
   if args.tick_count == 2
-    args.gtk.set_window_scale 0.75
+    args.gtk.set_window_scale 1
     args.gtk.set_window_fullscreen false
     $game = BaseGame.new
     $game.scene.prepare_scene

@@ -1,6 +1,6 @@
 class Room
   attr_accessor :name
-  attr_accessor :tiles, :room_dimensions
+  attr_accessor :tiles, :tile_dimensions
   attr_accessor :doors
   attr_accessor :hazards
   attr_accessor :pickups
@@ -8,22 +8,22 @@ class Room
 
   def initialize (
     name='test room',
-    room_dimensions=10
+    tile_dimensions=10
   )
     puts "Creating new room"
 
     # Initialize variables
     @name = name
-    @room_dimensions = room_dimensions
+    @tile_dimensions = tile_dimensions
     @doors = []
     @hazards = []
     @pickups = []
     @terminals = []
 
     # Create tiles
-    @tiles = Array.new(@room_dimensions){Array.new(@room_dimensions)}
-    @room_dimensions.times do |x|
-      @room_dimensions.times do |y|
+    @tiles = Array.new(@tile_dimensions){Array.new(@tile_dimensions)}
+    @tile_dimensions.times do |x|
+      @tile_dimensions.times do |y|
         # @tile_array[x][y] = { x: x * 64, y: y * 64, w: 64, h: 64, path: "sprites/walltop_64.png" }
         @tiles[x][y] = {
           x: x * 64,
@@ -47,7 +47,7 @@ class Room
       32,
       900,
       1.5,
-      Faceable::FACING::east
+      :east
     )
     @doors << door_left
 
@@ -69,10 +69,11 @@ class Room
   end
 
   def collidables
-    @pickups + @hazards + @terminals
+    (@pickups + @hazards + @terminals).reject{ |p| p.is_dead }
   end
 
   def purge_deads
+    # puts "Bring out your dead!"
     @pickups.reject! { |p| p.is_dead }
     @hazards.reject! { |p| p.is_dead }
   end
@@ -80,10 +81,10 @@ class Room
   def serialize
     {
       name: @name,
-      room_dimensions: @room_dimensions,
-      doors: @doors,
-      tiles: @tiles,
-      pickups: @pickups
+      # room_dimensions: @tile_dimensions,
+      # doors: @doors,
+      # tiles: @tiles,
+      # pickups: @pickups
     }
   end
 
