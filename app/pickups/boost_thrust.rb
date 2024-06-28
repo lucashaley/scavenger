@@ -28,14 +28,14 @@ class BoostThrust < Zif::Sprite
   end
 
   def collide_action collidee, facing
-    puts 'collide_action'
+    puts "collide_action: #{facing}"
 
     # Get the turret direction from the player
     # and compare it to the collision facing
-    if (collidee.facing == Faceable::FACING::north && facing == Faceable::FACING::south) ||
-    (collidee.facing == Faceable::FACING::south && facing == Faceable::FACING::north) ||
-    (collidee.facing == Faceable::FACING::west && facing == Faceable::FACING::east) ||
-    (collidee.facing == Faceable::FACING::east && facing == Faceable::FACING::west)
+    if (collidee.facing == :north && facing == :south) ||
+    (collidee.facing == :south && facing == :north) ||
+    (collidee.facing == :west && facing == :east) ||
+    (collidee.facing == :east && facing == :west)
       play_once @sound_pickup_success
       collidee.boost_thrust @amount, @duration, @start_duration
       kill

@@ -7,10 +7,10 @@ module Bounceable
     # puts "bounce_x_off #{bouncer.name}, x: #{bouncer.x}"
     right_edge = @x + @w
     case collided_on
-    when Faceable::FACING::east
+    when :east
       bouncer.x = right_edge + (right_edge - bouncer.x)
       bouncer.momentum.x *= -@bounce
-    when Faceable::FACING::west
+    when :west
       bouncer.x -= (bouncer.x + bouncer.w - @x)
       bouncer.momentum.x *= -@bounce
     end
@@ -19,10 +19,10 @@ module Bounceable
   def bounce_y_off(bouncer, collided_on)
     # puts 'bounce_y_off'
     case collided_on
-    when Faceable::FACING::north
+    when :north
       bouncer.y -= (bouncer.y - bouncer.h - @y)
       bouncer.momentum.y *= -@bounce
-    when Faceable::FACING::south
+    when :south
       bouncer.y -= (bouncer.y + bouncer.h - @y)
       bouncer.momentum.y *= -@bounce
     end
@@ -32,16 +32,16 @@ module Bounceable
     # puts "bounce_off #{bouncer.name}"
     right_edge = @x + @w
     case collided_on
-    when Faceable::FACING::east
+    when :east
       bouncer.x = right_edge + (right_edge - bouncer.x)
       bouncer.momentum.x *= -@bounce
-    when Faceable::FACING::west
+    when :west
       bouncer.x -= (bouncer.x + bouncer.w - @x)
       bouncer.momentum.x *= -@bounce
-    when Faceable::FACING::north
+    when :north
       bouncer.y -= (bouncer.y - bouncer.h - @y)
       bouncer.momentum.y *= -@bounce
-    when Faceable::FACING::south
+    when :south
       bouncer.y -= (bouncer.y + bouncer.h - @y)
       bouncer.momentum.y *= -@bounce
     end

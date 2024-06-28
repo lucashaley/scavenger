@@ -24,10 +24,10 @@ class Attractor < Zif::Sprite
   def collide_action(collidee, facing)
     puts 'collide_action'
     play_once @sound_collide
-    if facing == Faceable::FACING::east || facing == Faceable::FACING::west
+    if facing == :east || facing == :west
       bounce_x_off collidee, facing
     end
-    if facing == Faceable::FACING::north || facing == Faceable::FACING::south
+    if facing == :north || facing == :south
       bounce_y_off collidee, facing
     end
   end

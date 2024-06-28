@@ -20,12 +20,12 @@ module Collideable
     # It would be nice to limit the collision to a smaller size from center
     # like with the door
 
-    collided_on = Faceable::FACING::west if c.x < @x
-    collided_on = Faceable::FACING::east if c.x > @x
+    collided_on = :west if c.x < @x
+    collided_on = :east if c.x > @x
 
     collide_action c, collided_on
 
-    # if (c.x < @x && c.facing == Faceable::FACING::east) || (c.x > @x && c.facing == Faceable::FACING::west)
+    # if (c.x < @x && c.facing == :east) || (c.x > @x && c.facing == :west)
     #   puts "YUSSSSS"
     #   play_once @sound_pickup_success
     #   pickup_action c, collided_on
@@ -36,7 +36,7 @@ module Collideable
   end
 
   def collide_y_with c
-    # puts 'Collideable collide_y_with'
+    # puts "Collideable #{@name}: collide_y_with"
 
     # if !@pickup
     #   play_once @sound_collide
@@ -50,17 +50,17 @@ module Collideable
     # It would be nice to limit the collision to a smaller size from center
     # like with the door
 
-    collided_on = Faceable::FACING::south if c.y < @y
-    collided_on = Faceable::FACING::north if c.y > @y
+    collided_on = :south if c.y < @y
+    collided_on = :north if c.y > @y
 
     collide_action c, collided_on
 
-    # if c.y < @y && c.facing == Faceable::FACING::north
+    # if c.y < @y && c.facing == :north
     #   puts 'pickup south'
     #   play_once @sound_pickup_success
     #   pickup_action c
     # # elsif c.y > @y && c.angle.abs == 180
-    # elsif c.y > @y && c.facing == Faceable::FACING::south
+    # elsif c.y > @y && c.facing == :south
     #   # We're being hit on the north side
     #   puts 'pickup north'
     #   play_once @sound_pickup_success

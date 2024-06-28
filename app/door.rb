@@ -9,7 +9,7 @@ class Door < Zif::Sprite
     x=0,
     y=0,
     bounce=0.8,
-    door_side=Faceable::FACING::south
+    door_side=:south
   )
     puts 'Wall initialize'
     puts x
@@ -33,9 +33,9 @@ class Door < Zif::Sprite
       puts "Player center_y: #{collidee.center_y}"
       puts "Door center_y: #{center_y}"
       entering = case @door_side
-      when Faceable::FACING::north, Faceable::FACING::south
+      when :north, :south
         collidee.center_x.between?(center_x - @door_tolerance, center_x + @door_tolerance)
-      when Faceable::FACING::east, Faceable::FACING::west
+      when :east, :west
         collidee.center_y.between?(center_y - @door_tolerance, center_y + @door_tolerance)
       end
       # puts "entering: #{entering}"
@@ -59,10 +59,10 @@ class Door < Zif::Sprite
     end
 
     # Old
-    # if facing == Faceable::FACING::west || facing == Faceable::FACING::east
+    # if facing == :west || facing == :east
     #   play_once @sound_bounce
     #   bounce_off(collidee, facing)
-    # elsif facing == Faceable::FACING::south
+    # elsif facing == :south
     #   puts 'hitting south side'
     #   if collidee.center_x.between?(center_x - 4, center_x + 4)
     #     collidee.momentum.y = 0.0

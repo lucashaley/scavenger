@@ -108,7 +108,7 @@ class Ship < Zif::CompoundSprite
     @health_thrust = @health_ccw = @health_cw = 1.0
     @health_north = @health_south = @health_east = @health_west = 1.0
 
-    @facing = 0
+    @facing = :north
 
     @is_player = true
     @player_control = true
