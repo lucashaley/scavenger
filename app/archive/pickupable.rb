@@ -16,7 +16,7 @@ module Pickupable
     # like with the door
 
     # if (c.x < @x && c.angle == -90) || (c.x > @x && c.angle == 90)
-    if (c.x < @x && c.facing == Faceable::FACING::east) || (c.x > @x && c.facing == Faceable::FACING::west)
+    if (c.x < @x && c.facing == :east) || (c.x > @x && c.facing == :west)
       puts "YUSSSSS"
       play_once @sound_pickup_success
       pickup_action c
@@ -35,13 +35,13 @@ module Pickupable
     # like with the door
     puts "y: #{c.y}, angle: #{c.angle}"
     # if c.y < @y && c.angle.remainder_of_divide(360) == 0 # considering -360, etc
-    if c.y < @y && c.facing == Faceable::FACING::north
+    if c.y < @y && c.facing == :north
       puts 'pickup south'
       play_once @sound_pickup_success
       pickup_action c
       @dead = true
     # elsif c.y > @y && c.angle.abs == 180
-    elsif c.y > @y && c.angle.abs == Faceable::FACING::south
+    elsif c.y > @y && c.angle.abs == :south
       # We're being hit on the north side
       puts 'pickup north'
       play_once @sound_pickup_success
