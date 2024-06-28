@@ -6,7 +6,7 @@ module Deadable
   end
 
   def kill
-    puts "Killing: @{name}"
+    puts "Killing: #{@name}"
     @dead = true
     hide
   end
