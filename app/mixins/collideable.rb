@@ -2,8 +2,28 @@ module Collideable
   include Bounceable
   include Soundable
 
+  attr_reader :collision_rect
   attr_accessor :sound_collide
   attr_accessor :pickup
+
+  def initialize_collision
+    @collision_rect = {
+      x: 0,
+      y: 0,
+      h: @h,
+      w: @w
+    }
+  end
+
+  def collision
+    puts "Collideable: collision"
+    {
+      x: @collision_rect[x] + @x,
+      y: @collision_rect[y] + @y,
+      h: @h,
+      w: @w
+    }
+  end
 
   def collide_x_with c
     # puts 'Collideable collide_x_with'

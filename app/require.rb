@@ -18,6 +18,8 @@ require 'app/mixins/collideable.rb'
 require 'app/mixins/faceable.rb'
 require 'app/mixins/effectable.rb'
 
+require 'app/game_over_scene.rb'
+
 # require 'app/player.rb'
 require 'app/room.rb'
 require 'app/husk.rb'

@@ -5,7 +5,7 @@ module ExampleApp
   # Setting the progress causes a redraw.
   # If progress is zero, the filled bar disappears.
   class ProgressBar < Zif::CompoundSprite
-    SPRITES_PATH = 'sprites/kenney-uipack-space/PNG'.freeze
+    SPRITES_PATH = 'sprites/kenney-uipack-space/png'.freeze
 
     attr_accessor :color, :orientation, :filled_bar, :shadow
 

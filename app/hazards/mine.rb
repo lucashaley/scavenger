@@ -35,6 +35,10 @@ class Mine < Zif::Sprite
       collidee.health_west *= damage
       collidee.momentum.x += -4
     end
+
+    # Damage the husk
+    $game.scene.husk.damage 60
+    # And get rid of the mine
     kill
   end
 end

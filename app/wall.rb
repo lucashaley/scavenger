@@ -7,10 +7,10 @@ class Wall < Zif::Sprite
     y=0,
     bounce=0.8
   )
-    puts 'Wall initialize'
-    puts x
-    puts y
-    puts bounce
+    # puts 'Wall initialize'
+    # puts x
+    # puts y
+    # puts bounce
     super()
     assign(prototype.to_h)
 

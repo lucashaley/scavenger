@@ -17,7 +17,8 @@ class Repulsor < Zif::Sprite
     @bounce = 0.9 # This is defined in the Bounceable module
     @sound_collide = "sounds/thump.wav"
 
-    @effect_strength = 80 # This is defined in the Effectable module
+    @effect_strength = 50 # This is defined in the Effectable module
+    @effect_active = false
   end
 
   def collide_action(collidee, facing)
@@ -32,6 +33,8 @@ class Repulsor < Zif::Sprite
   end
 
   def perform_effect
+    return unless @effect_active
+
     # Do we want to normalize here?
     effect_vector = $gtk.args.geometry.vec2_normalize({
       x: @x - @effect_target.x,
@@ -39,8 +42,8 @@ class Repulsor < Zif::Sprite
     })
 
     distance = $gtk.args.geometry.distance self, @effect_target
-    effect_vector.x *= (1/distance) * @effect_strength
-    effect_vector.y *= (1/distance) * @effect_strength
+    effect_vector.x *= (1/distance) * effect_strength # @effect_strength
+    effect_vector.y *= (1/distance) * effect_strength # @effect_strength
     # puts effect_vector
 
     # Do we want to be just adding to the momentum? Seems wrong

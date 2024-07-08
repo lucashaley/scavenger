@@ -1,12 +1,14 @@
 class RoomScene < Zif::Scene
   # include Zif::Traceable
 
+  attr_accessor :ship, :husk
+
   def initialize
     @tile_dimensions = 64
     @map_dimensions = 10
 
-    @ui_viewscreen_border = 32
-    @ui_viewscreen_dimensions = 656
+    @ui_viewscreen_border = 40
+    @ui_viewscreen_dimensions = 640
     @ui_viewscreen = {
       top: 1280 - @ui_viewscreen_border,
       right: 720 - @ui_viewscreen_border,
@@ -35,6 +37,16 @@ class RoomScene < Zif::Scene
       a: 128,
       path: :solid
     }
+  end
+
+  def switch_rooms room
+    puts "room_scene switching rooms"
+    # @husk.current_room.deactivate
+    # @husk.current_room = room
+    # @husk.current_room.activate
+    # puts room.doors
+    # puts room.doors_bits
+    @husk.switch_rooms room
   end
 
   def prepare_scene
@@ -87,9 +99,10 @@ class RoomScene < Zif::Scene
 
     # Create a husk
     @husk = Husk.new
-    
+    puts @husk
+
     # Create a room
-    @room = Room.new('Level 1', 10)
+    # @room = Room.new('Level1', 10)
 
     @tiles_target = { x: 40,
                       y: 600,
@@ -151,12 +164,12 @@ class RoomScene < Zif::Scene
     # Register all buttons as Clickables
     @buttons.each { |b| $game.services[:input_service].register_clickable b }
 
-    @backdrop = Zif::Sprite.new.tap do |s|
-      s.w = 720
-      s.h = 720
-      s.y = 1280 - 720
-      s.path = 'sprites/backdrop_01.png'
-    end
+    # @backdrop = Zif::Sprite.new.tap do |s|
+    #   s.w = 720
+    #   s.h = 720
+    #   s.y = 1280 - 720
+    #   s.path = 'sprites/backdrop_01.png'
+    # end
     @ui = Zif::Sprite.new.tap do |s|
       s.w = 720
       s.h = 1280
@@ -171,16 +184,23 @@ class RoomScene < Zif::Scene
     # Render out the tiles
     # This should probably only happen once somewhere
     $gtk.args.outputs[:tiles].transient! # This apparently speeds up render
-    @room.tile_dimensions.times do |x|
-      @room.tile_dimensions.times do |y|
-        $gtk.args.outputs[:tiles].sprites << @room.tiles[x][y]
+    # @room.tile_dimensions.times do |x|
+    #   @room.tile_dimensions.times do |y|
+    #     $gtk.args.outputs[:tiles].sprites << @room.tiles[x][y]
+    #   end
+    # end
+    @husk.current_room.tile_dimensions.times do |x|
+      @husk.current_room.tile_dimensions.times do |y|
+        $gtk.args.outputs[:tiles].sprites << @husk.current_room.tiles[x][y]
       end
     end
 
     # Deads cleanup
     # @pickups.reject! { |p| p.is_dead }
     # @room.pickups.reject! { |p| p.is_dead }
-    @room.purge_deads
+    # @room.purge_deads
+    @husk.current_room.purge_deads
+    @husk.calc_health
 
     # stop sound if space key is pressed
     if $gtk.args.inputs.keyboard.key_down.space
@@ -234,11 +254,13 @@ class RoomScene < Zif::Scene
     @ship.calc_position_x
 
     # Check door collisions
-    collision_doors_x = $gtk.args.geometry.find_intersect_rect @ship, @room.doors
+    # collision_doors_x = $gtk.args.geometry.find_intersect_rect @ship, @room.doors
+    collision_doors_x = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.doors
     collision_doors_x.collide_x_with @ship if collision_doors_x
 
     # Check pickup collisions
-    collision_pickups_x = $gtk.args.geometry.find_intersect_rect @ship, @room.collidables
+    # collision_pickups_x = $gtk.args.geometry.find_intersect_rect @ship, @room.collidables
+    collision_pickups_x = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.collidables
     collision_pickups_x.collide_x_with @ship if collision_pickups_x
 
     # Check if the player is out of screen area, and bounce them back
@@ -248,11 +270,13 @@ class RoomScene < Zif::Scene
     @ship.calc_positon_y
 
     # Check door collisions
-    collision_doors_y = $gtk.args.geometry.find_intersect_rect @ship, @room.doors
+    # collision_doors_y = $gtk.args.geometry.find_intersect_rect @ship, @room.doors
+    collision_doors_y = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.doors
     collision_doors_y.collide_y_with @ship if collision_doors_y
 
     # Check pickup collisions
-    collision_pickups_y = $gtk.args.geometry.find_intersect_rect @ship, @room.collidables
+    # collision_pickups_y = $gtk.args.geometry.find_intersect_rect @ship, @room.collidables
+    collision_pickups_y = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.collidables
     collision_pickups_y.collide_y_with @ship if collision_pickups_y
 
     # check if the player is out of screen area, and bounce them back
@@ -266,16 +290,28 @@ class RoomScene < Zif::Scene
     $gtk.args.outputs.sprites << [
       # @backdrop,
       @tiles_target,
-      @room.collidables,
+      # @room.collidables,
+      @husk.current_room.collidables,
       @ship,
-      @room.doors,
+      # @room.doors,
+      @husk.current_room.doors,
       @ui,
+      @husk.deterioration_progress,
       @buttons
     ]
 
     # Player info
     # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
     # $gtk.args.outputs.debug.watch pretty_format(@map.layers[:ship].sprites), label_style: @label_style, background_style: @background_style
-    # $gtk.args.outputs.debug.watch pretty_format(@tile_array), label_style: @label_style, background_style: @background_style
-  end
+    $gtk.args.outputs.debug.watch @husk, label_style: @label_style, background_style: @background_style
+
+    # Is the game over?
+    return :game_over if @husk.health <= 0
+end
+
+  # It might be nice to have this, instead of the return value in the perform_tick method
+  # def game_over
+  #   puts "\n\nGAME OVER\n========="
+  #   $game.scene = :game_over
+  # end
 end

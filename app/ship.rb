@@ -15,7 +15,7 @@ class Ship < Zif::CompoundSprite
     x=0,
     y=0,
     scale_factor=1,
-    thrust=4,
+    thrust=3,
     angular_thrust=6, # This is irritatingly in ticks
     drag=0.9,
     angular_drag=0.9
