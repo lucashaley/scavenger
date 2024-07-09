@@ -19,69 +19,10 @@ class Husk
     @health = 1.0
     @deterioration_rate = 100 * DETERIORATION_SCALE
 
-    @room_dimensions = room_dimensions
-    # @rooms = Array.new(@room_dimensions){Array.new(@room_dimensions)}
-
-    # Create the rooms
-    # theoretical_number_of_rooms = ((@room_dimensions ** 2) * density).truncate
-    # puts "number of rooms: #{theoretical_number_of_rooms}"
-    # @rooms = Array.new(@room_dimensions){Array.new(@room_dimensions)}
-
-    # Some solutions:
-    #
-    # https://youtu.be/JYafic4lkK4
-    # https://catlikecoding.com/unity/tutorials/prototypes/maze-2/
-
-    # Randomly fill in the grid
-    # @room_dimensions.times do |x|
-    #   @room_dimensions.times do |y|
-    #     @rooms[x][y] = Room.new unless rand > density
-    #   end
-    # end
-    #
-    # @room_dimensions.times do |x|
-    #   @room_dimensions.times do |y|
-    #     if @rooms[x-1][y]
-    #       puts "needs left door"
-    #     end
-    #     if @rooms[x+1][y]
-    #       puts "needs right door"
-    #     end
-    #     if @rooms[x][y-1]
-    #       puts "needs top door"
-    #     end
-    #   end
-    # end
-
-    # Start with the entrypoint
-    # midpoint = @room_dimensions.div 2
-    # door_bits = rand(16)
-    # @rooms[midpoint][midpoint] = Room.new('entrypoint', 10, :west, 3)
-
-
-    # if (door_bits & DOORS[:north]).positive?
-    #   puts "create a room on the north side"
-    #   @rooms[midpoint-1][midpoint] = Room.new('north', 10, :north, @rooms[midpoint][midpoint])
-    # end
-    # if (door_bits & DOORS[:east]).positive?
-    #   puts "create a room on the east side"
-    #   @rooms[midpoint][midpoint+1] = Room.new('east', 10, :east, @rooms[midpoint][midpoint])
-    # end
-    # if (door_bits & DOORS[:south]).positive?
-    #   puts "create a room on the south side"
-    #   @rooms[midpoint+1][midpoint] = Room.new('south', 10, :south, @rooms[midpoint][midpoint])
-    # end
-    # if (door_bits & DOORS[:west]).positive?
-    #   puts "create a room on the east side"
-    #   @rooms[midpoint][midpoint-1] = Room.new('west', 10, :west, @rooms[midpoint][midpoint])
-    # end
-    # puts @rooms
-
-    # Chaos method:
+    # @room_dimensions = room_dimensions
 
     @entrypoint = Room.new('entrypoint', 10, nil, 0)
     switch_rooms @entrypoint
-    # @current_room = @entrypoint
 
     # UI Progress bar
     @deterioration_progress = ExampleApp::ProgressBar.new(:count_progress, 400, 0, :white)
