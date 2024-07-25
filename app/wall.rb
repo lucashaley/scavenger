@@ -1,11 +1,14 @@
 class Wall < Zif::Sprite
+  include Collideable
   include Bounceable
+  include Faceable
 
   def initialize (
     prototype,
     x=0,
     y=0,
-    bounce=0.8
+    bounce=0.8,
+    facing = :north
   )
     # puts 'Wall initialize'
     # puts x
@@ -19,10 +22,10 @@ class Wall < Zif::Sprite
     @bounce = bounce
   end
 
-  def collide_x_with c
-    bounce_x_off c
-  end
-  def collide_y_with c
-    bounce_y_off c
-  end
+  # def collide_x_with c
+  #   bounce_x_off c
+  # end
+  # def collide_y_with c
+  #   bounce_y_off c
+  # end
 end
