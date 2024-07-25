@@ -53,6 +53,34 @@ class Room
     @tile_dimensions.times do |x|
       @tile_dimensions.times do |y|
         # @tile_array[x][y] = { x: x * 64, y: y * 64, w: 64, h: 64, path: "sprites/walltop_64.png" }
+        if y==0
+          # this is the first row
+          if x==0
+            # this is a corner
+          elsif x==@tile_dimensions-1
+            # this is also a corner
+          else
+            # this is the bottom row
+          end
+        elsif y==@tile_dimensions-1
+          # this is the top row
+          if x==0
+            # this is a corner
+          elsif x==@tile_dimensions-1
+            # this is also a corner
+          else
+            # this is the bottom row
+          end
+        else
+          # this is a middle row
+          if x==0
+            # this is a left edge
+          elsif x==@tile_dimensions-1
+            # this is a right edge
+          else
+            # this is the floor
+          end
+        end
         @tiles[x][y] = {
           x: x * TILE_SIZE[scale],
           y: y * TILE_SIZE[scale],
