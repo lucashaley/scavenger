@@ -21,7 +21,7 @@ class Husk
 
     # @room_dimensions = room_dimensions
 
-    @entrypoint = Room.new('entrypoint', 10, nil, 0)
+    @entrypoint = Room.new(name: 'entrypoint', scale: :large)
     switch_rooms @entrypoint
 
     # UI Progress bar
@@ -36,6 +36,11 @@ class Husk
     @current_room.deactivate unless @current_room.nil?
     @current_room = room
     @current_room.activate
+
+    # gotta be a better way
+    # Look into create a scaleable service
+    puts "setting scale from husk: #{room.scale}"
+    $game.scene.ship.set_scale room.scale
   end
 
   def calc_health

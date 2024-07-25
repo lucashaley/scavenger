@@ -1,6 +1,6 @@
 class Room
   attr_accessor :name, :chaos, :referring_door
-  attr_accessor :tiles, :tile_dimensions
+  attr_accessor :tiles, :tile_dimensions, :scale
   attr_accessor :doors, :doors_bits, :doors_hash
   attr_accessor :hazards
   attr_accessor :pickups
@@ -14,23 +14,39 @@ class Room
     west:   8
   }
 
+  TILE_SIZE = {
+    small: 16,
+    medium: 32,
+    large: 64
+  }
+
   def initialize (
-    name='test room',
-    tile_dimensions=10,
-    referring_door=nil,
-    chaos=0
+    # name='test room',
+    # tile_dimensions=10, # this will be replaced by size
+    # referring_door=nil,
+    # chaos=0,
+    # scale=:large
+    name: 'test room',
+    # tile_dimensions: 10, # this will be replaced by scale
+    referring_door: nil,
+    chaos: 0,
+    scale: :large
   )
-    puts "\n\nCreating new room: #{name}, #{tile_dimensions}, #{referring_door}, #{chaos}"
+    # puts "\n\nCreating new room: #{name}, #{scale}, #{referring_door}, #{chaos}"
 
     # Initialize variables
     @name = name
     @chaos = chaos
+    @scale = scale
     @referring_door = referring_door
-    @tile_dimensions = tile_dimensions
+    # @tile_dimensions = tile_dimensions
+    @tile_dimensions = 640.div(TILE_SIZE[scale])
     @doors = []
     @hazards = []
     @pickups = []
     @terminals = []
+
+    # puts "tile_dimensions: #{@tile_dimensions}"
 
     # Create tiles
     @tiles = Array.new(@tile_dimensions){Array.new(@tile_dimensions)}
@@ -38,12 +54,12 @@ class Room
       @tile_dimensions.times do |y|
         # @tile_array[x][y] = { x: x * 64, y: y * 64, w: 64, h: 64, path: "sprites/walltop_64.png" }
         @tiles[x][y] = {
-          x: x * 64,
-          y: y * 64,
-          w: 64,
-          h: 64,
+          x: x * TILE_SIZE[scale],
+          y: y * TILE_SIZE[scale],
+          w: TILE_SIZE[scale],
+          h: TILE_SIZE[scale],
           angle: rand(4) * 90,
-          path: "sprites/1bit_floor_64_0#{rand(6)}.png" }
+          path: "sprites/1bit_floor_#{TILE_SIZE[scale]}_0#{rand(6)}.png" }
       end
     end
 
@@ -82,7 +98,7 @@ class Room
       when :west
         DOORS[:east]
       end
-      puts "#{self}: creating referring door: #{@exit_side}, #{@doors_bits}"
+      # puts "#{self}: creating referring door: #{@exit_side}, #{@doors_bits}"
       # @doors << Door.new(
       #   $services[:sprite_registry].construct(:doorh_128),
       #   360 - 64,
@@ -102,8 +118,8 @@ class Room
 
     # old way
     # @doors_bits = DOORS[@exit_side]
-    puts "\n\nCreating new rooms"
-    puts "doors_bits: #{@doors_bits}"
+    # puts "\n\nCreating new rooms"
+    # puts "doors_bits: #{@doors_bits}"
 
     # Check if there is an exit
     # unless @exit_side == :none
@@ -126,32 +142,32 @@ class Room
     # Here is also where we can use chaos?
     if rand(3)+1 > @chaos
       # then we can make new rooms
-      puts "lets make new rooms"
+      # puts "lets make new rooms"
       new_mask = @exit_side == :none ? rand(15)+1 : rand(16)
       @doors_bits |= new_mask
-      puts "doors_bits: #{@doors_bits}"
+      # puts "doors_bits: #{@doors_bits}"
       not_doors_bits = @doors_bits ^ DOORS[@exit_side]
-      puts "not doors bits: #{not_doors_bits}"
+      # puts "not doors bits: #{not_doors_bits}"
 
       # There's probably an elegant ruby way of doing this
       if (not_doors_bits & DOORS[:north]).positive?
-        puts "#{name}: create a door on the north side"
+        # puts "#{name}: create a door on the north side"
         create_door :north
       end
       if (not_doors_bits & DOORS[:east]).positive?
-        puts "#{name}: create a door on the east side"
+        # puts "#{name}: create a door on the east side"
         create_door :east
       end
       if (not_doors_bits & DOORS[:south]).positive?
-        puts "#{name}: create a door on the south side"
+        # puts "#{name}: create a door on the south side"
         create_door :south
       end
       if (not_doors_bits & DOORS[:west]).positive?
-        puts "#{name}: create a door on the west side"
+        # puts "#{name}: create a door on the west side"
         create_door :west
       end
     else
-      puts "lets not make new rooms"
+      # puts "lets not make new rooms"
     end
 
     # Create pickups
@@ -160,7 +176,10 @@ class Room
       (rand(600)+40) - 32,
       (rand(640)+600) - 32,
       0.8,
-      1
+      10,
+      3.seconds,
+      10,
+      @scale
     )
     @pickups << boost_thrust
     if rand(4) == 3
@@ -191,6 +210,21 @@ class Room
       $game.services[:effect_service].register_effectable attractor
       @hazards << attractor
     end
+
+    # Add a door for testing
+    test_door = Door.new(
+      $services[:sprite_registry].construct(:wall2_08),
+      300,
+      1000,
+      0.8,
+      :east,
+      self,
+      self,
+      :large
+    )
+    # puts "\ntest door: #{test_door}\n\n"
+    @doors << test_door
+    puts @doors.collect(&:name)
   end
 
   def create_door side, returns_to=nil
@@ -215,7 +249,7 @@ class Room
       prim = :doorv_128
     end
 
-    puts "create_door: #{self}, #{side}, #{returns_to}"
+    # puts "create_door: #{self}, #{side}, #{returns_to}"
     door = Door.new(
       $services[:sprite_registry].construct(prim),
       door_x,
@@ -223,9 +257,14 @@ class Room
       0.8,
       side,
       self,
-      returns_to
+      returns_to,
+      @scale
     )
     @doors << door
+  end
+
+  def renders
+    (@pickups + @hazards + @terminals).reject{ |p| p.is_dead }
   end
 
   def collidables

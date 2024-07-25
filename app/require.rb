@@ -10,6 +10,8 @@ require 'app/ui/panels/metal_cutout.rb'
 require 'app/ui/components/progress_bar.rb'
 require 'app/ui/components/tall_button.rb'
 
+require 'app/sprite_registers.rb'
+
 require 'app/mixins/deadable.rb'
 require 'app/mixins/soundable.rb'
 require 'app/mixins/bounceable.rb'
@@ -17,6 +19,8 @@ require 'app/mixins/bounceable.rb'
 require 'app/mixins/collideable.rb'
 require 'app/mixins/faceable.rb'
 require 'app/mixins/effectable.rb'
+require 'app/mixins/scaleable.rb'
+require 'app/mixins/collateable.rb'
 
 require 'app/game_over_scene.rb'
 

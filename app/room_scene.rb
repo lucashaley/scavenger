@@ -1,4 +1,5 @@
 class RoomScene < Zif::Scene
+  include SpriteRegisters
   # include Zif::Traceable
 
   attr_accessor :ship, :husk
@@ -40,56 +41,41 @@ class RoomScene < Zif::Scene
   end
 
   def switch_rooms room
-    puts "room_scene switching rooms"
-    # @husk.current_room.deactivate
-    # @husk.current_room = room
-    # @husk.current_room.activate
-    # puts room.doors
-    # puts room.doors_bits
+    puts "\n\nswitching rooms\n==============="
+    puts room
     @husk.switch_rooms room
   end
 
   def prepare_scene
-    $services[:sprite_registry].register_basic_sprite(
-      :ship_64,
-      width: 64,
-      height: 64
+    register_all_sprites
+
+    # ==============================
+    # Let's try layers again
+    puts "Trying layers again"
+    @map = Zif::Layers::LayerGroup.new(
+      tile_width:     64,
+      tile_height:    64,
+      logical_width:  10,
+      logical_height: 10
     )
-    $services[:sprite_registry].register_basic_sprite(
-      :wall_16,
-      width: 64,
-      height: 64
+    @map.new_active_tiled_layer(:tiles)
+    a_new_tile = $services[:sprite_registry].construct(:ship_64).tap do |s|
+      s.y = 0
+      s.x = 0
+    end
+    @map.layers[:tiles].add_positioned_sprite(
+      sprite: a_new_tile,
+      logical_x: 0,
+      logical_y: 0
     )
-    $services[:sprite_registry].register_basic_sprite(
-      :wall2_08,
-      width: 64,
-      height: 64
+    # Set up a camera
+    @camera = Zif::Layers::Camera.new(
+      layer_sprites: @map.layer_containing_sprites,
+      initial_x: -60,
+      initial_y: -60
     )
-    $services[:sprite_registry].register_basic_sprite(
-      :doorh_128,
-      width: 128,
-      height: 64
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :doorv_128,
-      width: 64,
-      height: 128
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :pickup_64,
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :mine_64,
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :effector_64,
-      width: 64,
-      height: 64
-    )
+    # @camera.center_screen
+    # ==============================
 
     # Create the ship
     @ship = Ship.new()
@@ -99,10 +85,7 @@ class RoomScene < Zif::Scene
 
     # Create a husk
     @husk = Husk.new
-    puts @husk
-
-    # Create a room
-    # @room = Room.new('Level1', 10)
+    puts "husk: #{@husk}"
 
     @tiles_target = { x: 40,
                       y: 600,
@@ -164,12 +147,11 @@ class RoomScene < Zif::Scene
     # Register all buttons as Clickables
     @buttons.each { |b| $game.services[:input_service].register_clickable b }
 
-    # @backdrop = Zif::Sprite.new.tap do |s|
-    #   s.w = 720
-    #   s.h = 720
-    #   s.y = 1280 - 720
-    #   s.path = 'sprites/backdrop_01.png'
-    # end
+    @light = $services[:sprite_registry].construct(:light).tap do |s|
+      s.x = 40
+      s.y = 1280 - 700
+      s.blend = Zif::Sprite::BLENDMODE[:multiply]
+    end
     @ui = Zif::Sprite.new.tap do |s|
       s.w = 720
       s.h = 1280
@@ -180,6 +162,9 @@ class RoomScene < Zif::Scene
   def perform_tick
     # $gtk.add_caller_to_puts!
     $gtk.args.gtk.request_quit if $gtk.args.inputs.keyboard.q
+    if $gtk.args.inputs.keyboard.key_down.space
+    $gtk.args.outputs.screenshots << { x: 0, y: 0, w: 720, h: 1280, path: "sn-at-#{Kernel.tick_count}.png" }
+  end
 
     # Render out the tiles
     # This should probably only happen once somewhere
@@ -285,19 +270,24 @@ class RoomScene < Zif::Scene
     # Then we can apply drag
     @ship.apply_drag
 
+    # Update light with ship coords
+    @light.x = @ship.x - 640 + 32
+    @light.y = @ship.y - 640 + 32
 
     # Render everything
     $gtk.args.outputs.sprites << [
       # @backdrop,
       @tiles_target,
       # @room.collidables,
-      @husk.current_room.collidables,
+      @husk.current_room.renders,
       @ship,
       # @room.doors,
       @husk.current_room.doors,
+      @light,
       @ui,
       @husk.deterioration_progress,
-      @buttons
+      @buttons,
+      @camera.layers
     ]
 
     # Player info

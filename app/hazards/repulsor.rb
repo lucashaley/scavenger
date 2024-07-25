@@ -1,24 +1,50 @@
-class Repulsor < Zif::Sprite
+class Repulsor < Zif::CompoundSprite
   include Collideable
   include Bounceable
   include Deadable
   include Effectable
+  include Scaleable
+
+  BOUNCE_SCALES = {
+    large: 0.8,
+    medium: 0.4,
+    small: 0.1
+  }
+  SPRITE_SCALES = {
+    large: 64,
+    medium: 32,
+    small: 16
+  }
+  def sprite_scales scale
+    SPRITE_SCALES[scale]
+  end
 
   def initialize(
     prototype,
-    x=0, y=0
+    x=0,
+    y=0,
+    scale=:large,
+    effect_strength=50
   )
+    puts "\n\Repulsor Initialize\n======================"
     super()
-    assign(prototype.to_h)
+    # assign(prototype.to_h)
 
     @x = x
     @y = y
 
+    @scale = scale
+
+    collate_sprites "repulsor"
+
+    # initialize_collision
     @bounce = 0.9 # This is defined in the Bounceable module
     @sound_collide = "sounds/thump.wav"
 
-    @effect_strength = 50 # This is defined in the Effectable module
+    @effect_strength = effect_strength # This is defined in the Effectable module
     @effect_active = false
+
+    set_scale scale
   end
 
   def collide_action(collidee, facing)

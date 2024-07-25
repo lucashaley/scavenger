@@ -13,6 +13,7 @@ class Mine < Zif::Sprite
     @x = x
     @y = y
 
+    # initialize_collision
     @sound_collide = "sounds/thump.wav"
   end
 

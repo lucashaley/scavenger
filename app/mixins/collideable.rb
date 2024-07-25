@@ -2,27 +2,43 @@ module Collideable
   include Bounceable
   include Soundable
 
-  attr_reader :collision_rect
+  # attr_accessor :collision_rect
   attr_accessor :sound_collide
   attr_accessor :pickup
 
-  def initialize_collision
-    @collision_rect = {
-      x: 0,
-      y: 0,
-      h: @h,
-      w: @w
-    }
-  end
+  # def initialize_collision
+  #   @collision_rect = {
+  #     x: 0,
+  #     y: 0,
+  #     h: @h,
+  #     w: @w
+  #   }
+  # end
+  #
+  # def collision
+  #   {
+  #     x: @collision_rect.x + @x,
+  #     y: @collision_rect.y + @y,
+  #     h: @collision_rect.h,
+  #     w: @collision_rect.w,
+  #     entity: self
+  #   }
+  # end
 
-  def collision
-    puts "Collideable: collision"
-    {
-      x: @collision_rect[x] + @x,
-      y: @collision_rect[y] + @y,
-      h: @h,
-      w: @w
-    }
+  def set_collision_scale scale=:large
+    puts "set_collision_scale #{name}: #{scale}"
+    @h = collision_scales(scale)
+    @w = collision_scales(scale)
+    # @collision_rect.merge!(
+    #   {
+    #     # h: COLLISION_SCALES[scale],
+    #     # w: COLLISION_SCALES[scale]
+    #     h: collision_scales(scale),
+    #     w: collision_scales(scale)
+    #   }
+    # )
+    # puts @collision_rect
+    # @collision_rect
   end
 
   def collide_x_with c

@@ -1,10 +1,25 @@
-class Door < Zif::Sprite
+class Door < Zif::CompoundSprite
   include Collideable
   include Bounceable
+  include Scaleable
 
   attr_accessor :room
   attr_accessor :door_side, :door_buffer, :door_facing
   attr_accessor :destination_room
+
+  BOUNCE_SCALES = {
+    large: 0.8,
+    medium: 0.4,
+    small: 0.1
+  }
+  SPRITE_SCALES = {
+    large: 64,
+    medium: 32,
+    small: 16
+  }
+  def sprite_scales scale
+    SPRITE_SCALES[scale]
+  end
 
   def initialize (
     prototype,
@@ -13,40 +28,65 @@ class Door < Zif::Sprite
     bounce=0.8,
     door_side=:south,
     room=nil,
-    destination=nil
+    destination=nil,
+    scale=:large
   )
+    puts "\n\Door Initialize\n======================"
     super()
-    assign(prototype.to_h)
+    # assign(prototype.to_h)
 
-    puts "\n\nInitialize Door\n==============="
-
-    puts "\n\nCreating a new door: #{x}, #{y}, #{door_side}, #{room}"
-    puts "door door_side: #{door_side}"
-    puts "door room: #{room}"
+    # puts "\n\nInitialize Door\n==============="
+    #
+    # puts "\n\nCreating a new door: #{x}, #{y}, #{door_side}, #{room}"
+    # puts "door door_side: #{door_side}"
+    # puts "door room: #{room}"
 
     @x = x
     @y = y
+
+    @scale = scale
+
     @bounce = bounce
     @sound_bounce = "sounds/clank.wav"
 
+    collate_sprites "door"
+    case door_side
+    when :south
+      angle_delta = 180
+      # y_delta = 64 + 32
+    when :east
+      angle_delta = 270
+    when :west
+      angle_delta = 90
+    end
+    @sprite_scale_hash.each_value do |sc|
+      # puts "sc: #{sc}"
+      sc.each_value do |ss|
+        ss.angle += angle_delta unless angle_delta.nil?
+        # ss.y += y_delta unless y_delta.nil?
+      end
+    end
+
     @room = room
-    puts "door @room: #{@room}"
+    # puts "door @room: #{@room}"
 
     @door_side = door_side
     @door_tolerance = 8
 
-    puts "Door exit: #{@door_side}"
-    puts "destination: #{destination}"
-    puts "New room: #{@room.name + "_" + @door_side.to_s}, #{@door_side}, #{@room.chaos + 1}"
+    # puts "Door exit: #{@door_side}"
+    # puts "destination: #{destination}"
+    # puts "New room: #{@room.name + "_" + @door_side.to_s}, #{@door_side}, #{@room.chaos + 1}"
     # @destination_room = Room.new(@room.name + "_" + @door_side.to_s, 10, @door_side, @room.chaos + 1)
 
     @destination_room = destination.nil? ?
-      Room.new(@room.name + "_" + @door_side.to_s, 10, self, @room.chaos + 1) :
+      Room.new(name: @room.name + "_" + @door_side.to_s, referring_door: self, chaos: @room.chaos + 1, scale: :medium) :
       destination
 
-    puts "collision_rect: #{collision_rect}"
-    initialize_collision
-    puts "collision_rect: #{collision_rect}"
+    # puts "collision_rect: #{collision_rect}"
+    # initialize_collision
+    # puts "collision_rect: #{collision_rect}"
+
+    set_scale scale
   end
 
   def set_room room

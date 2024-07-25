@@ -1,5 +1,7 @@
 class Ship < Zif::CompoundSprite
   include Faceable
+  include Scaleable
+  include Collideable
 
   attr_accessor :health_thrust, :health_ccw, :health_cw
   attr_accessor :health_east, :health_west, :health_north, :health_south
@@ -9,59 +11,141 @@ class Ship < Zif::CompoundSprite
   attr_accessor :is_player, :player_control
   attr_accessor :is_rotating, :is_effectable
   attr_accessor :thrust_sprite
+  # attr_accessor :scale
+
+  TILE_SIZE = {
+    small: 16,
+    medium: 32,
+    large: 64
+  }
+  SCALED_THRUST = {
+    small: 0.25,
+    medium: 0.5,
+    large: 1.0
+  }
+  SPRITE_SCALES = {
+    small: 16,
+    medium: 32,
+    large: 64
+  }
+  def sprite_scales scale
+    SPRITE_SCALES[scale]
+  end
+  COLLISION_SCALES = {
+    large: 64,
+    medium: 32,
+    small: 16
+  }
+  def collision_scales scale
+    COLLISION_SCALES[scale]
+  end
 
   def initialize (
-    name=Zif.unique_name('ship'),
-    x=0,
-    y=0,
-    scale_factor=1,
-    thrust=3,
-    angular_thrust=6, # This is irritatingly in ticks
-    drag=0.9,
-    angular_drag=0.9
+    name: Zif.unique_name('ship'),
+    x: 0,
+    y: 0,
+    scale_factor: 1, # This isn't used
+    thrust: 3,
+    angular_thrust: 6, # This is irritatingly in ticks
+    drag: 0.9,
+    angular_drag: 0.9
   )
     super(name)
 
     @h = 64
     @w = 64
 
-    @ship_sprite = Zif::Sprite.new.tap do |s|
+    # @ship_sprite_32 = Zif::Sprite.new.tap do |s|
+    #   s.x = 0
+    #   s.y = 10
+    #   s.w = 32
+    #   s.h = 32
+    #   s.path = "sprites/1bit_ship_32.png"
+    # end
+    @ship_sprite_32 = $services[:sprite_registry].construct(:ship_32).tap do |s|
+      s.y = 0
+    end
+    # @thrust_sprite_north_32 = Zif::Sprite.new.tap do |s|
+    #   s.x = 0
+    #   s.y = 0
+    #   s.w = 32
+    #   s.h = 8
+    #   s.path = "sprites/ship_thrust_00.png"
+    #   s.blendmode_enum = :add
+    # end
+    # @thrust_sprite_south_32 = Zif::Sprite.new.tap do |s|
+    #   s.x = 0
+    #   s.y = 32
+    #   s.w = 32
+    #   s.h = 8
+    #   s.angle = 180
+    #   s.path = "sprites/ship_thrust_00.png"
+    #   s.blendmode_enum = :add
+    # end
+    # @thrust_sprite_east_32 = Zif::Sprite.new.tap do |s|
+    #   s.x = -16
+    #   s.y = 16
+    #   s.w = 32
+    #   s.h = 8
+    #   s.angle = 90
+    #   s.path = "sprites/ship_thrust_00.png"
+    #   s.blendmode_enum = :add
+    # end
+    # @thrust_sprite_west_32 = Zif::Sprite.new.tap do |s|
+    #   s.x = 16
+    #   s.y = 16
+    #   s.w = 32
+    #   s.h = 8
+    #   s.angle = 270
+    #   s.path = "sprites/ship_thrust_00.png"
+    #   s.blendmode_enum = :add
+    # end
+    # @turret_sprite_32 = Zif::Sprite.new.tap do |s|
+    #   s.x = 0
+    #   s.y = 5
+    #   s.w = 32
+    #   s.h = 32
+    #   s.path = "sprites/ship_turret.png"
+    # end
+    # $game.services.named(:action_service).register_actionable(@turret_sprite_32)
+
+    @ship_sprite_64 = Zif::Sprite.new.tap do |s|
       s.x = 0
-      s.y = 10
+      s.y = 0
       s.w = 64
       s.h = 64
       s.path = "sprites/1bit_ship_64.png"
     end
 
-    @thrust_sprite_north = Zif::Sprite.new.tap do |s|
+    @thrust_sprite_north_64 = Zif::Sprite.new.tap do |s|
       s.x = 0
-      s.y = 0
+      s.y = -10
       s.w = 64
       s.h = 16
       s.path = "sprites/ship_thrust_00.png"
       s.blendmode_enum = :add
     end
-    @thrust_sprite_south = Zif::Sprite.new.tap do |s|
+    @thrust_sprite_south_64 = Zif::Sprite.new.tap do |s|
       s.x = 0
-      s.y = 64
+      s.y = 64 - 10
       s.w = 64
       s.h = 16
       s.angle = 180
       s.path = "sprites/ship_thrust_00.png"
       s.blendmode_enum = :add
     end
-    @thrust_sprite_east = Zif::Sprite.new.tap do |s|
+    @thrust_sprite_east_64 = Zif::Sprite.new.tap do |s|
       s.x = -32
-      s.y = 32
+      s.y = 32 - 10
       s.w = 64
       s.h = 16
       s.angle = 90
       s.path = "sprites/ship_thrust_00.png"
       s.blendmode_enum = :add
     end
-    @thrust_sprite_west = Zif::Sprite.new.tap do |s|
+    @thrust_sprite_west_64 = Zif::Sprite.new.tap do |s|
       s.x = 32
-      s.y = 32
+      s.y = 32 - 10
       s.w = 64
       s.h = 16
       s.angle = 270
@@ -69,22 +153,63 @@ class Ship < Zif::CompoundSprite
       s.blendmode_enum = :add
     end
 
-    @turret_sprite = Zif::Sprite.new.tap do |s|
+    @turret_sprite_64 = Zif::Sprite.new.tap do |s|
       s.x = 0
       s.y = 10
       s.w = 64
       s.h = 64
       s.path = "sprites/ship_turret.png"
     end
-    $game.services.named(:action_service).register_actionable(@turret_sprite)
-    @sprites = [
-      @ship_sprite,
-      @thrust_sprite_north,
-      @thrust_sprite_south,
-      @thrust_sprite_east,
-      @thrust_sprite_west,
-      @turret_sprite
-    ]
+    $game.services.named(:action_service).register_actionable(@turret_sprite_64)
+
+    # @sprites_hash = {
+    #   large:
+    #   [
+    #     @ship_sprite_64,
+    #     @thrust_sprite_north_64,
+    #     @thrust_sprite_south_64,
+    #     @thrust_sprite_east_64,
+    #     @thrust_sprite_west_64,
+    #     @turret_sprite_64
+    #   ],
+    #   medium:
+    #   [
+    #     @ship_sprite_32,
+    #     @thrust_sprite_north_32,
+    #     @thrust_sprite_south_32,
+    #     @thrust_sprite_east_32,
+    #     @thrust_sprite_west_32,
+    #     @turret_sprite_32
+    #   ],
+    # }
+    @current_sprite_hash = {
+      ship: nil,
+      thrust_north: nil,
+      thrust_south: nil,
+      thrust_east: nil,
+      thrust_west: nil,
+      turret: nil
+    }
+    @sprite_scale_hash = {
+      large:
+      {
+        ship: @ship_sprite_64,
+        thrust_north: @thrust_sprite_north_64,
+        thrust_south: @thrust_sprite_south_64,
+        thrust_east: @thrust_sprite_east_64,
+        thrust_west: @thrust_sprite_west_64,
+        turret: @turret_sprite_64
+      },
+      medium:
+      {
+        ship: @ship_sprite_32,
+        thrust_north: @thrust_sprite_north_32,
+        thrust_south: @thrust_sprite_south_32,
+        thrust_east: @thrust_sprite_east_32,
+        thrust_west: @thrust_sprite_west_32,
+        turret: @turret_sprite_32
+      },
+    }
 
     @momentum = {
       x: 0,
@@ -114,21 +239,36 @@ class Ship < Zif::CompoundSprite
     @player_control = true
     @is_rotating = false
     @is_effectable = true
+
+    # initialize_collision
+    set_scale :large
   end
+
+  # def set_scale(scale=:large)
+  #   puts "set_scale: #{scale}"
+  #   @scale = scale
+  #   @current_sprite_hash = @sprites_hash[@scale]
+  #   # @sprites = @current_sprite_hash.values
+  #   refresh_sprites
+  # end
+  #
+  # def refresh_sprites
+  #   @sprites = @current_sprite_hash.values
+  # end
 
   def add_thrust_x input
     health_multiplier = input < 0 ? @health_west : @health_east
-    @energy.x += input * @thrust * health_multiplier
+    @energy.x += input * @thrust * health_multiplier * SCALED_THRUST[@scale]
   end
   def add_thrust_y input
     health_multiplier = input < 0 ? @health_south : @health_north
-    @energy.y += input * @thrust * health_multiplier
+    @energy.y += input * @thrust * health_multiplier * SCALED_THRUST[@scale]
   end
   def add_thrust x=0, y=0
     health_multiplier_x = x < 0 ? @health_west : @health_east
     health_multiplier_y = y < 0 ? @health_south : @health_north
-    @energy.x += x * @thrust * health_multiplier_x
-    @energy.y += y * @thrust * health_multiplier_y
+    @energy.x += x * @thrust * health_multiplier_x * SCALED_THRUST[@scale]
+    @energy.y += y * @thrust * health_multiplier_y * SCALED_THRUST[@scale]
   end
 
   def calc_rotation
@@ -142,11 +282,19 @@ class Ship < Zif::CompoundSprite
 
     # Render the jets here, not a great place
     if @energy.x >= 0
-      @thrust_sprite_east.path = "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png"
+      # This is a problem now that we're switching scales
+      # @thrust_sprite_east.path = "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png"
+      @current_sprite_hash[:thrust_east].path = \
+        "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png" \
+        unless @current_sprite_hash[:thrust_east].nil?
     end
     if @energy.x <= 0
-      @thrust_sprite_west.path = "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png"
+      # @thrust_sprite_west.path = "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png"
+      @current_sprite_hash[:thrust_west].path = \
+        "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png" \
+        unless @current_sprite_hash[:thrust_west].nil?
     end
+    refresh_sprites
 
     # Reset the movement
     @effect.x = 0
@@ -160,11 +308,18 @@ class Ship < Zif::CompoundSprite
 
     # Render the jets here, not a great place
     if @energy.y >= 0
-      @thrust_sprite_north.path = "sprites/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png"
+      # @thrust_sprite_north.path = "sprites/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png"
+      @current_sprite_hash[:thrust_north].path = \
+        "sprites/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png" \
+        unless @current_sprite_hash[:thrust_north].nil?
     end
     if @energy.y <= 0
-      @thrust_sprite_south.path = "sprites/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png"
+      # @thrust_sprite_south.path = "sprites/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png"
+      @current_sprite_hash[:thrust_south].path = \
+        "sprites/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png" \
+        unless @current_sprite_hash[:thrust_south].nil?
     end
+    refresh_sprites
 
     # Reset the movement
     @effect.y = 0
