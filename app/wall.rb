@@ -1,31 +1,59 @@
-class Wall < Zif::Sprite
+class Wall < Zif::CompoundSprite
   include Collideable
   include Bounceable
+  include Scaleable
   include Faceable
 
+  BOUNCE_SCALES = {
+    large: 0.8,
+    medium: 0.4,
+    small: 0.1
+  }
+  SPRITE_SCALES = {
+    large: 64,
+    medium: 32,
+    small: 16
+  }
+  def sprite_scales scale
+    SPRITE_SCALES[scale]
+  end
+
   def initialize (
-    prototype,
     x=0,
     y=0,
     bounce=0.8,
-    facing = :north
+    facing = :north,
+    scale = :large
   )
-    # puts 'Wall initialize'
-    # puts x
-    # puts y
-    # puts bounce
     super()
-    assign(prototype.to_h)
+    # puts "\n\nWall new: #{x}, #{y}"
 
     @x = x
     @y = y
     @bounce = bounce
+
+    @h = 64
+    @w = 64
+
+    wall_type = 'wall' + facing.to_s
+    # puts "Wall type: #{wall_type}, #{scale}"
+
+    # collate_sprites 'wallSouth'
+    collate_sprites wall_type
+    # puts "sprite_scales: #{@sprite_scale_hash}"
+
+    set_scale scale
   end
 
-  # def collide_x_with c
-  #   bounce_x_off c
-  # end
-  # def collide_y_with c
-  #   bounce_y_off c
-  # end
+  def collide_action collidee, facing
+    puts "Colliding with wall!"
+    # play_once @sound_bounce
+    bounce_off(collidee, facing)
+  end
+
+  def bounce
+    puts "bounce: #{@scale}"
+    puts "bounce: #{BOUNCE_SCALES[@scale]}"
+    BOUNCE_SCALES[@scale]
+  end
 end

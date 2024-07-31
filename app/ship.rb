@@ -65,6 +65,9 @@ class Ship < Zif::CompoundSprite
     @ship_sprite_32 = $services[:sprite_registry].construct(:ship_32).tap do |s|
       s.y = 0
     end
+    @ship_sprite_16 = $services[:sprite_registry].construct(:ship_16).tap do |s|
+      s.y = 0
+    end
     # @thrust_sprite_north_32 = Zif::Sprite.new.tap do |s|
     #   s.x = 0
     #   s.y = 0
@@ -209,6 +212,15 @@ class Ship < Zif::CompoundSprite
         thrust_west: @thrust_sprite_west_32,
         turret: @turret_sprite_32
       },
+      small:
+      {
+        ship: @ship_sprite_16,
+        thrust_north: @thrust_sprite_north_32,
+        thrust_south: @thrust_sprite_south_32,
+        thrust_east: @thrust_sprite_east_32,
+        thrust_west: @thrust_sprite_west_32,
+        turret: @turret_sprite_32
+      }
     }
 
     @momentum = {

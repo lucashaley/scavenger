@@ -4,6 +4,27 @@ module SpriteRegisters
     puts "=======================\n\n"
 
     $services[:sprite_registry].register_basic_sprite(
+      :ui_button_large_up,
+      width: 128,
+      height: 128
+    )
+    $services[:sprite_registry].register_basic_sprite(
+      :ui_button_large_down,
+      width: 128,
+      height: 128
+    )
+    $services[:sprite_registry].register_basic_sprite(
+      :ui_button_rotate_up,
+      width: 128,
+      height: 128
+    )
+    $services[:sprite_registry].register_basic_sprite(
+      :ui_button_rotate_down,
+      width: 128,
+      height: 128
+    )
+
+    $services[:sprite_registry].register_basic_sprite(
       :ship_64,
       width: 64,
       height: 64
@@ -48,6 +69,11 @@ module SpriteRegisters
       :ship_32,
       width: 32,
       height: 32
+    )
+    $services[:sprite_registry].register_basic_sprite(
+      :ship_16,
+      width: 16,
+      height: 16
     )
 
     $services[:sprite_registry].register_basic_sprite(

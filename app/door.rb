@@ -79,7 +79,7 @@ class Door < Zif::CompoundSprite
     # @destination_room = Room.new(@room.name + "_" + @door_side.to_s, 10, @door_side, @room.chaos + 1)
 
     @destination_room = destination.nil? ?
-      Room.new(name: @room.name + "_" + @door_side.to_s, referring_door: self, chaos: @room.chaos + 1, scale: :medium) :
+      Room.new(name: @room.name + "_" + @door_side.to_s, referring_door: self, chaos: @room.chaos + 1, scale: SPRITE_SCALES.keys.sample.to_sym) :
       destination
 
     # puts "collision_rect: #{collision_rect}"
@@ -124,8 +124,11 @@ class Door < Zif::CompoundSprite
         collidee.y = center_y - (collidee.h.half)
 
         # Try to switch rooms
-        puts "\n\nSwitching rooms!"
+        puts "\n\nSwitching rooms: #{@destination_room}\n"
         $game.scene.switch_rooms @destination_room
+        puts "Are we getting here?"
+
+        # This should probably be somewhere else
         case @door_side
         when :south
           collidee.x = 360

@@ -25,9 +25,9 @@ class Husk
     switch_rooms @entrypoint
 
     # UI Progress bar
-    @deterioration_progress = ExampleApp::ProgressBar.new(:count_progress, 400, 0, :white)
-    @deterioration_progress.x = 360 - (400 * 0.5)
-    @deterioration_progress.y = 1200
+    @deterioration_progress = ExampleApp::ProgressBar.new(:count_progress, 440, 0, :white)
+    @deterioration_progress.x = 720 - 40 - 440 # 360 - (400 * 0.5)
+    @deterioration_progress.y = 1220
     @deterioration_progress.view_actual_size!
     # @deterioration_progress.hide
   end
