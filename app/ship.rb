@@ -23,14 +23,14 @@ class Ship < Zif::CompoundSprite
     medium: 0.5,
     large: 1.0
   }
-  SPRITE_SCALES = {
-    small: 16,
-    medium: 32,
-    large: 64
-  }
-  def sprite_scales scale
-    SPRITE_SCALES[scale]
-  end
+  # SPRITE_SCALES = {
+  #   small: 16,
+  #   medium: 32,
+  #   large: 64
+  # }
+  # def sprite_scales scale
+  #   SPRITE_SCALES[scale]
+  # end
   COLLISION_SCALES = {
     large: 64,
     medium: 32,
@@ -158,33 +158,29 @@ class Ship < Zif::CompoundSprite
 
     @turret_sprite_64 = Zif::Sprite.new.tap do |s|
       s.x = 0
-      s.y = 10
+      s.y = 0
       s.w = 64
       s.h = 64
       s.path = "sprites/ship_turret.png"
     end
     $game.services.named(:action_service).register_actionable(@turret_sprite_64)
+    @turret_sprite_32 = Zif::Sprite.new.tap do |s|
+      s.x = 0
+      s.y = 0
+      s.w = 32
+      s.h = 32
+      s.path = "sprites/ship_turret_32.png"
+    end
+    $game.services.named(:action_service).register_actionable(@turret_sprite_32)
+    @turret_sprite_16 = Zif::Sprite.new.tap do |s|
+      s.x = 0
+      s.y = 0
+      s.w = 16
+      s.h = 16
+      s.path = "sprites/ship_turret_16.png"
+    end
+    $game.services.named(:action_service).register_actionable(@turret_sprite_16)
 
-    # @sprites_hash = {
-    #   large:
-    #   [
-    #     @ship_sprite_64,
-    #     @thrust_sprite_north_64,
-    #     @thrust_sprite_south_64,
-    #     @thrust_sprite_east_64,
-    #     @thrust_sprite_west_64,
-    #     @turret_sprite_64
-    #   ],
-    #   medium:
-    #   [
-    #     @ship_sprite_32,
-    #     @thrust_sprite_north_32,
-    #     @thrust_sprite_south_32,
-    #     @thrust_sprite_east_32,
-    #     @thrust_sprite_west_32,
-    #     @turret_sprite_32
-    #   ],
-    # }
     @current_sprite_hash = {
       ship: nil,
       thrust_north: nil,
@@ -219,7 +215,7 @@ class Ship < Zif::CompoundSprite
         thrust_south: @thrust_sprite_south_32,
         thrust_east: @thrust_sprite_east_32,
         thrust_west: @thrust_sprite_west_32,
-        turret: @turret_sprite_32
+        turret: @turret_sprite_16
       }
     }
 
@@ -348,13 +344,13 @@ class Ship < Zif::CompoundSprite
     run_action(
       Zif::Actions::Sequence.new(
         [
-          @turret_sprite.new_action(
-            {angle: @turret_sprite.angle+45},
+          @current_sprite_hash[:turret].new_action(
+            {angle: @current_sprite_hash[:turret].angle+45},
             duration: duration,
             easing: :smooth_start
           ),
-          @turret_sprite.new_action(
-            {angle: @turret_sprite.angle+90},
+          @current_sprite_hash[:turret].new_action(
+            {angle: @current_sprite_hash[:turret].angle+90},
             duration: duration,
             easing: :smooth_stop
           ) { end_rotate_ccw }
@@ -375,13 +371,13 @@ class Ship < Zif::CompoundSprite
     run_action(
       Zif::Actions::Sequence.new(
         [
-          @turret_sprite.new_action(
-            {angle: @turret_sprite.angle-45},
+          @current_sprite_hash[:turret].new_action(
+            {angle: @current_sprite_hash[:turret].angle-45},
             duration: duration,
             easing: :smooth_start
           ),
-          @turret_sprite.new_action(
-            {angle: @turret_sprite.angle-90},
+          @current_sprite_hash[:turret].new_action(
+            {angle: @current_sprite_hash[:turret].angle-90},
             duration: duration,
             easing: :smooth_stop
           ) { end_rotate_cw }

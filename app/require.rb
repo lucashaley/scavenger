@@ -20,7 +20,7 @@ require 'app/mixins/collideable.rb'
 require 'app/mixins/faceable.rb'
 require 'app/mixins/effectable.rb'
 require 'app/mixins/scaleable.rb'
-require 'app/mixins/collateable.rb'
+# require 'app/mixins/collateable.rb'
 
 require 'app/game_over_scene.rb'
 

@@ -7,8 +7,10 @@ module Scaleable
     @scale = scale
     @scale_ratio ||= 1 # was used for non-square sprites, blechh
 
-    @h = sprite_scales(scale)
-    @w = sprite_scales(scale) * @scale_ratio
+    # @h = sprite_scales(scale)
+    # @w = sprite_scales(scale) * @scale_ratio
+    @h = $SPRITE_SCALES[scale]
+    @w = $SPRITE_SCALES[scale] * @scale_ratio
     # puts "current_sprite rect after set_scale: #{self.rect_hash}"
 
     @current_sprite_hash = @sprite_scale_hash[@scale]
@@ -43,8 +45,10 @@ module Scaleable
       @sprite_scale_hash[name_hash[:scale]].merge!({name_hash[:section] => Zif::Sprite.new.tap do |s|
       # @sprite_scale_hash[name_hash[:scale].to_sym][name_hash[:section].to_sym] = Zif::Sprite.new.tap do |s|
       # @sprite_scale_hash[name_array.last.to_sym] = {name_array[1].to_sym => Zif::Sprite.new.tap do |s|
-        s.h = sprite_scales(name_hash[:scale])
-        s.w = sprite_scales(name_hash[:scale])
+        s.h = $SPRITE_SCALES[name_hash[:scale]]
+        s.w = $SPRITE_SCALES[name_hash[:scale]]
+        # s.h = sprite_scales(name_hash[:scale])
+        # s.w = sprite_scales(name_hash[:scale])
         s.path = "sprites/#{path}/#{file}"
       end
       })

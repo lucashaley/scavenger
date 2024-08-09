@@ -32,7 +32,8 @@ class Husk
     # @deterioration_progress.hide
   end
 
-  def switch_rooms room
+  def switch_rooms room, door=nil
+    puts "husk switch_rooms: #{room}, #{door}"
     @current_room.deactivate unless @current_room.nil?
     @current_room = room
     @current_room.activate
@@ -41,6 +42,8 @@ class Husk
     # Look into create a scaleable service
     puts "setting scale from husk: #{room.scale}"
     $game.scene.ship.set_scale room.scale
+    # door.exit_door $game.scene.ship unless door.nil?
+    $game.scene.ship.assign(door.exit_point) unless door.nil?
   end
 
   def calc_health

@@ -12,8 +12,8 @@ module ExampleApp
     EDGE_MARGIN = 6
     HEIGHT = 26
     SPRITE_NAMES = {
-      horizontal: 'barHorizontal',
-      vertical:   'barVertical'
+      horizontal: 'barhorizontal',
+      vertical:   'barvertical'
     }.freeze
 
     VALID_COLORS = %i[blue green red white yellow].freeze

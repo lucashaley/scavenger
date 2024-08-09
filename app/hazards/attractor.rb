@@ -10,14 +10,14 @@ class Attractor < Zif::CompoundSprite
     medium: 0.4,
     small: 0.1
   }
-  SPRITE_SCALES = {
-    large: 64,
-    medium: 32,
-    small: 16
-  }
-  def sprite_scales scale
-    SPRITE_SCALES[scale]
-  end
+  # SPRITE_SCALES = {
+  #   large: 64,
+  #   medium: 32,
+  #   small: 16
+  # }
+  # def sprite_scales scale
+  #   SPRITE_SCALES[scale]
+  # end
 
   def initialize(
     prototype,

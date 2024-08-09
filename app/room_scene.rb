@@ -40,11 +40,11 @@ class RoomScene < Zif::Scene
     }
   end
 
-  def switch_rooms room
+  def switch_rooms destination_door
     puts "\n\nswitching rooms\n==============="
     puts "isn't this exciting"
-    puts "#{room}"
-    @husk.switch_rooms room
+    puts "#{destination_door}"
+    @husk.switch_rooms destination_door.room, destination_door
   end
 
   def prepare_scene
