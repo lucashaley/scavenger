@@ -1,39 +1,48 @@
-class Mine < Zif::Sprite
+class Mine < Zif::CompoundSprite
   include Collideable
   include Deadable
+  include Scaleable
+
+  attr_accessor :damage
 
   def initialize(
-    prototype,
-    x=0, y=0,
-    bounce=0.8
+    x=0,
+    y=0,
+    scale = :large,
+    damage = 0.4
   )
+    puts "\n\nMine Initialize\n======================"
     super()
-    assign(prototype.to_h)
+
+    collate_sprites 'mine'
+    set_scale scale
 
     @x = x
     @y = y
+    @damage = damage
 
     # initialize_collision
     @sound_collide = "sounds/thump.wav"
+
+    puts @sprite_scale_hash
+    puts "\n\n#{@current_sprite_hash}"
   end
 
   def collide_action collidee, facing
     puts 'collide_action'
-    damage = 0.4
-    # collidee.health_thrust *= 0.5
-    # collidee.health_ccw *= 0.3
+
     case facing
     when :north
-      collidee.health_north *= damage
+      collidee.health_north *= @damage
       collidee.momentum.y += 4
     when :south
-      collidee.health_south *= damage
+      collidee.health_south *= @damage
       collidee.momentum.y += -4
     when :east
-      collidee.health_east *= damage
+      collidee.health_east *= @damage
       collidee.momentum.x += 4
     when :west
-      collidee.health_west *= damage
+      collidee.health_west *= @damage
       collidee.momentum.x += -4
     end
 

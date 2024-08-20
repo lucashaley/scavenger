@@ -10,21 +10,12 @@ class Attractor < Zif::CompoundSprite
     medium: 0.4,
     small: 0.1
   }
-  # SPRITE_SCALES = {
-  #   large: 64,
-  #   medium: 32,
-  #   small: 16
-  # }
-  # def sprite_scales scale
-  #   SPRITE_SCALES[scale]
-  # end
 
   def initialize(
-    prototype,
-    x=0,
-    y=0,
-    scale=:large,
-    effect_strength=50
+    x = 0,
+    y = 0,
+    scale = :large,
+    effect_strength = 50
   )
     puts "\n\Attractor Initialize\n======================"
     super()
@@ -33,9 +24,8 @@ class Attractor < Zif::CompoundSprite
     @x = x
     @y = y
 
-    @scale = scale
-
     collate_sprites "attractor"
+    set_scale scale
 
     # initialize_collision
     @bounce = 0.9
@@ -43,8 +33,6 @@ class Attractor < Zif::CompoundSprite
 
     @effect_strength = effect_strength
     @effect_active = false
-
-    set_scale scale
   end
 
   def collide_action(collidee, facing)

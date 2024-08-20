@@ -29,9 +29,9 @@ module Scaleable
   def collate_sprites path
     @sprite_scale_hash ||= Hash.new
     sprite_directory = $gtk.args.gtk.stat_file "sprites/#{path}"
-    # puts "sprite_directory: #{sprite_directory}"
+    puts "sprite_directory: #{sprite_directory}"
     sprite_files = $gtk.args.gtk.list_files sprite_directory[:path]
-    # puts "sprite_files: #{sprite_files}\n"
+    puts "sprite_files: #{sprite_files}\n"
     sprite_files.each do |file|
       name_array = file.split('.').first.split('_')
       name_hash = {
@@ -45,6 +45,7 @@ module Scaleable
       @sprite_scale_hash[name_hash[:scale]].merge!({name_hash[:section] => Zif::Sprite.new.tap do |s|
       # @sprite_scale_hash[name_hash[:scale].to_sym][name_hash[:section].to_sym] = Zif::Sprite.new.tap do |s|
       # @sprite_scale_hash[name_array.last.to_sym] = {name_array[1].to_sym => Zif::Sprite.new.tap do |s|
+        s.name = "#{name_hash[:type]}_#{name_hash[:section]}_#{name_hash[:scale]}"
         s.h = $SPRITE_SCALES[name_hash[:scale]]
         s.w = $SPRITE_SCALES[name_hash[:scale]]
         # s.h = sprite_scales(name_hash[:scale])

@@ -10,25 +10,15 @@ class Repulsor < Zif::CompoundSprite
     medium: 0.4,
     small: 0.1
   }
-  # SPRITE_SCALES = {
-  #   large: 64,
-  #   medium: 32,
-  #   small: 16
-  # }
-  # def sprite_scales scale
-  #   SPRITE_SCALES[scale]
-  # end
 
   def initialize(
-    prototype,
-    x=0,
-    y=0,
-    scale=:large,
-    effect_strength=50
+    x = 0,
+    y = 0,
+    scale = :large,
+    effect_strength = 50
   )
     puts "\n\Repulsor Initialize\n======================"
     super()
-    # assign(prototype.to_h)
 
     @x = x
     @y = y
@@ -36,6 +26,7 @@ class Repulsor < Zif::CompoundSprite
     @scale = scale
 
     collate_sprites "repulsor"
+    set_scale scale
 
     # initialize_collision
     @bounce = 0.9 # This is defined in the Bounceable module
@@ -43,8 +34,6 @@ class Repulsor < Zif::CompoundSprite
 
     @effect_strength = effect_strength # This is defined in the Effectable module
     @effect_active = false
-
-    set_scale scale
   end
 
   def collide_action(collidee, facing)

@@ -41,45 +41,18 @@ class RoomScene < Zif::Scene
   end
 
   def switch_rooms destination_door
-    puts "\n\nswitching rooms\n==============="
+    puts "\n\nRoomScene::switching rooms\n==============="
     puts "isn't this exciting"
     puts "#{destination_door}"
     @husk.switch_rooms destination_door.room, destination_door
+    puts "\n\nRoomScene new room: #{@husk.current_room}"
   end
 
   def prepare_scene
     register_all_sprites
 
-    # # ==============================
-    # # Let's try layers again
-    # puts "Trying layers again"
-    # @map = Zif::Layers::LayerGroup.new(
-    #   tile_width:     64,
-    #   tile_height:    64,
-    #   logical_width:  10,
-    #   logical_height: 10
-    # )
-    # @map.new_active_tiled_layer(:tiles)
-    # a_new_tile = $services[:sprite_registry].construct(:ship_64).tap do |s|
-    #   s.y = 0
-    #   s.x = 0
-    # end
-    # @map.layers[:tiles].add_positioned_sprite(
-    #   sprite: a_new_tile,
-    #   logical_x: 0,
-    #   logical_y: 0
-    # )
-    # # Set up a camera
-    # @camera = Zif::Layers::Camera.new(
-    #   layer_sprites: @map.layer_containing_sprites,
-    #   initial_x: -60,
-    #   initial_y: -60
-    # )
-    # # @camera.center_screen
-    # # ==============================
-
     # Create the ship
-    @ship = Ship.new()
+    @ship = Ship.new
     @ship.y = 1000
     @ship.x = 400
     $game.services.named(:action_service).register_actionable(@ship)
@@ -95,7 +68,7 @@ class RoomScene < Zif::Scene
     # Hopefully these work with mobile touches
     FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
     BUTTONS_CENTER = {x: 280, y: 260}.freeze
-    @ui_button_north = Zif::UI::TwoStageButton.new().tap do |b|
+    @ui_button_north = Zif::UI::TwoStageButton.new.tap do |b|
       b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
       b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
       b.w = 128
@@ -115,7 +88,7 @@ class RoomScene < Zif::Scene
       b.recenter_label
       b.unpress
     end
-    @ui_button_south = Zif::UI::TwoStageButton.new().tap do |b|
+    @ui_button_south = Zif::UI::TwoStageButton.new.tap do |b|
       b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
       b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
       b.w = 128
@@ -135,7 +108,7 @@ class RoomScene < Zif::Scene
       b.recenter_label
       b.unpress
     end
-    @ui_button_east = Zif::UI::TwoStageButton.new().tap do |b|
+    @ui_button_east = Zif::UI::TwoStageButton.new.tap do |b|
       b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
       b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
       b.w = 128
@@ -155,7 +128,7 @@ class RoomScene < Zif::Scene
       b.recenter_label
       b.unpress
     end
-    @ui_button_west = Zif::UI::TwoStageButton.new().tap do |b|
+    @ui_button_west = Zif::UI::TwoStageButton.new.tap do |b|
       b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
       b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
       b.w = 128
@@ -284,7 +257,7 @@ class RoomScene < Zif::Scene
     end
 
     # return if !@player_control
-    return if !@ship.player_control
+    return unless @ship.player_control
 
     # Movement is based on thrust, so that the player continues to move
     # even after the key is released.
@@ -299,14 +272,14 @@ class RoomScene < Zif::Scene
       @ship.add_thrust_y 1.0
     end
     if @ui_button_south.is_pressed
-      @ship.add_thrust_y -1.0
+      @ship.add_thrust_y - 1.0
     end
     if @ui_button_east.is_pressed
       @ship.add_thrust_x 1.0
     end
     if @ui_button_west.is_pressed
       # @ui_button_west.label.y = -0.01
-      @ship.add_thrust_x -1.0
+      @ship.add_thrust_x - 1.0
     end
 
     # Handle the basic movement.
@@ -366,6 +339,7 @@ class RoomScene < Zif::Scene
     @light.y = @ship.center_y - @light.h.half
 
     # Render everything
+    puts "\n\n\nunder_player: #{@husk.current_room.renders_under_player}\n\n\n"
     $gtk.args.outputs.sprites.clear
     $gtk.args.outputs.sprites << [
       @husk.current_room.tiles_target.containing_sprite.assign({x:40, y: 560}),
