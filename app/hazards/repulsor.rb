@@ -61,9 +61,6 @@ class Repulsor < Zif::CompoundSprite
     effect_vector.y *= (1/distance) * effect_strength # @effect_strength
     # puts effect_vector
 
-    # Do we want to be just adding to the momentum? Seems wrong
-    # @effect_target.momentum.x -= effect_vector.x
-    # @effect_target.momentum.y -= effect_vector.y
     @effect_target.effect.x -= effect_vector.x
     @effect_target.effect.y -= effect_vector.y
   end

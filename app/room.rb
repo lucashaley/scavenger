@@ -132,47 +132,6 @@ class Room
     @hazards << attractor
   end
 
-  # # This creates a door.
-  # # The room beyond is automatically populated in the Door class.
-  # # def create_door side, connecting_door=nil
-  # def create_door side
-  #   pixel_scale = $SPRITE_SCALES[scale]
-  #
-  #   puts "room create_door: #{side}, #{returns_to}"
-  #   door_x = door_y = 0
-  #   case side
-  #   when :north
-  #     door_x = (360)
-  #     door_y = (1280 - 80 - pixel_scale)
-  #   when :south
-  #     door_x = (360 - pixel_scale)
-  #     door_y = (1280 - 80 - 640)
-  #   when :east
-  #     door_x = (720 - 40 - pixel_scale)
-  #     door_y = (1280 - 80 - 320 - pixel_scale)
-  #   when :west
-  #     # door_x = (40 - TILE_SIZE[scale])
-  #     door_x = 40
-  #     door_y = (1280 - 80 - 320 - pixel_scale)
-  #   end
-  #
-  #   # This is where we create the door
-  #   door = Door.new(
-  #     x: door_x,
-  #     y: door_y,
-  #     bounce: 0.8,
-  #     room: self,
-  #     door_side: side,
-  #     # connecting_door: connecting_door,
-  #     scale: @scale
-  #   )
-  #
-  #   # connect the existing door
-  #   # returns_to&.connecting_door = door
-  #
-  #   @doors << door
-  # end
-
   def renders
     (@pickups + @hazards + @terminals).reject(&:is_dead)
   end
