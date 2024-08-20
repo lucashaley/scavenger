@@ -1,4 +1,4 @@
-log.filter_subsystems=HTTPServer
+# log.filter_subsystems=HTTPServer
 
 # Should use the whole display
 # equivalent to calling $gtk.set_window_fullscreen(true)
@@ -17,3 +17,11 @@ log.filter_subsystems=HTTPServer
 #       game and wire it up to $gtk.request_quit
 #       OS Shortcuts for quitting such as ALT+F4 and CMD+Q will still work.
 # renderer.borderless=true
+
+# Palantir stuff
+# Enable the use of In-Game Web Server.
+webserver.enabled=true
+# Port that will be used for In-Game Web Server
+webserver.port=9001
+# Hide logs from the In-Game Web Server
+log.filter_subsystems=HTTPServer
