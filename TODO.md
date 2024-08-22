@@ -7,4 +7,5 @@
 - [x] BoostThrust to use `collate_sprites`
 - [x] Rotating the turret doesn't work
 - [ ] Make scaled version of thrusters
-- [ ] Fix weird south door thing
+- [x] Fix weird south door thing
+- [ ] Check out override bounce in boost_thrust.rb
