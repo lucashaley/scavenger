@@ -66,6 +66,10 @@ class Room
     populate_pickups
     populate_hazards
 
+    # create a dummy DataTerminal
+    @data_terminal = DataTerminal.new(x: 360, y: 900, scale: @scale)
+    @terminals << @data_terminal
+
     # This is dumping to args for Palantir
     $gtk.args.state.rooms[@name] = { doors: @doors }
 
@@ -137,7 +141,7 @@ class Room
   end
 
   def renders_under_player
-    (@pickups + @hazards + @terminals).reject(&:is_dead)
+    (@pickups + @hazards).reject(&:is_dead) + @terminals
   end
 
   def renders_over_player
@@ -145,7 +149,7 @@ class Room
   end
 
   def collidables
-    @walls + (@pickups + @hazards + @terminals).reject(&:is_dead)
+    @walls + (@pickups + @hazards).reject(&:is_dead) + @terminals
   end
 
   def activate

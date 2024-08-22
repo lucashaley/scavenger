@@ -26,9 +26,11 @@ class Attractor < Zif::CompoundSprite
 
     collate_sprites "attractor"
     set_scale scale
+    initialize_collideable
+    initialize_bounceable(bounce: 0.9)
 
     # initialize_collision
-    @bounce = 0.9
+    # @bounce = 0.9
     @sound_collide = "sounds/thump.wav"
 
     @effect_strength = effect_strength

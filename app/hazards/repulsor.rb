@@ -27,9 +27,11 @@ class Repulsor < Zif::CompoundSprite
 
     collate_sprites "repulsor"
     set_scale scale
+    initialize_collideable
+    initialize_bounceable(bounce: 0.9)
 
     # initialize_collision
-    @bounce = 0.9 # This is defined in the Bounceable module
+    # @bounce = 0.9 # This is defined in the Bounceable module
     @sound_collide = "sounds/thump.wav"
 
     @effect_strength = effect_strength # This is defined in the Effectable module
@@ -38,7 +40,7 @@ class Repulsor < Zif::CompoundSprite
 
   def collide_action(collidee, facing)
     puts 'collide_action'
-    play_once @sound_collide
+    # play_once @sound_collide
     if facing == :east || facing == :west
       bounce_x_off collidee, facing
     end

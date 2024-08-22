@@ -3,54 +3,28 @@ module Collideable
   include Soundable
 
   # attr_accessor :collision_rect
+  attr_accessor :collision_enabled
   attr_accessor :sound_collide
-  attr_accessor :pickup
+  # attr_accessor :pickup
 
-  # def initialize_collision
-  #   @collision_rect = {
-  #     x: 0,
-  #     y: 0,
-  #     h: @h,
-  #     w: @w
-  #   }
-  # end
-  #
-  # def collision
-  #   {
-  #     x: @collision_rect.x + @x,
-  #     y: @collision_rect.y + @y,
-  #     h: @collision_rect.h,
-  #     w: @collision_rect.w,
-  #     entity: self
-  #   }
-  # end
+  def initialize_collideable(
+    sound_collide: ''
+  )
+    @collision_enabled = true
+    @sound_collide = sound_collide
+  end
 
-  def set_collision_scale scale=:large
+  def set_collision_scale (scale=:large)
     puts "set_collision_scale #{name}: #{scale}"
     @h = collision_scales(scale)
     @w = collision_scales(scale)
-    # @collision_rect.merge!(
-    #   {
-    #     # h: COLLISION_SCALES[scale],
-    #     # w: COLLISION_SCALES[scale]
-    #     h: collision_scales(scale),
-    #     w: collision_scales(scale)
-    #   }
-    # )
-    # puts @collision_rect
-    # @collision_rect
   end
 
-  def collide_x_with c
-    # puts 'Collideable collide_x_with'
+  def collide_x_with (c)
+    return unless @collision_enabled
 
-    # if !@pickup
-    #   puts "Not a pickup"
-    #   # play_once @sound_collide
-    #   bounce_x_off c
-    #   # collide_action c
-    #   return
-    # end
+    play_once @sound_collide unless @sound_collide.nil?
+
     # First we need to know which side we're being hit on
     # and then the direction the ship is facing
     # It would be nice to limit the collision to a smaller size from center
@@ -60,26 +34,13 @@ module Collideable
     collided_on = :east if c.x > @x
 
     collide_action c, collided_on
-
-    # if (c.x < @x && c.facing == :east) || (c.x > @x && c.facing == :west)
-    #   puts "YUSSSSS"
-    #   play_once @sound_pickup_success
-    #   pickup_action c, collided_on
-    # else
-    #   # play_once @sound_pickup_failure
-    #   bounce_x_off c, collided_on
-    # end
   end
 
-  def collide_y_with c
-    # puts "Collideable #{@name}: collide_y_with"
+  def collide_y_with (c)
+    return unless @collision_enabled
 
-    # if !@pickup
-    #   play_once @sound_collide
-    #   collide_action c
-    #   return
-    # end
-    #
+    play_once @sound_collide unless @sound_collide.nil?
+
     # puts 'We didn\'t break all the way'
     # First we need to know which side we're being hit on
     # and then the direction the ship is facing
@@ -90,20 +51,5 @@ module Collideable
     collided_on = :north if c.y > @y
 
     collide_action c, collided_on
-
-    # if c.y < @y && c.facing == :north
-    #   puts 'pickup south'
-    #   play_once @sound_pickup_success
-    #   pickup_action c
-    # # elsif c.y > @y && c.angle.abs == 180
-    # elsif c.y > @y && c.facing == :south
-    #   # We're being hit on the north side
-    #   puts 'pickup north'
-    #   play_once @sound_pickup_success
-    #   pickup_action c
-    # else
-    #   # play_once @sound_pickup_failure
-    #   bounce_y_off c
-    # end
   end
 end

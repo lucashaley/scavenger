@@ -22,10 +22,15 @@ module Scaleable
 
   def collate_sprites path
     @sprite_scale_hash ||= Hash.new
+
     sprite_directory = $gtk.args.gtk.stat_file "sprites/#{path}"
     puts "sprite_directory: #{sprite_directory}"
+    puts "ERROR: no sprite directory" if sprite_directory.nil?
+
     sprite_files = $gtk.args.gtk.list_files sprite_directory[:path]
     puts "sprite_files: #{sprite_files}\n"
+    puts "ERROR: no sprite files" if sprite_files.empty?
+
     sprite_files.each do |file|
       name_array = file.split('.').first.split('_')
       name_hash = {

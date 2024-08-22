@@ -30,19 +30,17 @@ class Wall < Zif::CompoundSprite
 
     @x = x
     @y = y
-    @bounce = bounce
+    # @bounce = bounce
 
     @h = 64
     @w = 64
 
     wall_type = 'wall' + facing.to_s
-    # puts "Wall type: #{wall_type}, #{scale}"
 
-    # collate_sprites 'wallSouth'
     collate_sprites wall_type
-    # puts "sprite_scales: #{@sprite_scale_hash}"
-
     set_scale scale
+    initialize_collideable
+    initialize_bounceable(bounce: bounce)
   end
 
   def collide_action collidee, facing

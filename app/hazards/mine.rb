@@ -16,6 +16,7 @@ class Mine < Zif::CompoundSprite
 
     collate_sprites 'mine'
     set_scale scale
+    initialize_collideable
 
     @x = x
     @y = y

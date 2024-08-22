@@ -2,8 +2,18 @@ module Bounceable
   include Soundable
 
   attr_accessor :bounce
+  attr_accessor :sound_bounce
 
+  def initialize_bounceable(
+    bounce: 0.7,
+    sound_bounce: 'sounds/clank.wav')
+
+    @bounce = bounce
+    @sound_bounce = sound_bounce
+  end
   def bounce_x_off(bouncer, collided_on)
+    play_once @sound_bounce
+
     # puts "bounce_x_off #{bouncer.name}, x: #{bouncer.x}"
     right_edge = @x + @w
     case collided_on
@@ -17,6 +27,8 @@ module Bounceable
   end
 
   def bounce_y_off(bouncer, collided_on)
+    play_once @sound_bounce
+
     # puts 'bounce_y_off'
     case collided_on
     when :north
@@ -30,6 +42,8 @@ module Bounceable
 
   def bounce_off(bouncer, collided_on)
     puts "bounce_off #{bouncer.name}"
+    play_once @sound_bounce
+
     right_edge = @x + @w
     case collided_on
     when :east

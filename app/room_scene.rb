@@ -4,6 +4,9 @@ class RoomScene < Zif::Scene
 
   attr_accessor :ship, :husk
 
+  FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
+  BUTTONS_CENTER = {x: 280, y: 260}.freeze
+
   def initialize
     @tile_dimensions = 64
     @map_dimensions = 10
@@ -66,8 +69,8 @@ class RoomScene < Zif::Scene
 
     # Create the navigation buttons
     # Hopefully these work with mobile touches
-    FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
-    BUTTONS_CENTER = {x: 280, y: 260}.freeze
+    # FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
+    # BUTTONS_CENTER = {x: 280, y: 260}.freeze
     @ui_button_north = Zif::UI::TwoStageButton.new.tap do |b|
       b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
       b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
@@ -239,15 +242,37 @@ class RoomScene < Zif::Scene
 
   def perform_tick
     # $gtk.add_caller_to_puts!
-    $gtk.args.gtk.request_quit if $gtk.args.inputs.keyboard.q
-    if $gtk.args.inputs.keyboard.key_down.space
-      $gtk.args.outputs.screenshots << { x: 0, y: 0, w: 720, h: 1280, path: "sn-at-#{Kernel.tick_count}.png" }
-    end
-
+    handle_meta_input
 
     # Deads cleanup
     @husk.current_room.purge_deads
     @husk.calc_health
+
+    # Do all the inputs, unless we've taken over player control
+    handle_player_input if @ship.player_control
+
+    handle_render
+
+    # Is the game over?
+    return :game_over if @husk.health <= 0
+  end
+
+  # It might be nice to have this, instead of the return value in the perform_tick method
+  # def game_over
+  #   puts "\n\nGAME OVER\n========="
+  #   $game.scene = :game_over
+  # end
+
+  private
+
+  def handle_meta_input
+    # quit
+    $gtk.args.gtk.request_quit if $gtk.args.inputs.keyboard.q
+
+    # screenshot
+    if $gtk.args.inputs.keyboard.key_down.space
+      $gtk.args.outputs.screenshots << { x: 0, y: 0, w: 720, h: 1280, path: "sn-at-#{Kernel.tick_count}.png" }
+    end
 
     # stop sound if space key is pressed
     if $gtk.args.inputs.keyboard.key_down.space
@@ -255,10 +280,9 @@ class RoomScene < Zif::Scene
       # OR
       $gtk.args.audio.delete :bg_music
     end
+  end
 
-    # return if !@player_control
-    return unless @ship.player_control
-
+  def handle_player_input
     # Movement is based on thrust, so that the player continues to move
     # even after the key is released.
     # The way we handle this is by an intermediary variable between input
@@ -267,19 +291,20 @@ class RoomScene < Zif::Scene
 
     # Handle mouse clicks in directional buttons
     # We do this in the tick because button needs to repeat while held
+    #
     if @ui_button_north.is_pressed
       # @ui_button_north.label.y = -0.1
-      @ship.add_thrust_y 1.0
+      @ship.add_thrust_y (1.0)
     end
     if @ui_button_south.is_pressed
-      @ship.add_thrust_y - 1.0
+      @ship.add_thrust_y (-1.0)
     end
     if @ui_button_east.is_pressed
-      @ship.add_thrust_x 1.0
+      @ship.add_thrust_x (1.0)
     end
     if @ui_button_west.is_pressed
       # @ui_button_west.label.y = -0.01
-      @ship.add_thrust_x - 1.0
+      @ship.add_thrust_x (-1.0)
     end
 
     # Handle the basic movement.
@@ -337,12 +362,12 @@ class RoomScene < Zif::Scene
     # Update light with ship coords
     @light.x = @ship.center_x - @light.w.half
     @light.y = @ship.center_y - @light.h.half
+  end
 
-    # Render everything
-    puts "\n\n\nunder_player: #{@husk.current_room.renders_under_player}\n\n\n"
+  def handle_render
     $gtk.args.outputs.sprites.clear
     $gtk.args.outputs.sprites << [
-      @husk.current_room.tiles_target.containing_sprite.assign({x:40, y: 560}),
+      @husk.current_room.tiles_target.containing_sprite.assign({ x: 40, y: 560 }),
       @husk.current_room.renders_under_player,
       @ship,
       @light,
@@ -353,21 +378,12 @@ class RoomScene < Zif::Scene
       @ui,
       @husk.deterioration_progress,
       @buttons,
-      # @camera.layers
+    # @camera.layers
     ]
 
     # Player info
     # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
     # $gtk.args.outputs.debug.watch pretty_format(@map.layers[:ship].sprites), label_style: @label_style, background_style: @background_style
     $gtk.args.outputs.debug.watch @husk, label_style: @label_style, background_style: @background_style
-
-    # Is the game over?
-    return :game_over if @husk.health <= 0
-end
-
-  # It might be nice to have this, instead of the return value in the perform_tick method
-  # def game_over
-  #   puts "\n\nGAME OVER\n========="
-  #   $game.scene = :game_over
-  # end
+  end
 end

@@ -35,6 +35,7 @@ require 'app/pickups/boost_thrust.rb'
 require 'app/hazards/mine.rb'
 require 'app/hazards/repulsor.rb'
 require 'app/hazards/attractor.rb'
+require 'app/connectors/data_terminal.rb'
 
 # require 'app/scenes/zif_example_scene.rb'
 # require 'app/scenes/world.rb'

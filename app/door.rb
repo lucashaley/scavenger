@@ -35,11 +35,13 @@ class Door < Zif::CompoundSprite
     @door_side = door_side
     @door_tolerance = 8
 
-    @bounce = BOUNCE_SCALES[scale]
+    # @bounce = BOUNCE_SCALES[scale]
     @sound_bounce = "sounds/clank.wav"
 
     collate_sprites "door"
     set_scale scale
+    initialize_collideable
+    initialize_bounceable(bounce: BOUNCE_SCALES[scale])
 
     @exit_point = { x: 0, y: 0 }
 
@@ -139,7 +141,7 @@ class Door < Zif::CompoundSprite
     puts "create_connecting_room"
     room = Room.new(
       name: @room.name + "_" + @door_side.to_s,
-      referring_door: self,
+      entrance_door: self,
       chaos: @room.chaos + 1, # the higher the chaos, the smaller chance of further rooms
       scale: $SPRITE_SCALES.keys.sample.to_sym # this chooses a random size
     )

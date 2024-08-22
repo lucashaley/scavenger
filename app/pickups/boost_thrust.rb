@@ -27,17 +27,19 @@ class BoostThrust < Zif::CompoundSprite
 
     collate_sprites 'boost'
     set_scale scale
+    initialize_collideable(sound_collide: 'sounds/pickup.wav')
+    initialize_bounceable(bounce: bounce, sound_bounce: 'sounds/thump.wav')
 
     @x = x
     @y = y
-    @bounce = bounce
+    # @bounce = bounce
 
     @amount = amount
     @duration = duration
     @start_duration = start_duration
 
     @sound_pickup_success = "sounds/pickup.wav"
-    @sound_bounce = "sounds/thump.wav"
+    # @sound_bounce = "sounds/thump.wav"
 
     puts @sprite_scale_hash
     puts "\n\n#{@current_sprite_hash}"
