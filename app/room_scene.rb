@@ -341,15 +341,13 @@ class RoomScene < Zif::Scene
     @ship.bounds_inside_x @ui_viewscreen
 
     # and then along the y axis
-    @ship.calc_positon_y
+    @ship.calc_position_y
 
     # Check door collisions
-    # collision_doors_y = $gtk.args.geometry.find_intersect_rect @ship, @room.doors
     collision_doors_y = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.doors
     collision_doors_y.collide_y_with @ship if collision_doors_y
 
     # Check pickup collisions
-    # collision_pickups_y = $gtk.args.geometry.find_intersect_rect @ship, @room.collidables
     collision_pickups_y = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.collidables
     collision_pickups_y.collide_y_with @ship if collision_pickups_y
 
@@ -377,13 +375,17 @@ class RoomScene < Zif::Scene
       @light,
       @ui,
       @husk.deterioration_progress,
+      @ship.data_progress,
       @buttons,
     # @camera.layers
     ]
 
+    # This renders out the data boxes, maybe use sprites later on
+    $gtk.args.outputs.primitives << @ship.render_data_blocks
+
     # Player info
     # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
     # $gtk.args.outputs.debug.watch pretty_format(@map.layers[:ship].sprites), label_style: @label_style, background_style: @background_style
-    $gtk.args.outputs.debug.watch @husk, label_style: @label_style, background_style: @background_style
+    $gtk.args.outputs.debug.watch [@husk, @ship.data], label_style: @label_style, background_style: @background_style
   end
 end

@@ -2,6 +2,7 @@ class Door < Zif::CompoundSprite
   include Collideable
   include Bounceable
   include Scaleable
+  include Bufferable
 
   attr_accessor :room
   attr_accessor :door_side, :door_buffer, :door_facing
@@ -42,6 +43,7 @@ class Door < Zif::CompoundSprite
     set_scale scale
     initialize_collideable
     initialize_bounceable(bounce: BOUNCE_SCALES[scale])
+    initialize_bufferable(:whole)
 
     @exit_point = { x: 0, y: 0 }
 
@@ -176,11 +178,11 @@ class Door < Zif::CompoundSprite
       ((facing == :east || :west) && (@door_side == :east || :west))
 
       entering = case @door_side
-      when :north, :south
-        collidee.center_x.between?(center_x - @door_tolerance, center_x + @door_tolerance)
-      when :east, :west
-        collidee.center_y.between?(center_y - @door_tolerance, center_y + @door_tolerance)
-      end
+                 when :north, :south
+                   collidee.center_x.between?(center_x - @door_tolerance, center_x + @door_tolerance)
+                 when :east, :west
+                   collidee.center_y.between?(center_y - @door_tolerance, center_y + @door_tolerance)
+                 end
 
       if entering
         enter_door collidee

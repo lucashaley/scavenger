@@ -9,8 +9,10 @@ class Ship < Zif::CompoundSprite
   attr_accessor :thrust, :angular_thrust
   attr_accessor :drag, :angular_drag
   attr_accessor :is_player, :player_control
-  attr_accessor :is_rotating, :is_effectable
+  attr_accessor :is_rotating, :is_effectable, :is_interfacing
   attr_accessor :thrust_sprite
+  attr_accessor :data, :data_progress
+  attr_reader :data_blocks, :data_block_count
   # attr_accessor :scale
 
   TILE_SIZE = {
@@ -55,62 +57,12 @@ class Ship < Zif::CompoundSprite
     @h = 64
     @w = 64
 
-    # @ship_sprite_32 = Zif::Sprite.new.tap do |s|
-    #   s.x = 0
-    #   s.y = 10
-    #   s.w = 32
-    #   s.h = 32
-    #   s.path = "sprites/1bit_ship_32.png"
-    # end
     @ship_sprite_32 = $services[:sprite_registry].construct(:ship_32).tap do |s|
       s.y = 0
     end
     @ship_sprite_16 = $services[:sprite_registry].construct(:ship_16).tap do |s|
       s.y = 0
     end
-    # @thrust_sprite_north_32 = Zif::Sprite.new.tap do |s|
-    #   s.x = 0
-    #   s.y = 0
-    #   s.w = 32
-    #   s.h = 8
-    #   s.path = "sprites/ship_thrust_00.png"
-    #   s.blendmode_enum = :add
-    # end
-    # @thrust_sprite_south_32 = Zif::Sprite.new.tap do |s|
-    #   s.x = 0
-    #   s.y = 32
-    #   s.w = 32
-    #   s.h = 8
-    #   s.angle = 180
-    #   s.path = "sprites/ship_thrust_00.png"
-    #   s.blendmode_enum = :add
-    # end
-    # @thrust_sprite_east_32 = Zif::Sprite.new.tap do |s|
-    #   s.x = -16
-    #   s.y = 16
-    #   s.w = 32
-    #   s.h = 8
-    #   s.angle = 90
-    #   s.path = "sprites/ship_thrust_00.png"
-    #   s.blendmode_enum = :add
-    # end
-    # @thrust_sprite_west_32 = Zif::Sprite.new.tap do |s|
-    #   s.x = 16
-    #   s.y = 16
-    #   s.w = 32
-    #   s.h = 8
-    #   s.angle = 270
-    #   s.path = "sprites/ship_thrust_00.png"
-    #   s.blendmode_enum = :add
-    # end
-    # @turret_sprite_32 = Zif::Sprite.new.tap do |s|
-    #   s.x = 0
-    #   s.y = 5
-    #   s.w = 32
-    #   s.h = 32
-    #   s.path = "sprites/ship_turret.png"
-    # end
-    # $game.services.named(:action_service).register_actionable(@turret_sprite_32)
 
     @ship_sprite_64 = Zif::Sprite.new.tap do |s|
       s.x = 0
@@ -242,27 +194,25 @@ class Ship < Zif::CompoundSprite
     @health_north = @health_south = @health_east = @health_west = 1.0
 
     @facing = :north
+    @data = 0
+    @data_blocks = []
+    @data_block_count = 6
 
     @is_player = true
     @player_control = true
     @is_rotating = false
     @is_effectable = true
+    @is_interfacing = false
 
     # initialize_collision
     set_scale :large
-  end
 
-  # def set_scale(scale=:large)
-  #   puts "set_scale: #{scale}"
-  #   @scale = scale
-  #   @current_sprite_hash = @sprites_hash[@scale]
-  #   # @sprites = @current_sprite_hash.values
-  #   refresh_sprites
-  # end
-  #
-  # def refresh_sprites
-  #   @sprites = @current_sprite_hash.values
-  # end
+    # UI Progress bar
+    @data_progress = ExampleApp::ProgressBar.new(:data_progress, 440, 0, :white)
+    @data_progress.x = 720 - 40 - 440 # 360 - (400 * 0.5)
+    @data_progress.y = 1200
+    @data_progress.view_actual_size!
+  end
 
   def add_thrust_x input
     health_multiplier = input < 0 ? @health_west : @health_east
@@ -308,7 +258,15 @@ class Ship < Zif::CompoundSprite
     @effect.x = 0
     @energy.x = 0
   end
-  def calc_positon_y
+
+  def predict_position_y
+    new_momentum_y = @momentum.y + @energy.y
+    new_momentum_y += @effect.y if @is_effectable
+    new_y = @y + new_momentum_y
+    new_y.truncate
+  end
+
+  def calc_position_y
     @momentum.y += @energy.y
     @momentum.y += @effect.y if @is_effectable
     @y += @momentum.y
@@ -397,35 +355,6 @@ class Ship < Zif::CompoundSprite
     @momentum.x = (@momentum.x * @drag).truncate
     @momentum.y = (@momentum.y * @drag).truncate
     @momentum.rotation = @momentum.rotation * @angular_drag
-
-    # if @thrust > 0
-    #   if @momentum.y >= 0
-    #     @thrust_sprite_north.path = "sprites/ship_thrust_0#{@momentum.y.clamp(0, 3)}.png"
-    #   elsif @momentum.y <= 0
-    #     @thrust_sprite_south.path = "sprites/ship_thrust_0#{@momentum.y.abs.clamp(0, 3)}.png"
-    #   end
-    #
-    #   if @momentum.x >= 0
-    #     @thrust_sprite_east.path = "sprites/ship_thrust_0#{@momentum.x.clamp(0, 3)}.png"
-    #   elsif @momentum.x <= 0
-    #     @thrust_sprite_west.path = "sprites/ship_thrust_0#{@momentum.x.abs.clamp(0, 3)}.png"
-    #   end
-    # else
-    #   puts "Thrust: #{@thrust}"
-    # end
-
-    # if @energy.y >= 0
-    #   @thrust_sprite_north.path = "sprites/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png"
-    # end
-    # if @energy.y <= 0
-    #   @thrust_sprite_south.path = "sprites/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png"
-    # end
-    # if @energy.x >= 0
-    #   @thrust_sprite_east.path = "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png"
-    # end
-    # if @energy.x <= 0
-    #   @thrust_sprite_west.path = "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png"
-    # end
   end
 
   def handle_collision
@@ -511,5 +440,61 @@ class Ship < Zif::CompoundSprite
         ]
       )
     )
+  end
+
+  def add_data (amount)
+    puts "Ship:add_data #{amount}"
+    @data += amount
+    @data_progress.progress = @data * 0.001
+  end
+
+  def add_data_block(name:, size:, corrupted:)
+    puts "add_data_block: #{@data_blocks.length} vs #{@data_block_count}"
+    if @data_blocks.length < @data_block_count
+      @data_blocks << {name: name, size: size, corrupted: corrupted}
+    end
+    puts "data_blocks: #{@data_blocks}"
+  end
+
+  def render_data_blocks
+    output = []
+    x_offset = 600
+    y_offset = 40
+    @data_block_count.times do |i|
+      data = @data_blocks[i]
+      data_corrupted = nil
+      unless data.nil?
+        data_corrupted = data[:corrupted]
+      end
+      case data_corrupted
+      when true
+        c = 155
+      when false
+        c = 224
+      when nil
+        c = 32
+      end
+      output << {
+        x: x_offset,
+        y: (20 * i) + y_offset,
+        w: 64,
+        h: 16,
+        r: c - 16,
+        g: c,
+        b: c - 16,
+        primitive_marker: :solid
+      }
+      output << {
+        x: x_offset,
+        y: (20 * i) + y_offset,
+        w: 64,
+        h: 16,
+        r: 255,
+        g: 255,
+        b: 255,
+        primitive_marker: :border
+      }
+    end
+    return output
   end
 end

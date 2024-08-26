@@ -39,7 +39,9 @@ module Collideable
   def collide_y_with (c)
     return unless @collision_enabled
 
-    play_once @sound_collide unless @sound_collide.nil?
+    # This seems like a good idea
+    # But it probably isn't -- we want to have more control over when audio is played
+    # play_once @sound_collide unless @sound_collide.nil?
 
     # puts 'We didn\'t break all the way'
     # First we need to know which side we're being hit on

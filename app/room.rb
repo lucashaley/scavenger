@@ -55,6 +55,8 @@ class Room
       west: nil
     }
 
+    @no_populate_buffer = []
+
     create_tiles
 
     unless entrance_door.nil?
@@ -65,10 +67,11 @@ class Room
     populate_doors
     populate_pickups
     populate_hazards
+    populate_terminals
 
     # create a dummy DataTerminal
-    @data_terminal = DataTerminal.new(x: 360, y: 900, scale: @scale)
-    @terminals << @data_terminal
+    # @data_terminal = DataTerminal.new(x: 360, y: 900, scale: @scale)
+    # @terminals << @data_terminal
 
     # This is dumping to args for Palantir
     $gtk.args.state.rooms[@name] = { doors: @doors }
@@ -89,13 +92,46 @@ class Room
       )
       @doors_hash[key] = new_door
       @doors << new_door
+      @no_populate_buffer << new_door.buffer
     end
   end
 
+  def find_empty_position
+    success = false
+    until success
+      temp = {
+        x: rand(600) + 40 - 32,
+        y: rand(640) + 600 - 32,
+        h: $SPRITE_SCALES[@scale],
+        w: $SPRITE_SCALES[@scale]
+      }
+      result = $gtk.args.geometry.find_intersect_rect temp, @no_populate_buffer
+      success = result.nil? ? true : false
+    end
+    return {
+      x: temp[:x],
+      y: temp[:y]
+    }
+  end
+
   def populate_pickups
+    success = false
+    until success
+      temp = {
+        x: rand(600) + 40 - 32,
+        y: rand(640) + 600 - 32,
+        h: $SPRITE_SCALES[@scale],
+        w: $SPRITE_SCALES[@scale]
+      }
+      result = $gtk.args.geometry.find_intersect_rect temp, @no_populate_buffer
+      success = result.nil? ? true : false
+    end
+
     boost_thrust = BoostThrust.new(
-      rand(600) + 40 - 32,
-      rand(640) + 600 - 32,
+      # rand(600) + 40 - 32,
+      # rand(640) + 600 - 32,
+      temp[:x],
+      temp[:y],
       0.8,
       10,
       3.seconds,
@@ -103,16 +139,22 @@ class Room
       @scale
     )
     @pickups << boost_thrust
+    # end
   end
 
   def populate_hazards
     if rand(4) <= 3
+      valid_position = find_empty_position
+
       mine = Mine.new(
-        rand(600) + 40 - 32,
-        rand(640) + 600 - 32,
+        # rand(600) + 40 - 32,
+        # rand(640) + 600 - 32,
+        valid_position[:x],
+        valid_position[:y],
         @scale
       )
       @hazards << mine
+      @no_populate_buffer << mine.buffer
     end
     if rand(4) == 3
       repulsor = Repulsor.new(
@@ -134,6 +176,22 @@ class Room
     attractor.effect_target = $game.scene.ship
     $game.services[:effect_service].register_effectable attractor
     @hazards << attractor
+  end
+
+  def populate_terminals
+    if rand(3) == 0
+      valid_position = find_empty_position
+
+      data_terminal = DataTerminal.new(
+        # x: rand(600) + 40 - 32,
+        # y: rand(640) + 600 - 32,
+        x: valid_position[:x],
+        y: valid_position[:y],
+        scale: @scale
+      )
+      @terminals << data_terminal
+      @no_populate_buffer << data_terminal.buffer
+    end
   end
 
   def renders

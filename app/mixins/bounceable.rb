@@ -42,7 +42,7 @@ module Bounceable
 
   def bounce_off(bouncer, collided_on)
     puts "bounce_off #{bouncer.name}"
-    play_once @sound_bounce
+    play_once @sound_bounce unless @sound_bounce.nil?
 
     right_edge = @x + @w
     case collided_on
@@ -60,24 +60,4 @@ module Bounceable
       bouncer.momentum.y *= -bounce
     end
   end
-
-  # def bounce_off bouncer
-  #   puts 'bounce_off'
-  #   if b.x > @x
-  #     right_edge = @x + @w
-  #     b.x = right_edge + (right_edge - b.x)
-  #     b.momentum.x *= -@bounce
-  #   elsif b.x < @x
-  #     b.x -= (b.x + b.w - @x)
-  #     b.momentum.x *= -@bounce
-  #   end
-  #
-  #   if bouncer.y > @y
-  #     bouncer.y -= (bouncer.y - bouncer.h - @y)
-  #     bouncer.momentum.y *= -@bounce
-  #   elsif bouncer.y < @y
-  #     bouncer.y -= (bouncer.y + bouncer.h - @y)
-  #     bouncer.momentum.y *= -@bounce
-  #   end
-  # end
 end
