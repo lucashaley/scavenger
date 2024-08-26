@@ -3,7 +3,7 @@ devid=lucashaley
 devtitle=Animatology Studios
 gameid=husk
 gametitle=Husk
-version=0.1.4
+version=0.1.5
 # icon=metadata/icon.png
 
 # === Flags available at all licensing tiers ===
