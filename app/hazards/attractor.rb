@@ -4,6 +4,7 @@ class Attractor < Zif::CompoundSprite
   include Deadable
   include Effectable
   include Scaleable
+  include Bufferable
 
   BOUNCE_SCALES = {
     large: 0.8,
@@ -28,6 +29,7 @@ class Attractor < Zif::CompoundSprite
     set_scale scale
     initialize_collideable
     initialize_bounceable(bounce: 0.9)
+    initialize_bufferable(:none)
 
     # initialize_collision
     # @bounce = 0.9

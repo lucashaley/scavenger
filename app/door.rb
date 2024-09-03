@@ -43,7 +43,7 @@ class Door < Zif::CompoundSprite
     set_scale scale
     initialize_collideable
     initialize_bounceable(bounce: BOUNCE_SCALES[scale])
-    initialize_bufferable(:whole)
+    initialize_bufferable(:double)
 
     @exit_point = { x: 0, y: 0 }
 
@@ -154,20 +154,49 @@ class Door < Zif::CompoundSprite
     # this is where we can animate entering the door
     player.player_control = false
     player.momentum.y = 0.0
-    puts 'centering player'
-    player.x = center_x - (player.w.half)
-    player.y = center_y - (player.h.half)
+    puts 'centering player' # we could probably use @exit_point, too.
+    # player.x = center_x - (player.w.half)
+    # player.y = center_y - (player.h.half)
 
-    puts "\n\nDoor::enter_door: #{@destination_door}\n"
-    $game.scene.switch_rooms @destination_door
+    player.is_dooring = true
+    puts "Is player a ship? #{player.is_a? Ship}"
+    player.run_action(
+      Zif::Actions::Action.new(
+        player,
+        {
+          x: @x,
+          y: @y
+        },
+        duration: 10,
+        easing: :smooth_stop4
+      ) { $game.scene.switch_rooms @destination_door }
+    )
+
+    # puts "\n\nDoor::enter_door: #{@destination_door}\n"
+    # $game.scene.switch_rooms @destination_door
   end
 
   def exit_door player
-    puts "exit_door: #{player}"
-    # this is where we might animate the player exiting
-    player.assign(@exit_point)
-    # player.assign({x: 360, y: 800})
-    player.player_control = true
+    # puts "exit_door: #{player}"
+    puts "door: #{@x}, #{@y}"
+    puts "exit_point: #{@exit_point}"
+    # player.assign({
+    #                 x: @x,
+    #                 y: @y
+    #               })
+    player.x = @x
+    player.y = @y
+    player.run_action(
+      Zif::Actions::Action.new(
+        player,
+        {
+          x: @exit_point.x,
+          y: @exit_point.y
+        },
+        duration: 20,
+        easing: :linear
+      ) { player.player_control = true }
+    )
   end
 
   def collide_action collidee, facing

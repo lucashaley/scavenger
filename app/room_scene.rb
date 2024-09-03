@@ -41,14 +41,16 @@ class RoomScene < Zif::Scene
       a: 128,
       path: :solid
     }
+
+    @bg_music_state = :intro
   end
 
   def switch_rooms destination_door
-    puts "\n\nRoomScene::switching rooms\n==============="
-    puts "isn't this exciting"
-    puts "#{destination_door}"
+    # puts "\n\nRoomScene::switching rooms\n==============="
+    # puts "isn't this exciting"
+    # puts "#{destination_door}"
     @husk.switch_rooms destination_door.room, destination_door
-    puts "\n\nRoomScene new room: #{@husk.current_room}"
+    # puts "\n\nRoomScene new room: #{@husk.current_room}"
   end
 
   def prepare_scene
@@ -65,7 +67,7 @@ class RoomScene < Zif::Scene
     puts "husk: #{@husk}"
 
     # Handle audio
-    # $gtk.args.audio[:bg_music] = { input: "sounds/ambient.ogg", looping: true }
+    $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_intro.wav", looping: false }
 
     # Create the navigation buttons
     # Hopefully these work with mobile touches
@@ -216,7 +218,7 @@ class RoomScene < Zif::Scene
     @light = $services[:sprite_registry].construct(:light).tap do |s|
       s.x = 40
       s.y = 1280 - 700
-      s.blend = Zif::Sprite::BLENDMODE[:multiply]
+      s.blendmode_enum = Zif::Sprite::BLENDMODE[:multiply] # This seems redundant
     end
     @ui = Zif::Sprite.new.tap do |s|
       s.w = 720
@@ -242,6 +244,7 @@ class RoomScene < Zif::Scene
 
   def perform_tick
     # $gtk.add_caller_to_puts!
+    handle_bgmusic
     handle_meta_input
 
     # Deads cleanup
@@ -251,6 +254,7 @@ class RoomScene < Zif::Scene
     # Do all the inputs, unless we've taken over player control
     handle_player_input if @ship.player_control
 
+    handle_light
     handle_render
 
     # Is the game over?
@@ -264,6 +268,45 @@ class RoomScene < Zif::Scene
   # end
 
   private
+
+  # This changes the bg music based upon the husk health -- the worse the health, the faster the music.
+  def handle_bgmusic
+    if $gtk.args.audio[:bg_music].nil?
+      case @bg_music_state
+      when :intro
+        $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_108.wav", looping: false }
+        @bg_music_state = :theme_108
+      when :theme_108
+        if @husk.health < 0.5
+          $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_118.wav", looping: false }
+          @bg_music_state = :theme_118
+        else
+          if rand(2) == 0
+            $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_108.wav", looping: false }
+          else
+            $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_108_DnB.wav", looping: false }
+          end
+        end
+      when :theme_118
+        if @husk.health < 0.25
+          $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_128.wav", looping: false }
+          @bg_music_state = :theme_128
+        else
+          if rand(2) == 0
+            $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_118.wav", looping: false }
+          else
+            $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_118_DnB.wav", looping: false }
+          end
+        end
+      when :theme_128
+        if rand(1) == 0
+          $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_128.wav", looping: false }
+        else
+          $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_128_DnB.wav", looping: false }
+        end
+      end
+    end
+  end
 
   def handle_meta_input
     # quit
@@ -357,6 +400,12 @@ class RoomScene < Zif::Scene
     # Then we can apply drag
     @ship.apply_drag
 
+    # Update light with ship coords
+    # @light.x = @ship.center_x - @light.w.half
+    # @light.y = @ship.center_y - @light.h.half
+  end
+
+  def handle_light
     # Update light with ship coords
     @light.x = @ship.center_x - @light.w.half
     @light.y = @ship.center_y - @light.h.half

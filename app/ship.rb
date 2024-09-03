@@ -9,7 +9,7 @@ class Ship < Zif::CompoundSprite
   attr_accessor :thrust, :angular_thrust
   attr_accessor :drag, :angular_drag
   attr_accessor :is_player, :player_control
-  attr_accessor :is_rotating, :is_effectable, :is_interfacing
+  attr_accessor :is_rotating, :is_effectable, :is_interfacing, :is_dooring
   attr_accessor :thrust_sprite
   attr_accessor :data, :data_progress
   attr_reader :data_blocks, :data_block_count
@@ -203,6 +203,7 @@ class Ship < Zif::CompoundSprite
     @is_rotating = false
     @is_effectable = true
     @is_interfacing = false
+    @is_dooring = false
 
     # initialize_collision
     set_scale :large
@@ -454,6 +455,7 @@ class Ship < Zif::CompoundSprite
       @data_blocks << {name: name, size: size, corrupted: corrupted}
     end
     puts "data_blocks: #{@data_blocks}"
+    @data_progress.progress = 0
   end
 
   def render_data_blocks

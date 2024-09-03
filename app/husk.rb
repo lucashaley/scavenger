@@ -33,7 +33,7 @@ class Husk
   end
 
   def switch_rooms room, door=nil
-    puts "husk switch_rooms: #{room}, #{door}"
+    # puts "husk switch_rooms: #{room}, #{door}"
     @current_room.deactivate unless @current_room.nil?
     @current_room = room
     @current_room.activate
@@ -41,7 +41,7 @@ class Husk
 
     # gotta be a better way
     # Look into create a scaleable service
-    puts "setting scale from husk: #{room.scale}"
+    # puts "setting scale from husk: #{room.scale}"
     $game.scene.ship.set_scale room.scale
     door.exit_door $game.scene.ship unless door.nil?
   end

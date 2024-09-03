@@ -41,8 +41,8 @@ class BoostThrust < Zif::CompoundSprite
     @sound_pickup_success = "sounds/pickup.wav"
     # @sound_bounce = "sounds/thump.wav"
 
-    puts @sprite_scale_hash
-    puts "\n\n#{@current_sprite_hash}"
+    # puts @sprite_scale_hash
+    # puts "\n\n#{@current_sprite_hash}"
   end
 
   def collide_action collidee, facing

@@ -18,7 +18,7 @@ class Mine < Zif::CompoundSprite
     collate_sprites 'mine'
     set_scale scale
     initialize_collideable
-    initialize_bufferable(:half)
+    initialize_bufferable(:whole)
 
     @x = x
     @y = y
@@ -27,8 +27,8 @@ class Mine < Zif::CompoundSprite
     # initialize_collision
     @sound_collide = "sounds/thump.wav"
 
-    puts @sprite_scale_hash
-    puts "\n\n#{@current_sprite_hash}"
+    # puts @sprite_scale_hash
+    # puts "\n\n#{@current_sprite_hash}"
   end
 
   def collide_action collidee, facing

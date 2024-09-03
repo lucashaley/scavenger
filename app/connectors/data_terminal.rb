@@ -27,11 +27,11 @@ class DataTerminal < Zif::CompoundSprite
     puts "\n\nDataTerminal Initialize\n======================"
     super()
 
-    collate_sprites 'dataterminal'
+    collate_sprites 'dataterminal' + facing.to_s
     set_scale scale
     initialize_collideable
     initialize_bounceable(bounce: 0.3, sound_bounce: 'sounds/thump.wav')
-    initialize_bufferable(:whole)
+    initialize_bufferable(:double)
 
     # variable assign
     @x = x
@@ -51,6 +51,8 @@ class DataTerminal < Zif::CompoundSprite
     @sound_collide = "sounds/thump.wav"
 
     @sound_pickup_success = "sounds/pickup.wav"
+
+    # puts @sprite_scale_hash.keys
   end
 
   def collide_action(collidee, collided_on)

@@ -76,7 +76,7 @@ class Room
     # This is dumping to args for Palantir
     $gtk.args.state.rooms[@name] = { doors: @doors }
 
-    puts "\n\nnew room doors: #{@doors}\n\n"
+    # puts "\n\nnew room doors: #{@doors}\n\n"
   end
   # rubocop:enable Metrics/MethodLength
 
@@ -97,11 +97,17 @@ class Room
   end
 
   def find_empty_position
+    playable_x = 640 - ($SPRITE_SCALES[@scale] * 2) - $SPRITE_SCALES[@scale] # That last one is for the thing itself
+    playable_x_margin = 40 + $SPRITE_SCALES[@scale]
+    playable_y = 640 - ($SPRITE_SCALES[@scale] * 2) - $SPRITE_SCALES[@scale]
+    playable_y_margin = 560 + $SPRITE_SCALES[@scale]
     success = false
     until success
       temp = {
-        x: rand(600) + 40 - 32,
-        y: rand(640) + 600 - 32,
+        # x: rand(600) + 40 - 32,
+        # y: rand(640) + 600 - 32,
+        x: rand(playable_x) + playable_x_margin,
+        y: rand(playable_y) + playable_y_margin,
         h: $SPRITE_SCALES[@scale],
         w: $SPRITE_SCALES[@scale]
       }
@@ -157,29 +163,39 @@ class Room
       @no_populate_buffer << mine.buffer
     end
     if rand(4) == 3
+      valid_position = find_empty_position
+
       repulsor = Repulsor.new(
-        rand(600) + 40 - 32,
-        rand(640) + 600 - 32,
+        # rand(600) + 40 - 32,
+        # rand(640) + 600 - 32,
+        valid_position[:x],
+        valid_position[:y],
         @scale
       )
       repulsor.effect_target = $game.scene.ship
       $game.services[:effect_service].register_effectable repulsor
       @hazards << repulsor
+      @no_populate_buffer << repulsor.buffer
     end
-    return unless rand(8) == 7
+    if rand(8) == 7
+      valid_position = find_empty_position
 
-    attractor = Attractor.new(
-      rand(600) + 40 - 32,
-      rand(640) + 600 - 32,
-      @scale
-    )
-    attractor.effect_target = $game.scene.ship
-    $game.services[:effect_service].register_effectable attractor
-    @hazards << attractor
+      attractor = Attractor.new(
+        # rand(600) + 40 - 32,
+        # rand(640) + 600 - 32,
+        valid_position[:x],
+        valid_position[:y],
+        @scale
+      )
+      attractor.effect_target = $game.scene.ship
+      $game.services[:effect_service].register_effectable attractor
+      @hazards << attractor
+      @no_populate_buffer << attractor.buffer
+    end
   end
 
   def populate_terminals
-    if rand(3) == 0
+    if rand(1) == 0
       valid_position = find_empty_position
 
       data_terminal = DataTerminal.new(
@@ -187,7 +203,10 @@ class Room
         # y: rand(640) + 600 - 32,
         x: valid_position[:x],
         y: valid_position[:y],
-        scale: @scale
+        scale: @scale,
+        data: rand(1000),
+        data_rate: rand(4) * 0.5,
+        facing: [:north, :south, :east, :west].sample.to_sym
       )
       @terminals << data_terminal
       @no_populate_buffer << data_terminal.buffer
