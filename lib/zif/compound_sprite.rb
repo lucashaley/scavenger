@@ -150,7 +150,7 @@ module Zif
           (y - @source_y) * y_zoom + @y,
           w * x_zoom,
           h * y_zoom,
-          sprite.path.s_or_default,
+          sprite.path.to_s, #.s_or_default,
           sprite.angle,
           sprite.a,
           sprite.r,
@@ -167,6 +167,7 @@ module Zif
           sprite.source_h,
           sprite.blendmode_enum
         )
+
       end
       # $services&.named(:tracer)&.mark("CompoundSprite(#{@name})#draw_override: Sprite drawing complete")
       # puts "CompoundSprite(#{@name})#draw_override: Sprite drawing complete"
@@ -176,14 +177,14 @@ module Zif
         ffi_draw.draw_label(
           ((label.x - @source_x) * x_zoom) + @x,
           ((label.y - @source_y) * y_zoom) + @y,
-          label.text.s_or_default,
+          label.text.to_s, #s_or_default,
           label.size_enum,
           label.alignment_enum,
           label.r,
           label.g,
           label.b,
           label.a,
-          label.font.s_or_default(nil)
+          label.font.to_s, #s_or_default(nil)
         )
       end
       # $services&.named(:tracer)&.mark("CompoundSprite(#{@name})#draw_override: Label drawing complete")
