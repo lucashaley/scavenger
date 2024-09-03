@@ -10,4 +10,4 @@
 - [x] Fix weird south door thing
 - [ ] Check out override bounce in boost_thrust.rb
 - [ ] Does the turret reset direction when entering a room?
-- [ ] Make the DataTerminal have different directions
+- [x] Make the DataTerminal have different directions
