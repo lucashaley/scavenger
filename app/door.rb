@@ -10,6 +10,47 @@ class Door < Zif::CompoundSprite
   attr_accessor :destination_door
   attr_accessor :exit_point
 
+  SPRITE_DETAILS = {
+    name: "door",
+    layers: [
+      {
+        name: "main",
+        animations: [
+          {
+            name: "open",
+            frames: 5,
+            hold: 3,
+            repeat: :once
+          },
+          {
+            name: "close",
+            frames: 4,
+            hold: 3,
+            repeat: :once
+          }
+        ],
+        blendmode_enum: :alpha
+      },
+      {
+        name: "lights",
+        animations: [
+          {
+            name: "idle",
+            frames: 7,
+            hold: 3,
+            repeat: :forever
+          }
+        ],
+        blendmode_enum: :add
+      }
+    ],
+    scales: [
+      :large,
+      :medium,
+      :small,
+    ]
+  }.freeze
+
   BOUNCE_SCALES = {
     large: 0.8,
     medium: 0.4,
@@ -23,6 +64,68 @@ class Door < Zif::CompoundSprite
   # def sprite_scales scale
   #   SPRITE_SCALES[scale]
   # end
+
+  def self.register_sprites
+    puts "Door: Registering Sprites"
+
+    $services[:sprite_registry].register_basic_sprite(
+      "door/door_main_large",
+      width: 64,
+      height: 64
+    )
+    $services[:sprite_registry].alias_sprite(
+      "door/door_main_large",
+      :door_main_large
+    )
+
+    $services[:sprite_registry].register_basic_sprite(
+      "door/door_main_medium",
+      width: 32,
+      height: 32
+    )
+    $services[:sprite_registry].alias_sprite(
+      "door/door_main_medium",
+      :door_main_medium
+    )
+
+    $services[:sprite_registry].register_basic_sprite(
+      "door/door_main_small",
+      width: 16,
+      height: 16
+    )
+    $services[:sprite_registry].alias_sprite(
+      "door/door_main_small",
+      :door_main_small
+    )
+
+    $services[:sprite_registry].register_basic_sprite(
+      "door/door_lights_large",
+      width: 64,
+      height: 64
+    )
+    $services[:sprite_registry].alias_sprite(
+      "door/door_lights_large",
+      :door_lights_large
+    )
+    $services[:sprite_registry].register_basic_sprite(
+      "door/door_lights_medium",
+      width: 32,
+      height: 32
+    )
+    $services[:sprite_registry].alias_sprite(
+      "door/door_lights_medium",
+      :door_lights_medium
+    )
+    $services[:sprite_registry].register_basic_sprite(
+      "door/door_lights_small",
+      width: 16,
+      height: 16
+    )
+    $services[:sprite_registry].alias_sprite(
+      "door/door_lights_small",
+      :door_lights_small
+    )
+  end
 
   def initialize (
     scale: :large,
@@ -39,11 +142,11 @@ class Door < Zif::CompoundSprite
     # @bounce = BOUNCE_SCALES[scale]
     @sound_bounce = "sounds/clank.wav"
 
-    collate_sprites "door"
-    set_scale scale
+    # collate_sprites "door"
+    # set_scale scale
+    initialize_scaleable(scale)
     initialize_collideable
     initialize_bounceable(bounce: BOUNCE_SCALES[scale])
-    initialize_bufferable(:double)
 
     @exit_point = { x: 0, y: 0 }
 
@@ -54,7 +157,7 @@ class Door < Zif::CompoundSprite
     # side_length = 640 - (pixel_scale * 5)
     side_buffer = pixel_scale * 2
     side_logical = tile_dimensions - 4
-    puts "scale: #{scale}, pixel_scale: #{pixel_scale}\nside_buffer: #{side_buffer} side_logical: #{side_logical}"
+    # puts "scale: #{scale}, pixel_scale: #{pixel_scale}\nside_buffer: #{side_buffer} side_logical: #{side_logical}"
     destination_side = nil
 
     # We need to set the rotation,
@@ -64,6 +167,7 @@ class Door < Zif::CompoundSprite
 
     case @door_side
     when :north
+      angle_delta = 0
       @x = (rand(side_logical)*pixel_scale) + side_buffer + 40
       @y = 1280 - 80 - pixel_scale
       @exit_point.x = @x
@@ -91,12 +195,17 @@ class Door < Zif::CompoundSprite
       @exit_point.y = @y
       destination_side = :east
     end
+    # Now that x and y are set, we can buffer
+    puts "Door.new: #{@x}, #{@y}"
+    initialize_bufferable(:double)
+
     # Rotate the sprites
     # it might be easier to have pre-rotated sprites
-    @sprite_scale_hash.each_value do |sc|
-      # puts "sc: #{sc}"
-      sc.each_value do |ss|
-        ss.angle += angle_delta unless angle_delta.nil?
+    @sprite_scale_hash.each_value do |scale|
+      # puts "sc: #{scale}"
+      scale.each_value do |layer|
+        # puts "layer: #{layer}, #{layer.angle}, #{angle_delta}"
+        layer.angle += angle_delta unless angle_delta.nil?
         # ss.y += y_delta unless y_delta.nil?
       end
     end
@@ -127,6 +236,8 @@ class Door < Zif::CompoundSprite
       # then we create a new room
       # passing itself
       @destination_door = destination_door
+      raise ArgumentError, "No destination_door: #{@name}" if destination_door.nil?
+
       @room = Room.new(
         name: @destination_door.room.name + '_' + @destination_door.door_side.to_s,
         chaos: @destination_door.room.chaos + 1,
@@ -136,7 +247,29 @@ class Door < Zif::CompoundSprite
       # @name = @room.name + '_door' + @door_side.to_s # can this be one line later?
     end
     @name = @room.name + '_door' + @door_side.to_s # can this be one line later?
-    puts "name: #{@name}"
+
+    # create animations
+    # puts "Animation: #{@sprite_scale_hash}"
+    # We're going to have to dig into the sprites array of the CompoundSprite
+    # and grab the named sprite
+    # and add the animation to that
+    # @sprite_scale_hash.select { |scale| scale[:name]}
+    # puts "\n\nAnimation state: #{@sprite_scale_hash[:large][:main]}\n\n"
+    # @sprite_scale_hash[:large][:main].new_basic_animation(
+    #   named: :large_open,
+    #   paths_and_durations: [
+    #     ["door/door_main_large_open_01", 1],
+    #     ["door/door_main_large_open_02", 1],
+    #     ["door/door_main_large_open_03", 1],
+    #     ["door/door_main_large_open_04", 1],
+    #   ]
+    # )
+    # puts "\n\nAnimation state: #{@sprite_scale_hash[:large][:main]}\n\n"
+
+    puts "\n\nsprites: #{@name}: \n#{sprites}\n\n"
+    animation_name = "door_lights_#{scale}"
+    puts sprites.find { |s| s.name == animation_name }.animation_sequences
+    sprites.find { |s| s.name == animation_name }.run_animation_sequence(:idle)
   end
 
   def create_connecting_room
@@ -154,9 +287,22 @@ class Door < Zif::CompoundSprite
     # this is where we can animate entering the door
     player.player_control = false
     player.momentum.y = 0.0
+    player.momentum.x = 0.0
     puts 'centering player' # we could probably use @exit_point, too.
     # player.x = center_x - (player.w.half)
     # player.y = center_y - (player.h.half)
+
+    # Okay but we're not checking what is actually being rendered
+    # Which is in the CompoundSprite.sprites array
+    # puts "CURRENT SPRITES: #{sprites}"
+    # the_thing = sprites.find { |s| s.name = 'door_main_large' }
+    # puts the_thing.animation_sequences
+    # the_thing.run_animation_sequence(:open)
+    animation_name = "door_main_#{scale}"
+    sprites.find { |s| s.name == animation_name }.run_animation_sequence(:open)
+
+    # This is only working on the reference?
+    # @sprite_scale_hash[:large][:main].run_animation_sequence(:open) { puts "\n\nFINISHED ANIMATION\n\n" }
 
     player.is_dooring = true
     puts "Is player a ship? #{player.is_a? Ship}"
@@ -180,6 +326,8 @@ class Door < Zif::CompoundSprite
     # puts "exit_door: #{player}"
     puts "door: #{@x}, #{@y}"
     puts "exit_point: #{@exit_point}"
+    animation_name = "door_main_#{scale}"
+    sprites.find { |s| s.name == animation_name }.run_animation_sequence(:close)
     # player.assign({
     #                 x: @x,
     #                 y: @y

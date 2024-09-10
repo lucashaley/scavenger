@@ -15,6 +15,54 @@ class DataTerminal < Zif::CompoundSprite
     small: 0.1
   }.freeze
 
+  SPRITE_DETAILS = {
+    name: "dataterminal",
+    layers: [
+      {
+        name: "main",
+      },
+    ],
+    scales: [
+      :large,
+      :medium,
+      :small,
+    ]
+  }.freeze
+
+  def self.register_sprites
+    puts "DataTerminal: Registering Sprites"
+
+    $services[:sprite_registry].register_basic_sprite(
+      "dataterminal/dataterminal_main_large",
+      width: 64,
+      height: 64
+    )
+    $services[:sprite_registry].alias_sprite(
+      "dataterminal/dataterminal_main_large",
+      :dataterminal_main_large
+    )
+
+    $services[:sprite_registry].register_basic_sprite(
+      "dataterminal/dataterminal_main_medium",
+      width: 32,
+      height: 32
+    )
+    $services[:sprite_registry].alias_sprite(
+      "dataterminal/dataterminal_main_medium",
+      :dataterminal_main_medium
+    )
+
+    $services[:sprite_registry].register_basic_sprite(
+      "dataterminal/dataterminal_main_small",
+      width: 16,
+      height: 16
+    )
+    $services[:sprite_registry].alias_sprite(
+      "dataterminal/dataterminal_main_small",
+      :dataterminal_main_small
+    )
+  end
+
   def initialize(
     x: 0,
     y: 0,
@@ -26,16 +74,17 @@ class DataTerminal < Zif::CompoundSprite
   )
     puts "\n\nDataTerminal Initialize\n======================"
     super()
+    @x = x
+    @y = y
 
-    collate_sprites 'dataterminal' + facing.to_s
-    set_scale scale
+    # collate_sprites 'dataterminal' + facing.to_s
+    # set_scale scale
+    initialize_scaleable(scale)
     initialize_collideable
     initialize_bounceable(bounce: 0.3, sound_bounce: 'sounds/thump.wav')
     initialize_bufferable(:double)
 
     # variable assign
-    @x = x
-    @y = y
     @facing = facing
 
     @interfacing = false

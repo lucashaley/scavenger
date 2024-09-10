@@ -4,6 +4,7 @@ class BoostThrust < Zif::CompoundSprite
   include Deadable
   include Bounceable
   include Scaleable
+  include Bufferable
 
   attr_reader :amount, :duration, :start_duration
 
@@ -24,14 +25,15 @@ class BoostThrust < Zif::CompoundSprite
   )
     puts "\n\nBoostThrust Initialize\n======================"
     super()
+    @x = x
+    @y = y
 
     collate_sprites 'boost'
     set_scale scale
     initialize_collideable(sound_collide: 'sounds/pickup.wav')
     initialize_bounceable(bounce: bounce, sound_bounce: 'sounds/thump.wav')
+    initialize_bufferable(:whole)
 
-    @x = x
-    @y = y
     # @bounce = bounce
 
     @amount = amount

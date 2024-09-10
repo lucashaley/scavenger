@@ -14,14 +14,14 @@ class Mine < Zif::CompoundSprite
   )
     puts "\n\nMine Initialize\n======================"
     super()
+    @x = x
+    @y = y
 
     collate_sprites 'mine'
     set_scale scale
     initialize_collideable
-    initialize_bufferable(:whole)
+    initialize_bufferable(:double)
 
-    @x = x
-    @y = y
     @damage = damage
 
     # initialize_collision

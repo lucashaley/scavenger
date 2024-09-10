@@ -3,6 +3,9 @@ module SpriteRegisters
     puts "\nRegistering all sprites"
     puts "=======================\n\n"
 
+    DataTerminal.register_sprites
+    Door.register_sprites
+
     $services[:sprite_registry].register_basic_sprite(
       :ui_button_large_up,
       width: 128,

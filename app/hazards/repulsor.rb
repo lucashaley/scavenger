@@ -30,7 +30,7 @@ class Repulsor < Zif::CompoundSprite
     set_scale scale
     initialize_collideable
     initialize_bounceable(bounce: 0.9)
-    initialize_bufferable(:none)
+    initialize_bufferable(:whole)
 
     # initialize_collision
     # @bounce = 0.9 # This is defined in the Bounceable module

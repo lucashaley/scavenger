@@ -8,6 +8,21 @@ class BaseGame < Zif::Game
       small: 16
     }.freeze
 
+    $LABEL_STYLE = {
+      r: 0,
+      g: 0,
+      b: 255,
+      size_px: 14
+    }.freeze
+
+    $BACKGROUND_STYLE = {
+      r: 0,
+      g: 255,
+      b: 0,
+      a: 128,
+      path: :solid
+    }.freeze
+
     @services.register(:effect_service, Services::EffectService.new)
 
     # register_scene(:movement, MovementScene)

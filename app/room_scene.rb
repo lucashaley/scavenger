@@ -435,6 +435,6 @@ class RoomScene < Zif::Scene
     # Player info
     # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
     # $gtk.args.outputs.debug.watch pretty_format(@map.layers[:ship].sprites), label_style: @label_style, background_style: @background_style
-    $gtk.args.outputs.debug.watch [@husk, @ship.data], label_style: @label_style, background_style: @background_style
+    $gtk.args.outputs.debug.watch [@husk, @ship.data], label_style: $LABEL_STYLE, background_style: $BACKGROUND_STYLE
   end
 end

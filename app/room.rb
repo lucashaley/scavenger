@@ -69,10 +69,6 @@ class Room
     populate_hazards
     populate_terminals
 
-    # create a dummy DataTerminal
-    # @data_terminal = DataTerminal.new(x: 360, y: 900, scale: @scale)
-    # @terminals << @data_terminal
-
     # This is dumping to args for Palantir
     $gtk.args.state.rooms[@name] = { doors: @doors }
 
@@ -102,7 +98,10 @@ class Room
     playable_y = 640 - ($SPRITE_SCALES[@scale] * 2) - $SPRITE_SCALES[@scale]
     playable_y_margin = 560 + $SPRITE_SCALES[@scale]
     success = false
+    loops = 0
+    # puts "find_empty_position initial state: #{playable_x}, #{playable_y}, #{playable_x_margin}, #{playable_y_margin}"
     until success
+      return nil if loops > 15
       temp = {
         # x: rand(600) + 40 - 32,
         # y: rand(640) + 600 - 32,
@@ -112,7 +111,9 @@ class Room
         w: $SPRITE_SCALES[@scale]
       }
       result = $gtk.args.geometry.find_intersect_rect temp, @no_populate_buffer
-      success = result.nil? ? true : false
+      # puts "result: #{result}"
+      loops += 1
+      success = result.nil? ? true : false # returns nil if there is *no* intersection
     end
     return {
       x: temp[:x],
@@ -121,36 +122,42 @@ class Room
   end
 
   def populate_pickups
-    success = false
-    until success
-      temp = {
-        x: rand(600) + 40 - 32,
-        y: rand(640) + 600 - 32,
-        h: $SPRITE_SCALES[@scale],
-        w: $SPRITE_SCALES[@scale]
-      }
-      result = $gtk.args.geometry.find_intersect_rect temp, @no_populate_buffer
-      success = result.nil? ? true : false
-    end
+    # success = false
+    # until success
+    #   temp = {
+    #     x: rand(600) + 40 - 32,
+    #     y: rand(640) + 600 - 32,
+    #     h: $SPRITE_SCALES[@scale],
+    #     w: $SPRITE_SCALES[@scale]
+    #   }
+    #   result = $gtk.args.geometry.find_intersect_rect temp, @no_populate_buffer
+    #   success = result.nil? ? true : false
+    # end
+    if rand(4) <= 3
+      valid_position = find_empty_position
+      return if valid_position.nil?
 
-    boost_thrust = BoostThrust.new(
-      # rand(600) + 40 - 32,
-      # rand(640) + 600 - 32,
-      temp[:x],
-      temp[:y],
-      0.8,
-      10,
-      3.seconds,
-      10,
-      @scale
-    )
-    @pickups << boost_thrust
+      boost_thrust = BoostThrust.new(
+        # rand(600) + 40 - 32,
+        # rand(640) + 600 - 32,
+        valid_position[:x],
+        valid_position[:y],
+        0.8,
+        10,
+        3.seconds,
+        10,
+        @scale
+      )
+      @pickups << boost_thrust
+      @no_populate_buffer << boost_thrust.buffer
+    end
     # end
   end
 
   def populate_hazards
     if rand(4) <= 3
       valid_position = find_empty_position
+      return if valid_position.nil?
 
       mine = Mine.new(
         # rand(600) + 40 - 32,
@@ -164,6 +171,7 @@ class Room
     end
     if rand(4) == 3
       valid_position = find_empty_position
+      return if valid_position.nil?
 
       repulsor = Repulsor.new(
         # rand(600) + 40 - 32,
@@ -179,6 +187,7 @@ class Room
     end
     if rand(8) == 7
       valid_position = find_empty_position
+      return if valid_position.nil?
 
       attractor = Attractor.new(
         # rand(600) + 40 - 32,
@@ -197,6 +206,7 @@ class Room
   def populate_terminals
     if rand(1) == 0
       valid_position = find_empty_position
+      return if valid_position.nil?
 
       data_terminal = DataTerminal.new(
         # x: rand(600) + 40 - 32,
