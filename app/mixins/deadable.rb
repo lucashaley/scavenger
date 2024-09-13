@@ -7,7 +7,9 @@ module Deadable
 
   def kill
     puts "Killing: #{@name}"
+    $gtk.args.audio[@name.to_sym] = nil
     @dead = true
+    @active = false
     hide
   end
 end

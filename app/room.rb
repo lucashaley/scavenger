@@ -29,6 +29,20 @@ class Room
     south: 4,
     west: 8
   }.freeze
+  HAZARD_ODDS = {
+    large: {
+      chance: 1,
+      in: 3
+    },
+    medium: {
+      chance: 2,
+      in: 5
+    },
+    small: {
+      chance: 1,
+      in: 6
+    }
+  }.freeze
 
   # rubocop:disable Metrics/MethodLength
   def initialize(
@@ -58,6 +72,13 @@ class Room
     @no_populate_buffer = []
 
     create_tiles
+
+    if entrance_door.nil?
+      # Presumably we're in the entrypoint?
+      breach = Breach.new
+      @terminals << breach
+      @no_populate_buffer << breach.buffer
+    end
 
     unless entrance_door.nil?
       @doors_hash[entrance_door.door_side] = entrance_door
@@ -155,7 +176,8 @@ class Room
   end
 
   def populate_hazards
-    if rand(4) <= 3
+    odds = HAZARD_ODDS[@scale] # wait, this wont give us more than one
+    if rand(odds[:in]) <= odds[:chance]
       valid_position = find_empty_position
       return if valid_position.nil?
 
@@ -166,6 +188,7 @@ class Room
         valid_position[:y],
         @scale
       )
+      mine.deactivate
       @hazards << mine
       @no_populate_buffer << mine.buffer
     end
@@ -218,6 +241,7 @@ class Room
         data_rate: rand(4) * 0.5,
         facing: [:north, :south, :east, :west].sample.to_sym
       )
+      data_terminal.deactivate
       @terminals << data_terminal
       @no_populate_buffer << data_terminal.buffer
     end
@@ -240,11 +264,15 @@ class Room
   end
 
   def activate
-    @hazards.each { |h| h.activate if h.is_a?(Effectable) }
+    @terminals.each { |t| t.activate }
+    @hazards.each { |h| h.activate }
+    @hazards.each { |h| h.activate_effect if h.is_a?(Effectable) }
   end
 
   def deactivate
-    @hazards.each { |h| h.deactivate if h.is_a?(Effectable) }
+    @terminals.each { |t| t.deactivate }
+    @hazards.each { |h| h.deactivate }
+    @hazards.each { |h| h.deactivate_effect if h.is_a?(Effectable) }
   end
 
   def purge_deads

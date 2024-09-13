@@ -22,8 +22,7 @@ class Attractor < Zif::CompoundSprite
     super()
     # assign(prototype.to_h)
 
-    @x = x
-    @y = y
+    set_position(x, y)
 
     collate_sprites "attractor"
     set_scale scale

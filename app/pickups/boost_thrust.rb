@@ -25,8 +25,8 @@ class BoostThrust < Zif::CompoundSprite
   )
     puts "\n\nBoostThrust Initialize\n======================"
     super()
-    @x = x
-    @y = y
+
+    set_position(x, y)
 
     collate_sprites 'boost'
     set_scale scale

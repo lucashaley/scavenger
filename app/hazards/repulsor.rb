@@ -21,10 +21,7 @@ class Repulsor < Zif::CompoundSprite
     puts "\n\Repulsor Initialize\n======================"
     super()
 
-    @x = x
-    @y = y
-
-    @scale = scale
+    set_position(x, y)
 
     collate_sprites "repulsor"
     set_scale scale

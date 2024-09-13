@@ -9,6 +9,7 @@ class Door < Zif::CompoundSprite
   # attr_accessor :destination_room,
   attr_accessor :destination_door
   attr_accessor :exit_point
+  attr_accessor :approached
 
   SPRITE_DETAILS = {
     name: "door",
@@ -145,6 +146,7 @@ class Door < Zif::CompoundSprite
     # collate_sprites "door"
     # set_scale scale
     initialize_scaleable(scale)
+    center_sprites
     initialize_collideable
     initialize_bounceable(bounce: BOUNCE_SCALES[scale])
 
@@ -152,7 +154,7 @@ class Door < Zif::CompoundSprite
 
     pixel_scale = $SPRITE_SCALES[scale]
     tile_dimensions = 640.div(pixel_scale)
-    exit_offset = pixel_scale + pixel_scale.half
+    exit_offset = pixel_scale + (pixel_scale * 0.25).truncate
     # create a buffer along the edge
     # side_length = 640 - (pixel_scale * 5)
     side_buffer = pixel_scale * 2
@@ -248,28 +250,11 @@ class Door < Zif::CompoundSprite
     end
     @name = @room.name + '_door' + @door_side.to_s # can this be one line later?
 
-    # create animations
-    # puts "Animation: #{@sprite_scale_hash}"
-    # We're going to have to dig into the sprites array of the CompoundSprite
-    # and grab the named sprite
-    # and add the animation to that
-    # @sprite_scale_hash.select { |scale| scale[:name]}
-    # puts "\n\nAnimation state: #{@sprite_scale_hash[:large][:main]}\n\n"
-    # @sprite_scale_hash[:large][:main].new_basic_animation(
-    #   named: :large_open,
-    #   paths_and_durations: [
-    #     ["door/door_main_large_open_01", 1],
-    #     ["door/door_main_large_open_02", 1],
-    #     ["door/door_main_large_open_03", 1],
-    #     ["door/door_main_large_open_04", 1],
-    #   ]
-    # )
-    # puts "\n\nAnimation state: #{@sprite_scale_hash[:large][:main]}\n\n"
 
-    puts "\n\nsprites: #{@name}: \n#{sprites}\n\n"
     animation_name = "door_lights_#{scale}"
-    puts sprites.find { |s| s.name == animation_name }.animation_sequences
     sprites.find { |s| s.name == animation_name }.run_animation_sequence(:idle)
+
+    @approached = false
   end
 
   def create_connecting_room
@@ -289,20 +274,10 @@ class Door < Zif::CompoundSprite
     player.momentum.y = 0.0
     player.momentum.x = 0.0
     puts 'centering player' # we could probably use @exit_point, too.
-    # player.x = center_x - (player.w.half)
-    # player.y = center_y - (player.h.half)
 
-    # Okay but we're not checking what is actually being rendered
-    # Which is in the CompoundSprite.sprites array
-    # puts "CURRENT SPRITES: #{sprites}"
-    # the_thing = sprites.find { |s| s.name = 'door_main_large' }
-    # puts the_thing.animation_sequences
-    # the_thing.run_animation_sequence(:open)
-    animation_name = "door_main_#{scale}"
-    sprites.find { |s| s.name == animation_name }.run_animation_sequence(:open)
-
-    # This is only working on the reference?
-    # @sprite_scale_hash[:large][:main].run_animation_sequence(:open) { puts "\n\nFINISHED ANIMATION\n\n" }
+    # This is now handled in perform_tick
+    # animation_name = "door_main_#{scale}"
+    # sprites.find { |s| s.name == animation_name }.run_animation_sequence(:open)
 
     player.is_dooring = true
     puts "Is player a ship? #{player.is_a? Ship}"
@@ -317,21 +292,17 @@ class Door < Zif::CompoundSprite
         easing: :smooth_stop4
       ) { $game.scene.switch_rooms @destination_door }
     )
-
-    # puts "\n\nDoor::enter_door: #{@destination_door}\n"
-    # $game.scene.switch_rooms @destination_door
   end
 
   def exit_door player
     # puts "exit_door: #{player}"
     puts "door: #{@x}, #{@y}"
     puts "exit_point: #{@exit_point}"
-    animation_name = "door_main_#{scale}"
-    sprites.find { |s| s.name == animation_name }.run_animation_sequence(:close)
-    # player.assign({
-    #                 x: @x,
-    #                 y: @y
-    #               })
+
+    # this is now handled in perform_tick
+    # animation_name = "door_main_#{scale}"
+    # sprites.find { |s| s.name == animation_name }.run_animation_sequence(:close)
+
     player.x = @x
     player.y = @y
     player.run_action(
@@ -371,6 +342,21 @@ class Door < Zif::CompoundSprite
       play_once @sound_bounce
       bounce_off(collidee, facing)
     end
+  end
+
+  def perform_tick
+      dist = $gtk.args.geometry.distance self.rect, $game.scene.ship.rect
+      threshold = $SPRITE_SCALES[@scale] * 2
+      if dist < threshold && @approached == false
+        @approached = true
+        sprites.find { |s| s.name == "door_main_#{scale}" }.run_animation_sequence(:open)
+        sprites.find { |s| s.name == "door_lights_#{scale}" }.hide
+      elsif dist > threshold && @approached == true
+        @approached = false
+        sprites.find { |s| s.name == "door_main_#{scale}" }.run_animation_sequence(:close)
+        sprites.find { |s| s.name == "door_lights_#{scale}" }.show
+        # sprites.find { |s| s.name == "door_lights_#{scale}" }.run_animation_sequence(:idle)
+      end
   end
 
   def serialize

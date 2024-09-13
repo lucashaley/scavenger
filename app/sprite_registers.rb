@@ -5,6 +5,8 @@ module SpriteRegisters
 
     DataTerminal.register_sprites
     Door.register_sprites
+    Mine.register_sprites
+    Breach.register_sprites
 
     $services[:sprite_registry].register_basic_sprite(
       :ui_button_large_up,

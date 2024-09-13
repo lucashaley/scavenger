@@ -2,7 +2,8 @@ module Bufferable
   $BUFFER_SCALES = {
     none: 0,
     whole: 1,
-    double: 2
+    double: 2,
+    triple: 3
   }.freeze
 
   # attr_accessor :buffer_scale

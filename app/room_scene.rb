@@ -57,17 +57,23 @@ class RoomScene < Zif::Scene
     register_all_sprites
 
     # Create the ship
+    # It's a little disappointing we need to make the ship
+    # before we make the husk
+    # because the ship scale gets set
+    # in the switch_room method
+    # I would love to use
+    # valid_position = @husk.current_room.find_empty_position
+    # But hopefully Breach will take care of things
     @ship = Ship.new
-    @ship.y = 1000
-    @ship.x = 400
+    @ship.x = 40 + (640 - 64).half
+    @ship.y = 1280 - 48 - 64 - 640.half
     $game.services.named(:action_service).register_actionable(@ship)
 
     # Create a husk
     @husk = Husk.new
     puts "husk: #{@husk}"
 
-    # Handle audio
-    $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_intro.wav", looping: false }
+
 
     # Create the navigation buttons
     # Hopefully these work with mobile touches
@@ -240,12 +246,23 @@ class RoomScene < Zif::Scene
       l.y = 1232
     end
     $gtk.args.outputs.static_labels << @ui_label_husk
+
+    # Start with the music off
+    $gtk.args.state.bgmusic.playing ||= true
+    # Start audio
+    $gtk.args.audio[:bg_music] ||= {
+      input: "music/Lucas_HuskGame_intro.wav",
+      looping: false,
+      gain: 0.5
+    }
   end
 
   def perform_tick
     # $gtk.add_caller_to_puts!
     handle_bgmusic
     handle_meta_input
+
+    handle_ticks
 
     # Deads cleanup
     @husk.current_room.purge_deads
@@ -271,38 +288,75 @@ class RoomScene < Zif::Scene
 
   # This changes the bg music based upon the husk health -- the worse the health, the faster the music.
   def handle_bgmusic
-    if $gtk.args.audio[:bg_music].nil?
+    if $gtk.args.audio[:bg_music].nil? && $gtk.args.state.bgmusic.playing
+      # puts "handle_bgmusic: #{$gtk.args.audio[:bg_music]}"
       case @bg_music_state
       when :intro
-        $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_108.wav", looping: false }
+        $gtk.args.audio[:bg_music] = {
+          input: "music/Lucas_HuskGame_108.wav",
+          looping: false,
+          gain: 0.5
+        }
         @bg_music_state = :theme_108
       when :theme_108
         if @husk.health < 0.5
-          $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_118.wav", looping: false }
+          $gtk.args.audio[:bg_music] = {
+            input: "music/Lucas_HuskGame_118.wav",
+            looping: false,
+            gain: 0.5
+          }
           @bg_music_state = :theme_118
         else
           if rand(2) == 0
-            $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_108.wav", looping: false }
+            $gtk.args.audio[:bg_music] = {
+              input: "music/Lucas_HuskGame_108.wav",
+              looping: false,
+              gain: 0.5
+            }
           else
-            $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_108_DnB.wav", looping: false }
+            $gtk.args.audio[:bg_music] = {
+              input: "music/Lucas_HuskGame_108_DnB.wav",
+              looping: false,
+              gain: 0.5
+            }
           end
         end
       when :theme_118
         if @husk.health < 0.25
-          $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_128.wav", looping: false }
+          $gtk.args.audio[:bg_music] = {
+            input: "music/Lucas_HuskGame_128.wav",
+            looping: false,
+            gain: 0.5
+          }
           @bg_music_state = :theme_128
         else
           if rand(2) == 0
-            $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_118.wav", looping: false }
+            $gtk.args.audio[:bg_music] = {
+              input: "music/Lucas_HuskGame_118.wav",
+              looping: false,
+              gain: 0.5
+            }
           else
-            $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_118_DnB.wav", looping: false }
+            $gtk.args.audio[:bg_music] = {
+              input: "music/Lucas_HuskGame_118_DnB.wav",
+              looping: false,
+              gain: 0.5
+            }
           end
         end
       when :theme_128
         if rand(1) == 0
-          $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_128.wav", looping: false }
+          $gtk.args.audio[:bg_music] = {
+            input: "music/Lucas_HuskGame_128.wav",
+            looping: false,
+            gain: 0.5
+          }
         else
-          $gtk.args.audio[:bg_music] = { input: "music/Lucas_HuskGame_128_DnB.wav", looping: false }
+          $gtk.args.audio[:bg_music] = {
+            input: "music/Lucas_HuskGame_128_DnB.wav",
+            looping: false,
+            gain: 0.5
+          }
         end
       end
     end
@@ -318,10 +372,11 @@ class RoomScene < Zif::Scene
     end
 
     # stop sound if space key is pressed
-    if $gtk.args.inputs.keyboard.key_down.space
+    if $gtk.args.inputs.keyboard.key_down.m
       $gtk.args.audio[:bg_music] = nil
       # OR
       $gtk.args.audio.delete :bg_music
+      $gtk.args.state.bgmusic.playing = false
     end
   end
 
@@ -409,6 +464,12 @@ class RoomScene < Zif::Scene
     # Update light with ship coords
     @light.x = @ship.center_x - @light.w.half
     @light.y = @ship.center_y - @light.h.half
+  end
+
+  def handle_ticks
+    @husk.current_room.doors.map(&:perform_tick)
+    @husk.current_room.hazards.map(&:perform_tick)
+    @husk.current_room.terminals.map(&:perform_tick)
   end
 
   def handle_render

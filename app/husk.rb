@@ -42,6 +42,8 @@ class Husk
     # gotta be a better way
     # Look into create a scaleable service
     # puts "setting scale from husk: #{room.scale}"
+    # This also causes some headache with having to create the ship
+    # before we can create the husk and room
     $game.scene.ship.set_scale room.scale
     door.exit_door $game.scene.ship unless door.nil?
   end
