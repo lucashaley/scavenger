@@ -14,11 +14,11 @@ module Collideable
     @sound_collide = sound_collide
   end
 
-  def set_collision_scale (scale=:large)
-    puts "set_collision_scale #{name}: #{scale}"
-    @h = collision_scales(scale)
-    @w = collision_scales(scale)
-  end
+  # def set_collision_scale (scale=:large)
+  #   puts "set_collision_scale #{name}: #{scale}"
+  #   @h = collision_scales(scale)
+  #   @w = collision_scales(scale)
+  # end
 
   def collide_x_with (c)
     return unless @collision_enabled

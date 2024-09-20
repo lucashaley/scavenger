@@ -2,6 +2,8 @@
 
 # rubocop:disable Metrics/ClassLength
 class Room
+  include Zif::Traceable
+
   attr_accessor :name,
                 :chaos,
                 :entrance_door,
@@ -13,7 +15,8 @@ class Room
                 :doors_hash,
                 :hazards,
                 :pickups,
-                :terminals
+                :terminals,
+                :agents
 
   DOORS = {
     none: 0,
@@ -51,6 +54,8 @@ class Room
     scale: :large,
     entrance_door: nil
   )
+    @tracer_service_name = :tracer
+
     # Set variables
     @name = name
     @chaos = chaos
@@ -62,6 +67,7 @@ class Room
     @hazards = []
     @pickups = []
     @terminals = []
+    @agents = []
     @doors_hash = {
       north: nil,
       south: nil,
@@ -89,15 +95,17 @@ class Room
     populate_pickups
     populate_hazards
     populate_terminals
+    populate_agents
 
     # This is dumping to args for Palantir
-    $gtk.args.state.rooms[@name] = { doors: @doors }
+    # $gtk.args.state.rooms[@name] = { doors: @doors }
 
     # puts "\n\nnew room doors: #{@doors}\n\n"
   end
   # rubocop:enable Metrics/MethodLength
 
   def populate_doors
+    # mark_and_print ("populate_doors")
     @doors_hash.each do |key, value|
       # there are no doors on this side yet
       next unless value.nil? && rand(3) + 1 > @chaos
@@ -143,6 +151,7 @@ class Room
   end
 
   def populate_pickups
+    # mark_and_print "populate_pickups"
     # success = false
     # until success
     #   temp = {
@@ -176,11 +185,13 @@ class Room
   end
 
   def populate_hazards
+    # mark_and_print "populate_hazards"
     odds = HAZARD_ODDS[@scale] # wait, this wont give us more than one
     if rand(odds[:in]) <= odds[:chance]
       valid_position = find_empty_position
-      return if valid_position.nil?
+      return if valid_position.nil? # This is ganky and isn't doing what we want
 
+      # mark_and_print "populate_hazards: creating new Mine"
       mine = Mine.new(
         # rand(600) + 40 - 32,
         # rand(640) + 600 - 32,
@@ -196,14 +207,15 @@ class Room
       valid_position = find_empty_position
       return if valid_position.nil?
 
+      # mark_and_print "populate_hazards: creating new Repulsor"
+      # mark_and_print "valid_position: #{valid_position}"
       repulsor = Repulsor.new(
-        # rand(600) + 40 - 32,
-        # rand(640) + 600 - 32,
         valid_position[:x],
         valid_position[:y],
         @scale
       )
-      repulsor.effect_target = $game.scene.ship
+      # mark_and_print repulsor
+      repulsor.effect_target = $gtk.args.state.ship
       $game.services[:effect_service].register_effectable repulsor
       @hazards << repulsor
       @no_populate_buffer << repulsor.buffer
@@ -212,14 +224,15 @@ class Room
       valid_position = find_empty_position
       return if valid_position.nil?
 
+      # mark_and_print "populate_hazards: creating new Attractor"
+      # mark_and_print "valid_position: #{valid_position}"
       attractor = Attractor.new(
-        # rand(600) + 40 - 32,
-        # rand(640) + 600 - 32,
         valid_position[:x],
         valid_position[:y],
         @scale
       )
-      attractor.effect_target = $game.scene.ship
+      # mark_and_print attractor
+      attractor.effect_target = $gtk.args.state.ship
       $game.services[:effect_service].register_effectable attractor
       @hazards << attractor
       @no_populate_buffer << attractor.buffer
@@ -227,6 +240,7 @@ class Room
   end
 
   def populate_terminals
+    # mark_and_print "populate_terminals"
     if rand(1) == 0
       valid_position = find_empty_position
       return if valid_position.nil?
@@ -247,6 +261,14 @@ class Room
     end
   end
 
+  def populate_agents
+    # mark_and_print("populate_agents")
+
+    agent = HunterBlob.new(scale: @scale)
+    agent.deactivate
+    @agents << agent
+  end
+
   def renders
     (@pickups + @hazards + @terminals).reject(&:is_dead)
   end
@@ -256,22 +278,24 @@ class Room
   end
 
   def renders_over_player
-    @walls
+    @walls + @agents
   end
 
   def collidables
-    @walls + (@pickups + @hazards).reject(&:is_dead) + @terminals
+    @walls + (@pickups + @hazards + @agents).reject(&:is_dead) + @terminals
   end
 
   def activate
     @terminals.each { |t| t.activate }
     @hazards.each { |h| h.activate }
+    @agents.each { |a| a.activate }
     @hazards.each { |h| h.activate_effect if h.is_a?(Effectable) }
   end
 
   def deactivate
     @terminals.each { |t| t.deactivate }
     @hazards.each { |h| h.deactivate }
+    @agents.each { |a| a.deactivate }
     @hazards.each { |h| h.deactivate_effect if h.is_a?(Effectable) }
   end
 
@@ -301,6 +325,7 @@ class Room
   end
 
   def create_tiles
+    # mark_and_print "creating tiles"
     viewscreen_offset_x = 40
     viewscreen_offset_y = 560
     pixel_scale = $SPRITE_SCALES[@scale]
@@ -404,6 +429,8 @@ class Room
     end
 
     # This forces the creation of the containing_sprite
-    puts "\n\nContaining sprite: #{@tiles_target.containing_sprite.nil?}"
+    # puts "\n\nContaining sprite: #{@tiles_target.containing_sprite.nil?}"
+    raise ArgumentError "No containing sprite" if @tiles_target.containing_sprite.nil?
+    # mark(@tiles_target.containing_sprite.nil?)
   end
 end

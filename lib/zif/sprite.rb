@@ -77,6 +77,7 @@ module Zif
     include Zif::Actions::Animatable
     include Zif::Clickable
     attr_sprite
+    # include AttrSprite
 
     BLENDMODE = {
       none:     0,

@@ -13,6 +13,7 @@ module Zif
       include Zif::Serializable
 
       attr_rect
+      # include AttrRect
 
       # @return [Integer] Constrain input to max_length number of characters. Defaults to zero to allow any number of characters.
       attr_accessor :max_length

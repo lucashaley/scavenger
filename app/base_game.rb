@@ -1,6 +1,10 @@
 class BaseGame < Zif::Game
+  include Zif::Traceable
+
   def initialize
     super()
+
+    @tracer_service_name = :tracer
 
     $SPRITE_SCALES = {
       large: 64,
@@ -23,13 +27,22 @@ class BaseGame < Zif::Game
       path: :solid
     }.freeze
 
-    @services.register(:effect_service, Services::EffectService.new)
+    $ui_viewscreen_border = 40
+    $ui_viewscreen_dimensions = 640
+    $ui_viewscreen = {
+      top: 1280 - 80,
+      right: 720 - $ui_viewscreen_border,
+      bottom: 1280 - 80 - $ui_viewscreen_dimensions,
+      left: $ui_viewscreen_border
+    }
 
-    # register_scene(:movement, MovementScene)
+    @services.register(:effect_service, Services::EffectService.new)
+    @services.register(:tick_service, Services::TickService.new)
+
+    register_scene(:room, RoomScene)
     register_scene(:game_over, GameOverScene)
 
-    # @scene = MovementScene.new
-    # @scene = EnvironmentScene.new
-    @scene = RoomScene.new
+    @scene = SplashScene.new
+    # @scene = RoomScene.new
   end
 end

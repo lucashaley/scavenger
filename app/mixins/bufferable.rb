@@ -10,7 +10,7 @@ module Bufferable
   attr_reader :buffer_scale, :buffer
 
   def initialize_bufferable(buffer_scale)
-    puts "#{@x}, #{@y}"
+    # puts "#{@x}, #{@y}"
     raise "Bufferable received a zeroed location" if @x == 0 || @y == 0
 
     @buffer_scale = $BUFFER_SCALES[buffer_scale]

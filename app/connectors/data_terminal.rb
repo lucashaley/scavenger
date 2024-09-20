@@ -1,10 +1,12 @@
 class DataTerminal < Zif::CompoundSprite
+  include Zif::Traceable
   include Collideable
   include Bounceable
   include Scaleable
   include Faceable
   include Bufferable
   include Spatializeable
+  include Tickable
 
   attr_reader :interfacing, :data, :data_rate, :tolerance
   attr_accessor :audio_idle
@@ -20,11 +22,13 @@ class DataTerminal < Zif::CompoundSprite
     layers: [
       {
         name: "main",
-        blendmode_enum: :alpha
+        blendmode_enum: :alpha,
+        z: 0
       },
       {
         name: "lights",
-        blendmode_enum: :add
+        blendmode_enum: :add,
+        z: 1
       }
     ],
     scales: [
@@ -33,70 +37,6 @@ class DataTerminal < Zif::CompoundSprite
       :small,
     ]
   }.freeze
-
-  def self.register_sprites
-    puts "DataTerminal: Registering Sprites"
-
-    $services[:sprite_registry].register_basic_sprite(
-      "dataterminal/dataterminal_main_large",
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].alias_sprite(
-      "dataterminal/dataterminal_main_large",
-      :dataterminal_main_large
-    )
-
-    $services[:sprite_registry].register_basic_sprite(
-      "dataterminal/dataterminal_main_medium",
-      width: 32,
-      height: 32
-    )
-    $services[:sprite_registry].alias_sprite(
-      "dataterminal/dataterminal_main_medium",
-      :dataterminal_main_medium
-    )
-
-    $services[:sprite_registry].register_basic_sprite(
-      "dataterminal/dataterminal_main_small",
-      width: 16,
-      height: 16
-    )
-    $services[:sprite_registry].alias_sprite(
-      "dataterminal/dataterminal_main_small",
-      :dataterminal_main_small
-    )
-
-    $services[:sprite_registry].register_basic_sprite(
-      "dataterminal/dataterminal_lights_large",
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].alias_sprite(
-      "dataterminal/dataterminal_lights_large",
-      :dataterminal_lights_large
-    )
-
-    $services[:sprite_registry].register_basic_sprite(
-      "dataterminal/dataterminal_lights_medium",
-      width: 32,
-      height: 32
-    )
-    $services[:sprite_registry].alias_sprite(
-      "dataterminal/dataterminal_lights_medium",
-      :dataterminal_lights_medium
-    )
-
-    $services[:sprite_registry].register_basic_sprite(
-      "dataterminal/dataterminal_lights_small",
-      width: 16,
-      height: 16
-    )
-    $services[:sprite_registry].alias_sprite(
-      "dataterminal/dataterminal_lights_small",
-      :dataterminal_lights_small
-    )
-  end
 
   def initialize(
     x: 0,
@@ -107,17 +47,19 @@ class DataTerminal < Zif::CompoundSprite
     data: 1000,
     data_rate: 2
   )
-    puts "\n\nDataTerminal Initialize\n======================"
+    @tracer_service_name = :tracer
     super(Zif.unique_name('DataTerminal'))
 
     set_position(x, y)
 
     # collate_sprites 'dataterminal' + facing.to_s
     # set_scale scale
+    register_sprites_new
     initialize_scaleable(scale)
     initialize_collideable
     initialize_bounceable(bounce: 0.3, sound_bounce: 'sounds/thump.wav')
     initialize_bufferable(:double)
+    initialize_tickable
 
     # variable assign
     @facing = facing
@@ -138,7 +80,7 @@ class DataTerminal < Zif::CompoundSprite
   end
 
   def collide_action(collidee, collided_on)
-    # puts "DataTerminal: collide_action: #{collided_on}"
+    puts "DataTerminal: collide_action: #{collided_on}"
     # puts "previous_tick: #{@previous_data_tick}"
 
     # Get the turret direction from the player
@@ -192,11 +134,12 @@ class DataTerminal < Zif::CompoundSprite
             collidee.add_data_block(name: @name, size: @data, corrupted: @corrupted)
             audio_feedback = @corrupted ? "sounds/data_corrupted.wav" : "sounds/data_collected.wav"
             play_once audio_feedback
+            @active = false
           end
         else
           # there is a chance the data has been corrupted
           @corrupted |= rand(3) == 0
-          puts "Has been corrupted? #{@corrupted}"
+          mark_and_print "Has been corrupted? #{@corrupted}"
         end
 
         @previous_data_tick = Kernel.tick_count
@@ -208,15 +151,6 @@ class DataTerminal < Zif::CompoundSprite
   end
 
   def perform_tick
-    super
-
-    # Audio
-    # if @active
-    #   pan = (self.rect.x - $game.scene.ship.rect.x) * 0.0015625 # 1/640
-    #   $gtk.args.audio[@name.to_sym][:x] = pan
-    #   $gtk.args.audio[@name.to_sym][:gain] = 1 - pan.abs
-    # end
-
     spatialize(@name.to_sym) if @active
   end
 end

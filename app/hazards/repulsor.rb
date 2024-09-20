@@ -5,6 +5,7 @@ class Repulsor < Zif::CompoundSprite
   include Effectable
   include Scaleable
   include Bufferable
+  include Zif::Traceable
 
   BOUNCE_SCALES = {
     large: 0.8,
@@ -12,19 +13,43 @@ class Repulsor < Zif::CompoundSprite
     small: 0.1
   }
 
+  SPRITE_DETAILS = {
+    name: "repulsor",
+    layers: [
+      {
+        name: "shadow",
+        blendmode_enum: :mul,
+        z: 0
+      },
+      {
+        name: "main",
+        blendmode_enum: :alpha,
+        z: 1
+      }
+    ],
+    scales: [
+      :large,
+      :medium,
+      :small,
+    ]
+  }.freeze
+
   def initialize(
     x = 0,
     y = 0,
     scale = :large,
     effect_strength = 50
   )
-    puts "\n\Repulsor Initialize\n======================"
-    super()
+    super(Zif.unique_name('Repulsor'))
+    @tracer_service_name = :tracer
 
     set_position(x, y)
 
-    collate_sprites "repulsor"
-    set_scale scale
+    # collate_sprites "repulsor"
+    register_sprites_new
+    initialize_scaleable(scale)
+    center_sprites
+    # set_scale scale
     initialize_collideable
     initialize_bounceable(bounce: 0.9)
     initialize_bufferable(:whole)
@@ -64,5 +89,23 @@ class Repulsor < Zif::CompoundSprite
 
     @effect_target.effect.x -= effect_vector.x
     @effect_target.effect.y -= effect_vector.y
+  end
+
+  # This is a bit hacky to add the generic shadow
+  def register_sprites_new
+    super
+
+    $services[:sprite_registry].alias_sprite(
+      "shadow_large",
+      :repulsor_shadow_large
+    )
+    $services[:sprite_registry].alias_sprite(
+      "shadow_medium",
+      :repulsor_shadow_medium
+    )
+    $services[:sprite_registry].alias_sprite(
+      "shadow_small",
+      :repulsor_shadow_small
+    )
   end
 end

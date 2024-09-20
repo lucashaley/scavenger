@@ -3,10 +3,14 @@ module SpriteRegisters
     puts "\nRegistering all sprites"
     puts "=======================\n\n"
 
-    DataTerminal.register_sprites
-    Door.register_sprites
-    Mine.register_sprites
-    Breach.register_sprites
+    # Ship.register_sprites
+    # BoostThrust.register_sprites
+    # DataTerminal.register_sprites
+    # Door.register_sprites
+    # Mine.register_sprites
+    # Attractor.register_sprites
+    # Repulsor.register_sprites
+    # Breach.register_sprites
 
     $services[:sprite_registry].register_basic_sprite(
       :ui_button_large_up,
@@ -30,61 +34,38 @@ module SpriteRegisters
     )
 
     $services[:sprite_registry].register_basic_sprite(
-      :ship_64,
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :wall_16,
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :wall2_08,
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :doorh_128,
-      width: 128,
-      height: 64
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :doorv_128,
-      width: 64,
-      height: 128
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :pickup_64,
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :mine_64,
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :effector_64,
-      width: 64,
-      height: 64
-    )
-
-    $services[:sprite_registry].register_basic_sprite(
-      :ship_32,
-      width: 32,
-      height: 32
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      :ship_16,
-      width: 16,
-      height: 16
-    )
-
-    $services[:sprite_registry].register_basic_sprite(
       :light,
       width: 1280,
       height: 1280
     )
+
+    # GENERIC SHADOW
+    $services[:sprite_registry].register_basic_sprite(
+      "shadow_large",
+      width: 70,
+      height: 70
+    )
+    # $services[:sprite_registry].alias_sprite(
+    #   "shadow_large",
+    #   :boost_shadow_large
+    # )
+    $services[:sprite_registry].register_basic_sprite(
+      "shadow_medium",
+      width: 36,
+      height: 36
+    )
+    # $services[:sprite_registry].alias_sprite(
+    #   "shadow_medium",
+    #   :boost_shadow_medium
+    # )
+    $services[:sprite_registry].register_basic_sprite(
+      "shadow_small",
+      width: 20,
+      height: 20
+    )
+    # $services[:sprite_registry].alias_sprite(
+    #   "shadow_small",
+    #   :boost_shadow_small
+    # )
   end
 end

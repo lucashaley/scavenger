@@ -2,6 +2,7 @@ class Ship < Zif::CompoundSprite
   include Faceable
   include Scaleable
   include Collideable
+  include Zif::Traceable
 
   attr_accessor :health_thrust, :health_ccw, :health_cw
   attr_accessor :health_east, :health_west, :health_north, :health_south
@@ -13,34 +14,53 @@ class Ship < Zif::CompoundSprite
   attr_accessor :thrust_sprite
   attr_accessor :data, :data_progress
   attr_reader :data_blocks, :data_block_count
-  # attr_accessor :scale
 
-  TILE_SIZE = {
-    small: 16,
-    medium: 32,
-    large: 64
-  }
+  SPRITE_DETAILS = {
+    name: "ship",
+    layers: [
+      {
+        name: "main",
+        blendmode_enum: :alpha,
+        z: 0
+      },
+      {
+        name: "turret",
+        blendmode_enum: :alpha,
+        z: 1
+      },
+      {
+        name: "thrustnorth",
+        blendmode_enum: :add,
+        z: 2
+      },
+      {
+        name: "thrustsouth",
+        blendmode_enum: :add,
+        z: 3
+      },
+      {
+        name: "thrusteast",
+        blendmode_enum: :add,
+        z: 4
+      },
+      {
+        name: "thrustwest",
+        blendmode_enum: :add,
+        z: 5
+      }
+    ],
+    scales: [
+      :large,
+      :medium,
+      :small,
+    ]
+  }.freeze
+
   SCALED_THRUST = {
     small: 0.25,
     medium: 0.5,
     large: 1.0
   }
-  # SPRITE_SCALES = {
-  #   small: 16,
-  #   medium: 32,
-  #   large: 64
-  # }
-  # def sprite_scales scale
-  #   SPRITE_SCALES[scale]
-  # end
-  COLLISION_SCALES = {
-    large: 64,
-    medium: 32,
-    small: 16
-  }
-  def collision_scales scale
-    COLLISION_SCALES[scale]
-  end
 
   def initialize (
     name: Zif.unique_name('ship'),
@@ -52,124 +72,13 @@ class Ship < Zif::CompoundSprite
     drag: 0.9,
     angular_drag: 0.9
   )
+    @tracer_service_name = :tracer
+    mark_and_print("initialize")
     super(name)
 
-    @h = 64
-    @w = 64
-
-    @ship_sprite_32 = $services[:sprite_registry].construct(:ship_32).tap do |s|
-      s.y = 0
-    end
-    @ship_sprite_16 = $services[:sprite_registry].construct(:ship_16).tap do |s|
-      s.y = 0
-    end
-
-    @ship_sprite_64 = Zif::Sprite.new.tap do |s|
-      s.x = 0
-      s.y = 0
-      s.w = 64
-      s.h = 64
-      s.path = "sprites/1bit_ship_64.png"
-    end
-
-    @thrust_sprite_north_64 = Zif::Sprite.new.tap do |s|
-      s.x = 0
-      s.y = -10
-      s.w = 64
-      s.h = 16
-      s.path = "sprites/ship_thrust_00.png"
-      s.blendmode_enum = :add
-    end
-    @thrust_sprite_south_64 = Zif::Sprite.new.tap do |s|
-      s.x = 0
-      s.y = 64 - 10
-      s.w = 64
-      s.h = 16
-      s.angle = 180
-      s.path = "sprites/ship_thrust_00.png"
-      s.blendmode_enum = :add
-    end
-    @thrust_sprite_east_64 = Zif::Sprite.new.tap do |s|
-      s.x = -32
-      s.y = 32 - 10
-      s.w = 64
-      s.h = 16
-      s.angle = 90
-      s.path = "sprites/ship_thrust_00.png"
-      s.blendmode_enum = :add
-    end
-    @thrust_sprite_west_64 = Zif::Sprite.new.tap do |s|
-      s.x = 32
-      s.y = 32 - 10
-      s.w = 64
-      s.h = 16
-      s.angle = 270
-      s.path = "sprites/ship_thrust_00.png"
-      s.blendmode_enum = :add
-    end
-
-    @turret_sprite_64 = Zif::Sprite.new.tap do |s|
-      s.x = 0
-      s.y = 0
-      s.w = 64
-      s.h = 64
-      s.path = "sprites/ship_turret.png"
-    end
-    $game.services.named(:action_service).register_actionable(@turret_sprite_64)
-    @turret_sprite_32 = Zif::Sprite.new.tap do |s|
-      s.x = 0
-      s.y = 0
-      s.w = 32
-      s.h = 32
-      s.path = "sprites/ship_turret_32.png"
-    end
-    $game.services.named(:action_service).register_actionable(@turret_sprite_32)
-    @turret_sprite_16 = Zif::Sprite.new.tap do |s|
-      s.x = 0
-      s.y = 0
-      s.w = 16
-      s.h = 16
-      s.path = "sprites/ship_turret_16.png"
-    end
-    $game.services.named(:action_service).register_actionable(@turret_sprite_16)
-
-    @current_sprite_hash = {
-      ship: nil,
-      thrust_north: nil,
-      thrust_south: nil,
-      thrust_east: nil,
-      thrust_west: nil,
-      turret: nil
-    }
-    @sprite_scale_hash = {
-      large:
-      {
-        ship: @ship_sprite_64,
-        thrust_north: @thrust_sprite_north_64,
-        thrust_south: @thrust_sprite_south_64,
-        thrust_east: @thrust_sprite_east_64,
-        thrust_west: @thrust_sprite_west_64,
-        turret: @turret_sprite_64
-      },
-      medium:
-      {
-        ship: @ship_sprite_32,
-        thrust_north: @thrust_sprite_north_32,
-        thrust_south: @thrust_sprite_south_32,
-        thrust_east: @thrust_sprite_east_32,
-        thrust_west: @thrust_sprite_west_32,
-        turret: @turret_sprite_32
-      },
-      small:
-      {
-        ship: @ship_sprite_16,
-        thrust_north: @thrust_sprite_north_32,
-        thrust_south: @thrust_sprite_south_32,
-        thrust_east: @thrust_sprite_east_32,
-        thrust_west: @thrust_sprite_west_32,
-        turret: @turret_sprite_16
-      }
-    }
+    register_sprites_new
+    initialize_scaleable(:large) # hardcoding this for now
+    center_sprites
 
     @momentum = {
       x: 0,
@@ -206,7 +115,7 @@ class Ship < Zif::CompoundSprite
     @is_dooring = false
 
     # initialize_collision
-    set_scale :large
+    # set_scale :large
 
     # UI Progress bar
     @data_progress = ExampleApp::ProgressBar.new(:data_progress, 440, 0, :white)
@@ -234,25 +143,38 @@ class Ship < Zif::CompoundSprite
     @angle += @momentum.rotation
   end
   def calc_position_x
+    # mark_and_print("calc_position_x")
     @momentum.x += @energy.x
     @momentum.x += @effect.x if @is_effectable
     @x += @momentum.x
     @x.truncate
 
     # Render the jets here, not a great place
-    if @energy.x >= 0
+    if @energy.x < 0
       # This is a problem now that we're switching scales
       # @thrust_sprite_east.path = "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png"
-      @current_sprite_hash[:thrust_east].path = \
-        "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png" \
-        unless @current_sprite_hash[:thrust_east].nil?
-    end
-    if @energy.x <= 0
+      # @current_sprite_hash[:thrust_east].path = \
+      #   "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png" \
+      #   unless @current_sprite_hash[:thrust_east].nil?
+      #
+      # puts "sprites/ship_thrusteast_#{@scale}_power_0#{@energy.x.clamp(0, 3).truncate}.png" if @energy.x > 0
+      @current_sprite_hash[:thrusteast].path = \
+        "sprites/ship/ship_thrusteast_#{@scale}_power_0#{@energy.x.clamp(0, 3).truncate}.png"
+    # end
+    # if @energy.x <= 0
+    elsif @energy.x > 0
       # @thrust_sprite_west.path = "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png"
-      @current_sprite_hash[:thrust_west].path = \
-        "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png" \
-        unless @current_sprite_hash[:thrust_west].nil?
+      # @current_sprite_hash[:thrust_west].path = \
+      #   "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png" \
+      #   unless @current_sprite_hash[:thrust_west].nil?
+      #
+      @current_sprite_hash[:thrustwest].path = \
+        "sprites/ship/ship_thrustwest_#{@scale}_power_0#{@energy.x.clamp(0, 3).truncate}.png"
+    else
+      @current_sprite_hash[:thrusteast].path = "sprites/ship/ship_thrusteast_#{@scale}.png"
+      @current_sprite_hash[:thrustwest].path = "sprites/ship/ship_thrustwest_#{@scale}.png"
     end
+
     refresh_sprites
 
     # Reset the movement
@@ -268,23 +190,30 @@ class Ship < Zif::CompoundSprite
   end
 
   def calc_position_y
+    # mark_and_print("calc_position_y")
     @momentum.y += @energy.y
     @momentum.y += @effect.y if @is_effectable
     @y += @momentum.y
     @y.truncate
 
     # Render the jets here, not a great place
-    if @energy.y >= 0
+    if @energy.y < 0
       # @thrust_sprite_north.path = "sprites/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png"
-      @current_sprite_hash[:thrust_north].path = \
-        "sprites/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png" \
-        unless @current_sprite_hash[:thrust_north].nil?
-    end
-    if @energy.y <= 0
+      # @current_sprite_hash[:thrust_north].path = \
+      #   "sprites/ship/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png" \
+      #   unless @current_sprite_hash[:thrust_north].nil?
+      @current_sprite_hash[:thrustnorth].path = \
+        "sprites/ship/ship_thrustnorth_#{@scale}_power_0#{@energy.x.clamp(0, 3).truncate}.png"
+    elsif @energy.y > 0
       # @thrust_sprite_south.path = "sprites/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png"
-      @current_sprite_hash[:thrust_south].path = \
-        "sprites/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png" \
-        unless @current_sprite_hash[:thrust_south].nil?
+      # @current_sprite_hash[:thrust_south].path = \
+      #   "sprites/ship/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png" \
+      #   unless @current_sprite_hash[:thrust_south].nil?
+      @current_sprite_hash[:thrustsouth].path = \
+        "sprites/ship/ship_thrustsouth_#{@scale}_power_0#{@energy.x.clamp(0, 3).truncate}.png"
+    else
+      @current_sprite_hash[:thrustnorth].path = "sprites/ship/ship_thrustnorth_#{@scale}.png"
+      @current_sprite_hash[:thrustsouth].path = "sprites/ship/ship_thrustsouth_#{@scale}.png"
     end
     refresh_sprites
 
@@ -444,7 +373,7 @@ class Ship < Zif::CompoundSprite
   end
 
   def add_data (amount)
-    puts "Ship:add_data #{amount}"
+    # puts "Ship:add_data #{amount}"
     @data += amount
     @data_progress.progress = @data * 0.001
   end
@@ -499,4 +428,193 @@ class Ship < Zif::CompoundSprite
     end
     return output
   end
+
+  # def self.register_sprites
+  #   puts "Ship: Registering Sprites"
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_main_large",
+  #     width: 64,
+  #     height: 64
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_main_large",
+  #     :ship_main_large
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_main_medium",
+  #     width: 32,
+  #     height: 32
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_main_medium",
+  #     :ship_main_medium
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_main_small",
+  #     width: 16,
+  #     height: 16
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_main_small",
+  #     :ship_main_small
+  #   )
+  #
+  #   # TURRET
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_turret_large",
+  #     width: 64,
+  #     height: 64
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_turret_large",
+  #     :ship_turret_large
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_turret_medium",
+  #     width: 32,
+  #     height: 32
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_turret_medium",
+  #     :ship_turret_medium
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_turret_small",
+  #     width: 16,
+  #     height: 16
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_turret_small",
+  #     :ship_turret_small
+  #   )
+  #
+  #   # THRUSTNORTH
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrustnorth_large",
+  #     width: 96,
+  #     height: 96
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrustnorth_large",
+  #     :ship_thrustnorth_large
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrustnorth_medium",
+  #     width: 32,
+  #     height: 32
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrustnorth_medium",
+  #     :ship_thrustnorth_medium
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrustnorth_small",
+  #     width: 16,
+  #     height: 16
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrustnorth_small",
+  #     :ship_thrustnorth_small
+  #   )
+  #
+  #   # THRUSTSOUTH
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrustsouth_large",
+  #     width: 96,
+  #     height: 96
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrustsouth_large",
+  #     :ship_thrustsouth_large
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrustsouth_medium",
+  #     width: 32,
+  #     height: 32
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrustsouth_medium",
+  #     :ship_thrustsouth_medium
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrustsouth_small",
+  #     width: 16,
+  #     height: 16
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrustsouth_small",
+  #     :ship_thrustsouth_small
+  #   )
+  #
+  #   # THRUSTEAST
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrusteast_large",
+  #     width: 96,
+  #     height: 96
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrusteast_large",
+  #     :ship_thrusteast_large
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrusteast_medium",
+  #     width: 32,
+  #     height: 32
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrusteast_medium",
+  #     :ship_thrusteast_medium
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrusteast_small",
+  #     width: 16,
+  #     height: 16
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrusteast_small",
+  #     :ship_thrusteast_small
+  #   )
+  #
+  #   # THRUSTWEST
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrustwest_large",
+  #     width: 96,
+  #     height: 96
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrustwest_large",
+  #     :ship_thrustwest_large
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrustwest_medium",
+  #     width: 32,
+  #     height: 32
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrustwest_medium",
+  #     :ship_thrustwest_medium
+  #   )
+  #
+  #   $services[:sprite_registry].register_basic_sprite(
+  #     "ship/ship_thrustwest_small",
+  #     width: 16,
+  #     height: 16
+  #   )
+  #   $services[:sprite_registry].alias_sprite(
+  #     "ship/ship_thrustwest_small",
+  #     :ship_thrustwest_small
+  #   )
+  # end
 end

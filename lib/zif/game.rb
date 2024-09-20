@@ -63,6 +63,7 @@ module Zif
   class Game
     include Traceable
     attr_gtk
+    # include AttrGTK
 
     # @return [Zif::Scene] The active scene
     attr_accessor :scene

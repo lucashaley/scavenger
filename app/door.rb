@@ -3,6 +3,8 @@ class Door < Zif::CompoundSprite
   include Bounceable
   include Scaleable
   include Bufferable
+  include Tickable
+  include Zif::Traceable
 
   attr_accessor :room
   attr_accessor :door_side, :door_buffer, :door_facing
@@ -30,7 +32,8 @@ class Door < Zif::CompoundSprite
             repeat: :once
           }
         ],
-        blendmode_enum: :alpha
+        blendmode_enum: :alpha,
+        z: 0
       },
       {
         name: "lights",
@@ -42,7 +45,8 @@ class Door < Zif::CompoundSprite
             repeat: :forever
           }
         ],
-        blendmode_enum: :add
+        blendmode_enum: :add,
+        z: 1
       }
     ],
     scales: [
@@ -66,75 +70,14 @@ class Door < Zif::CompoundSprite
   #   SPRITE_SCALES[scale]
   # end
 
-  def self.register_sprites
-    puts "Door: Registering Sprites"
-
-    $services[:sprite_registry].register_basic_sprite(
-      "door/door_main_large",
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].alias_sprite(
-      "door/door_main_large",
-      :door_main_large
-    )
-
-    $services[:sprite_registry].register_basic_sprite(
-      "door/door_main_medium",
-      width: 32,
-      height: 32
-    )
-    $services[:sprite_registry].alias_sprite(
-      "door/door_main_medium",
-      :door_main_medium
-    )
-
-    $services[:sprite_registry].register_basic_sprite(
-      "door/door_main_small",
-      width: 16,
-      height: 16
-    )
-    $services[:sprite_registry].alias_sprite(
-      "door/door_main_small",
-      :door_main_small
-    )
-
-    $services[:sprite_registry].register_basic_sprite(
-      "door/door_lights_large",
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].alias_sprite(
-      "door/door_lights_large",
-      :door_lights_large
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      "door/door_lights_medium",
-      width: 32,
-      height: 32
-    )
-    $services[:sprite_registry].alias_sprite(
-      "door/door_lights_medium",
-      :door_lights_medium
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      "door/door_lights_small",
-      width: 16,
-      height: 16
-    )
-    $services[:sprite_registry].alias_sprite(
-      "door/door_lights_small",
-      :door_lights_small
-    )
-  end
-
   def initialize (
     scale: :large,
     door_side: :south,
     destination_door: nil, # there should either be a door
     room: nil # or a room, but not both
   )
-    super()
+    super(Zif.unique_name("Door#{door_side}"))
+    @tracer_service_name = :tracer
 
     # Set variables
     @door_side = door_side
@@ -145,10 +88,12 @@ class Door < Zif::CompoundSprite
 
     # collate_sprites "door"
     # set_scale scale
+    register_sprites_new
     initialize_scaleable(scale)
     center_sprites
     initialize_collideable
     initialize_bounceable(bounce: BOUNCE_SCALES[scale])
+    initialize_tickable
 
     @exit_point = { x: 0, y: 0 }
 
@@ -159,7 +104,7 @@ class Door < Zif::CompoundSprite
     # side_length = 640 - (pixel_scale * 5)
     side_buffer = pixel_scale * 2
     side_logical = tile_dimensions - 4
-    # puts "scale: #{scale}, pixel_scale: #{pixel_scale}\nside_buffer: #{side_buffer} side_logical: #{side_logical}"
+
     destination_side = nil
 
     # We need to set the rotation,
@@ -198,7 +143,7 @@ class Door < Zif::CompoundSprite
       destination_side = :east
     end
     # Now that x and y are set, we can buffer
-    puts "Door.new: #{@x}, #{@y}"
+    # puts "Door.new: #{@x}, #{@y}"
     initialize_bufferable(:double)
 
     # Rotate the sprites
@@ -221,18 +166,22 @@ class Door < Zif::CompoundSprite
       # If there isn't a destination_door
       # then we create it
       # and that door will create a new room
-      begin
+      # mark_and_print room
+      raise ArgumentError, "No destination room: #{@name}" if room.nil?
+      # begin
         @room = room
         # @name = @room.name + '_door' + @door_side.to_s # can this be one line later?
+        # mark_and_print("creating new door, no destination")
         @destination_door = Door.new(
           scale: $SPRITE_SCALES.keys.sample.to_sym, # this is a random scale
           door_side: destination_side,
           destination_door: self
         )
-      rescue => error
-        puts "\n\nWELL FUCK\n========="
-        puts "#{error.message}\n\n"
-      end
+      # rescue => error
+      #   puts "\n\nWELL FUCK\n========="
+      #   mark_and_print(@name)
+      #   mark_and_print (error.message)
+      # end
     else
       # If there is a destination_door
       # then we create a new room
@@ -258,7 +207,7 @@ class Door < Zif::CompoundSprite
   end
 
   def create_connecting_room
-    puts "create_connecting_room"
+    # mark_and_print "create_connecting_room"
     room = Room.new(
       name: @room.name + "_" + @door_side.to_s,
       entrance_door: self,
@@ -345,7 +294,7 @@ class Door < Zif::CompoundSprite
   end
 
   def perform_tick
-      dist = $gtk.args.geometry.distance self.rect, $game.scene.ship.rect
+      dist = $gtk.args.geometry.distance self.rect, $gtk.args.state.ship.rect #$game.scene.ship.rect
       threshold = $SPRITE_SCALES[@scale] * 2
       if dist < threshold && @approached == false
         @approached = true

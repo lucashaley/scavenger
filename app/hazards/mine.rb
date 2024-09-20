@@ -4,6 +4,7 @@ class Mine < Zif::CompoundSprite
   include Scaleable
   include Bufferable
   include Spatializeable
+  include Tickable
 
   attr_accessor :damage
   attr_accessor :audio_idle
@@ -16,12 +17,13 @@ class Mine < Zif::CompoundSprite
         animations: [
           {
             name: "idle",
-            frames: 2,
+            frames: 3,
             hold: 10,
             repeat: :forever
           }
         ],
-        blendmode_enum: :alpha
+        blendmode_enum: :alpha,
+        z: 0
       }
     ],
     scales: [
@@ -31,54 +33,22 @@ class Mine < Zif::CompoundSprite
     ]
   }.freeze
 
-  def self.register_sprites
-    puts "Mine: Registering Sprites"
-
-    $services[:sprite_registry].register_basic_sprite(
-      "mine/mine_main_large",
-      width: 64,
-      height: 64
-    )
-    $services[:sprite_registry].alias_sprite(
-      "mine/mine_main_large",
-      :mine_main_large
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      "mine/mine_main_medium",
-      width: 32,
-      height: 32
-    )
-    $services[:sprite_registry].alias_sprite(
-      "mine/mine_main_medium",
-      :mine_main_medium
-    )
-    $services[:sprite_registry].register_basic_sprite(
-      "mine/mine_main_small",
-      width: 16,
-      height: 16
-    )
-    $services[:sprite_registry].alias_sprite(
-      "mine/mine_main_small",
-      :mine_main_small
-    )
-  end
-
   def initialize(
     x=0,
     y=0,
     scale = :large,
     damage = 0.4
   )
-    puts "\n\nMine Initialize\n======================"
-    super()
+    super(Zif.unique_name("Mine"))
 
     set_position(x,y)
 
-    # collate_sprites 'mine'
-    # set_scale scale
+    register_sprites_new
     initialize_scaleable(scale)
+    center_sprites
     initialize_collideable
     initialize_bufferable(:double)
+    initialize_tickable
 
     @damage = damage
 
@@ -92,16 +62,6 @@ class Mine < Zif::CompoundSprite
   end
 
   def perform_tick
-    super
-
-    # puts "mine tick: #{@active}, #{$gtk.args.audio[@name.to_sym]}"
-    #
-    # if @active
-    #   pan = (self.rect.x - $game.scene.ship.rect.x) * 0.0015625 # 1/640
-    #   $gtk.args.audio[@name.to_sym][:x] = pan
-    #   $gtk.args.audio[@name.to_sym][:gain] = 1 - pan.abs
-    # end
-
     spatialize(@name.to_sym) if @active
   end
 

@@ -1,4 +1,5 @@
 require 'app/services/effect_service.rb'
+require 'app/services/tick_service.rb'
 
 # Example app specific files:
 require 'app/ui/focus_check.rb'
@@ -24,6 +25,7 @@ require 'app/mixins/scaleable.rb'
 # require 'app/mixins/collateable.rb'
 require 'app/mixins/bufferable.rb'
 require 'app/mixins/spatializeable.rb'
+require 'app/mixins/tickable'
 
 require 'app/game_over_scene.rb'
 
@@ -40,3 +42,5 @@ require 'app/hazards/mine.rb'
 require 'app/hazards/repulsor.rb'
 require 'app/hazards/attractor.rb'
 require 'app/connectors/data_terminal.rb'
+
+require 'app/agents/hunter_blob.rb'

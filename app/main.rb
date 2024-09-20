@@ -14,18 +14,16 @@ require 'app/base_game.rb'
 # require 'app/pickup_scene.rb'
 # require 'app/animation_scene.rb'
 # require 'app/environment_scene.rb'
+require 'app/splash_scene.rb'
 require 'app/room_scene.rb'
 
 def tick args
   # $gtk.trace_nil_punning! # Not sure what this does
   if args.tick_count == 2
     args.gtk.set_window_scale 1
-    args.gtk.set_window_fullscreen false
+    args.gtk.set_window_fullscreen true
     $game = BaseGame.new
     $game.scene.prepare_scene
-
-    # Delete this when done with room switching
-    args.state.rooms ||= []
 
     # Shader stuff
     # args.outputs.shader_path ||= "shaders/crt.glsl"

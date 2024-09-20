@@ -15,6 +15,7 @@ module Effectable
   end
 
   def effect_strength
+    raise ArgumentError "No effect_strength" if @effect_strength.nil?
     @effect_active ? @effect_strength : 0
   end
 end

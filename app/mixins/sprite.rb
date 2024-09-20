@@ -5,12 +5,8 @@ module Zif
       @x, @y = x, y
     end
 
-    def perform_tick
-
-    end
-
     def activate
-      puts "#{@name} activated"
+      # puts "#{@name} activated"
       @active = true
 
       # puts "Did we find? #{$gtk.args.audio.dig(@name.to_sym, :paused)}"
@@ -30,7 +26,7 @@ module Zif
     end
 
     def deactivate
-      puts "#{@name} deactivated"
+      # puts "#{@name} deactivated"
       @active = false
 
       # puts "Did we find? #{$gtk.args.audio.dig(@name.to_sym, :paused)}"
@@ -44,9 +40,10 @@ module Zif
 
   class CompoundSprite
     def center_sprites
+      # puts "center_sprites"
       sprites.each do |s|
-        s.x = (s.w - @w).half
-        s.y = (s.h - @h).half
+        s.x = (@w - s.w).half
+        s.y = (@h - s.h).half
       end
     end
   end

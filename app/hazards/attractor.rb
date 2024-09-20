@@ -5,6 +5,7 @@ class Attractor < Zif::CompoundSprite
   include Effectable
   include Scaleable
   include Bufferable
+  include Zif::Traceable
 
   BOUNCE_SCALES = {
     large: 0.8,
@@ -12,20 +13,43 @@ class Attractor < Zif::CompoundSprite
     small: 0.1
   }
 
+  SPRITE_DETAILS = {
+    name: "attractor",
+    layers: [
+      {
+        name: "shadow",
+        blendmode_enum: :mul,
+        z: 0
+      },
+      {
+        name: "main",
+        blendmode_enum: :alpha,
+        z: 1
+      }
+    ],
+    scales: [
+      :large,
+      :medium,
+      :small,
+    ]
+  }.freeze
+
   def initialize(
     x = 0,
     y = 0,
     scale = :large,
     effect_strength = 50
   )
-    puts "\n\Attractor Initialize\n======================"
-    super()
-    # assign(prototype.to_h)
+    super(Zif.unique_name('Attractor'))
+    @tracer_service_name = :tracer
 
     set_position(x, y)
 
-    collate_sprites "attractor"
-    set_scale scale
+    # collate_sprites "attractor"
+    # set_scale scale
+    register_sprites_new
+    initialize_scaleable(scale)
+    center_sprites
     initialize_collideable
     initialize_bounceable(bounce: 0.9)
     initialize_bufferable(:whole)
@@ -36,6 +60,8 @@ class Attractor < Zif::CompoundSprite
 
     @effect_strength = effect_strength
     @effect_active = false
+
+    center_sprites
   end
 
   def collide_action(collidee, facing)
@@ -66,5 +92,23 @@ class Attractor < Zif::CompoundSprite
     # Do we want to be just adding to the momentum? Seems wrong
     @effect_target.effect.x += effect_vector.x
     @effect_target.effect.y += effect_vector.y
+  end
+
+  # This is a bit hacky to add the generic shadow
+  def register_sprites_new
+    super
+
+    $services[:sprite_registry].alias_sprite(
+      "shadow_large",
+      :attractor_shadow_large
+    )
+    $services[:sprite_registry].alias_sprite(
+      "shadow_medium",
+      :attractor_shadow_medium
+    )
+    $services[:sprite_registry].alias_sprite(
+      "shadow_small",
+      :attractor_shadow_small
+    )
   end
 end

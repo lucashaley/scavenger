@@ -1,6 +1,6 @@
 class RoomScene < Zif::Scene
   include SpriteRegisters
-  # include Zif::Traceable
+  include Zif::Traceable
 
   attr_accessor :ship, :husk
 
@@ -8,6 +8,7 @@ class RoomScene < Zif::Scene
   BUTTONS_CENTER = {x: 280, y: 260}.freeze
 
   def initialize
+    puts "\n\nROOM_SCENE: INIT\n\n"
     @tile_dimensions = 64
     @map_dimensions = 10
 
@@ -43,6 +44,7 @@ class RoomScene < Zif::Scene
     }
 
     @bg_music_state = :intro
+    @tracer_service_name = :tracer
   end
 
   def switch_rooms destination_door
@@ -54,6 +56,7 @@ class RoomScene < Zif::Scene
   end
 
   def prepare_scene
+    puts "\n\nROOM_SCENE: PREPARE_SCENE\n\n"
     register_all_sprites
 
     # Create the ship
@@ -68,6 +71,7 @@ class RoomScene < Zif::Scene
     @ship.x = 40 + (640 - 64).half
     @ship.y = 1280 - 48 - 64 - 640.half
     $game.services.named(:action_service).register_actionable(@ship)
+    $gtk.args.state.ship = @ship
 
     # Create a husk
     @husk = Husk.new
@@ -259,6 +263,7 @@ class RoomScene < Zif::Scene
 
   def perform_tick
     # $gtk.add_caller_to_puts!
+    # mark_and_print ("perform_tick")
     handle_bgmusic
     handle_meta_input
 
@@ -288,6 +293,7 @@ class RoomScene < Zif::Scene
 
   # This changes the bg music based upon the husk health -- the worse the health, the faster the music.
   def handle_bgmusic
+    # mark_and_print ("handle_bgmusic")
     if $gtk.args.audio[:bg_music].nil? && $gtk.args.state.bgmusic.playing
       # puts "handle_bgmusic: #{$gtk.args.audio[:bg_music]}"
       case @bg_music_state
@@ -363,6 +369,7 @@ class RoomScene < Zif::Scene
   end
 
   def handle_meta_input
+    # mark_and_print("handle_meta_input")
     # quit
     $gtk.args.gtk.request_quit if $gtk.args.inputs.keyboard.q
 
@@ -381,6 +388,7 @@ class RoomScene < Zif::Scene
   end
 
   def handle_player_input
+    # mark_and_print("handle_player_input")
     # Movement is based on thrust, so that the player continues to move
     # even after the key is released.
     # The way we handle this is by an intermediary variable between input
@@ -449,6 +457,9 @@ class RoomScene < Zif::Scene
     collision_pickups_y = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.collidables
     collision_pickups_y.collide_y_with @ship if collision_pickups_y
 
+    # Check agent collisions
+    # collision_agents_y = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.collidables
+
     # check if the player is out of screen area, and bounce them back
     @ship.bounds_inside_y @ui_viewscreen
 
@@ -461,18 +472,22 @@ class RoomScene < Zif::Scene
   end
 
   def handle_light
+    # mark_and_print("handle_light")
     # Update light with ship coords
     @light.x = @ship.center_x - @light.w.half
     @light.y = @ship.center_y - @light.h.half
   end
 
   def handle_ticks
-    @husk.current_room.doors.map(&:perform_tick)
-    @husk.current_room.hazards.map(&:perform_tick)
-    @husk.current_room.terminals.map(&:perform_tick)
+    # mark_and_print("handle_ticks")
+    $game.services[:tick_service].run_all_ticks
+    # @husk.current_room.doors.map(&:perform_tick)
+    # @husk.current_room.hazards.map(&:perform_tick)
+    # @husk.current_room.terminals.map(&:perform_tick)
   end
 
   def handle_render
+    # mark_and_print("handle_render")
     $gtk.args.outputs.sprites.clear
     $gtk.args.outputs.sprites << [
       @husk.current_room.tiles_target.containing_sprite.assign({ x: 40, y: 560 }),

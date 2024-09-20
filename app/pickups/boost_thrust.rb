@@ -14,6 +14,27 @@ class BoostThrust < Zif::CompoundSprite
     small: 0.1
   }
 
+  SPRITE_DETAILS = {
+    name: "boost",
+    layers: [
+      {
+        name: "main",
+        blendmode_enum: :alpha,
+        z: 1
+      },
+      {
+        name: "shadow",
+        blendmode_enum: :mul,
+        z: 0
+      }
+    ],
+    scales: [
+      :large,
+      :medium,
+      :small,
+    ]
+  }.freeze
+
   def initialize(
     x=0,
     y=0,
@@ -23,13 +44,15 @@ class BoostThrust < Zif::CompoundSprite
     start_duration=10,
     scale=:large
   )
-    puts "\n\nBoostThrust Initialize\n======================"
-    super()
+    super(Zif.unique_name("BoostThrust"))
 
     set_position(x, y)
 
-    collate_sprites 'boost'
-    set_scale scale
+    # collate_sprites 'boost'
+    # set_scale scale
+    register_sprites_new
+    initialize_scaleable(scale)
+    center_sprites
     initialize_collideable(sound_collide: 'sounds/pickup.wav')
     initialize_bounceable(bounce: bounce, sound_bounce: 'sounds/thump.wav')
     initialize_bufferable(:whole)
@@ -41,10 +64,6 @@ class BoostThrust < Zif::CompoundSprite
     @start_duration = start_duration
 
     @sound_pickup_success = "sounds/pickup.wav"
-    # @sound_bounce = "sounds/thump.wav"
-
-    # puts @sprite_scale_hash
-    # puts "\n\n#{@current_sprite_hash}"
   end
 
   def collide_action collidee, facing
@@ -68,5 +87,23 @@ class BoostThrust < Zif::CompoundSprite
   def bounce
     puts "bounce: #{BOUNCE_SCALES[@scale]}"
     BOUNCE_SCALES[@scale]
+  end
+
+  # This is a bit hacky to add the generic shadow
+  def register_sprites_new
+    super
+
+    $services[:sprite_registry].alias_sprite(
+      "shadow_large",
+      :boost_shadow_large
+    )
+    $services[:sprite_registry].alias_sprite(
+      "shadow_medium",
+      :boost_shadow_medium
+    )
+    $services[:sprite_registry].alias_sprite(
+      "shadow_small",
+      :boost_shadow_small
+    )
   end
 end

@@ -9,14 +9,22 @@ class Wall < Zif::CompoundSprite
     medium: 0.4,
     small: 0.1
   }
-  SPRITE_SCALES = {
-    large: 64,
-    medium: 32,
-    small: 16
+
+  SPRITE_DETAILS = {
+    name: "wall",
+    layers: [
+      {
+        name: "main",
+        blendmode_enum: :alpha,
+        z: 1
+      }
+    ],
+    scales: [
+      :large,
+      :medium,
+      :small,
+    ]
   }
-  def sprite_scales scale
-    SPRITE_SCALES[scale]
-  end
 
   def initialize (
     x=0,
@@ -25,33 +33,30 @@ class Wall < Zif::CompoundSprite
     facing = :north,
     scale = :large
   )
-    super()
-    # puts "\n\nWall new: #{x}, #{y}"
+    super(Zif.unique_name("Wall#{facing.to_s}"))
 
-    @x = x
-    @y = y
-    # @bounce = bounce
+    set_position(x, y)
 
-    @h = 64
-    @w = 64
+    # wall_type = 'wall' + facing.to_s
+    SPRITE_DETAILS.name = 'wall' + facing.to_s
+    register_sprites_new
 
-    wall_type = 'wall' + facing.to_s
-
-    collate_sprites wall_type
-    set_scale scale
+    # collate_sprites wall_type
+    # set_scale scale
+    initialize_scaleable(scale)
     initialize_collideable
     initialize_bounceable(bounce: bounce)
   end
 
   def collide_action collidee, facing
-    puts "Colliding with wall!"
+    # puts "Colliding with wall!"
     # play_once @sound_bounce
     bounce_off(collidee, facing)
   end
 
   def bounce
-    puts "bounce: #{@scale}"
-    puts "bounce: #{BOUNCE_SCALES[@scale]}"
+    # puts "bounce: #{@scale}"
+    # puts "bounce: #{BOUNCE_SCALES[@scale]}"
     BOUNCE_SCALES[@scale]
   end
 end
