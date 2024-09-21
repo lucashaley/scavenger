@@ -7,6 +7,8 @@ class DataTerminal < Zif::CompoundSprite
   include Bufferable
   include Spatializeable
   include Tickable
+  include Shadowable
+
 
   attr_reader :interfacing, :data, :data_rate, :tolerance
   attr_accessor :audio_idle
@@ -21,14 +23,19 @@ class DataTerminal < Zif::CompoundSprite
     name: "dataterminal",
     layers: [
       {
+        name: "shadow",
+        blendmode_enum: BLENDMODE[:multiply],
+        z: -1
+      },
+      {
         name: "main",
         blendmode_enum: :alpha,
-        z: 0
+        z: 1
       },
       {
         name: "lights",
         blendmode_enum: :add,
-        z: 1
+        z: 2
       }
     ],
     scales: [
@@ -54,6 +61,7 @@ class DataTerminal < Zif::CompoundSprite
 
     # collate_sprites 'dataterminal' + facing.to_s
     # set_scale scale
+    initialize_shadowable
     register_sprites_new
     initialize_scaleable(scale)
     initialize_collideable
@@ -63,12 +71,14 @@ class DataTerminal < Zif::CompoundSprite
 
     # variable assign
     @facing = facing
+    rotate_sprites(@facing)
 
     @interfacing = false
     @data = data
     @remaining_data = data
     @corrupted = false
     @data_rate = data_rate
+    raise(StandardError, "DataTerminal initialization data_rate is zero!") if data_rate <= 0
     @data_hold_time = 10
     @tolerance = tolerance
 
@@ -80,7 +90,7 @@ class DataTerminal < Zif::CompoundSprite
   end
 
   def collide_action(collidee, collided_on)
-    puts "DataTerminal: collide_action: #{collided_on}"
+    puts "DataTerminal: collidee facing: #{collidee.facing}, collide_action: #{collided_on}, facing: #{@facing}, remaining: #{@remaining_data}"
     # puts "previous_tick: #{@previous_data_tick}"
 
     # Get the turret direction from the player
@@ -109,40 +119,64 @@ class DataTerminal < Zif::CompoundSprite
 
       # This is ripped from the door
       # Possible chance of optimization/refactor
-      entering = case facing
+      puts "tolerance: #{@tolerance}"
+      entering = case @facing
                  when :north, :south
                    collidee.center_x.between?(center_x - @tolerance, center_x + @tolerance)
                  when :east, :west
                    collidee.center_y.between?(center_y - @tolerance, center_y + @tolerance)
                  end
-
+      puts "entering: #{entering}"
       if entering
         @previous_data_tick ||= Kernel.tick_count
 
         # If the data isn't collected all in one go, there is a chance the data gets corrupted.
-        if Kernel.tick_count - @previous_data_tick <= @data_hold_time
-
-          @interfacing = true
-
-          collidee.add_data(@data_rate)
-          # @data -= @data_rate
-          @remaining_data -= @data_rate
-
-          if @remaining_data <= 0
-            # the data block has been collected
-
-            collidee.add_data_block(name: @name, size: @data, corrupted: @corrupted)
-            audio_feedback = @corrupted ? "sounds/data_corrupted.wav" : "sounds/data_collected.wav"
-            play_once audio_feedback
-            @active = false
-          end
-        else
-          # there is a chance the data has been corrupted
+        # if Kernel.tick_count - @previous_data_tick <= @data_hold_time
+        if Kernel.tick_count - @previous_data_tick >= @data_hold_time
           @corrupted |= rand(3) == 0
           mark_and_print "Has been corrupted? #{@corrupted}"
         end
 
+        @interfacing = true
+        puts "interfacing: #{@interfacing}, data_rate: #{@data_rate}"
+
+        collidee.add_data(@data_rate)
+        # @data -= @data_rate
+        @remaining_data -= @data_rate
+
+        # Update the lights sprite
+        if @remaining_data == (@data * 0.667).truncate
+          puts "TWO THIRDS!"
+          puts @sprites
+          @sprites.find { |s| s.name == "dataterminal_lights_#{scale}" }.assign(
+            {path: "sprites/dataterminal/dataterminal_lights_#{@scale.to_s}_2.png"}
+          )
+        elsif @remaining_data == (@data * 0.333).truncate
+          puts "ONE THIRD"
+          @sprites.find { |s| s.name == "dataterminal_lights_#{scale}" }.assign(
+            {path: "sprites/dataterminal/dataterminal_lights_#{@scale.to_s}_1.png"}
+          )
+        end
+
+
+        if @remaining_data <= 0
+          # the data block has been collected
+          @sprites.find { |s| s.name == "dataterminal_lights_#{scale}" }.hide
+
+          collidee.add_data_block(name: @name, size: @data, corrupted: @corrupted)
+          audio_feedback = @corrupted ? "sounds/data_corrupted.wav" : "sounds/data_collected.wav"
+          play_once audio_feedback
+          @active = false
+        end
+        # else
+        #   # there is a chance the data has been corrupted
+        #   @corrupted |= rand(3) == 0
+        #   mark_and_print "Has been corrupted? #{@corrupted}"
+        # end
+
         @previous_data_tick = Kernel.tick_count
+      else
+        puts "missed!"
       end # entering
     else
       # play_once @sound_collide
@@ -151,6 +185,7 @@ class DataTerminal < Zif::CompoundSprite
   end
 
   def perform_tick
-    spatialize(@name.to_sym) if @active
+    spatialize(@name.to_sym)
+    perform_shadow_tick
   end
 end

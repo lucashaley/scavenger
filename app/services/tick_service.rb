@@ -30,8 +30,14 @@ module Services
           " #{tickable} is not a Tickable"
       end
 
+      # puts "Registering tickable: #{tickable.name}"
       @tickables << tickable
     end
+
+    # This doesn't work yet
+    # def tick_registered?(name)
+    #   # @tickables.key?(name)
+    # end
 
     # Removes an {Zif::Actions::Actionable} from the {actionables} array.
     # @param [Zif::Actions::Actionable] actionable
@@ -65,7 +71,7 @@ module Services
       # Avoid blocks here.
       idx = 0
       while idx < tickables_count
-        @tickables[idx].perform_tick
+        @tickables[idx].perform_tick if @tickables[idx].active?
         idx += 1
       end
 

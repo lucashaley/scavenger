@@ -25,7 +25,8 @@ require 'app/mixins/scaleable.rb'
 # require 'app/mixins/collateable.rb'
 require 'app/mixins/bufferable.rb'
 require 'app/mixins/spatializeable.rb'
-require 'app/mixins/tickable'
+require 'app/mixins/tickable.rb'
+require 'app/mixins/shadowable.rb'
 
 require 'app/game_over_scene.rb'
 

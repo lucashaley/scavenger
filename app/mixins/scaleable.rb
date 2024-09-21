@@ -93,39 +93,39 @@ module Scaleable
 
       # APPARENTLY THIS IS NOT NECESSARY
       # BECAUSE DR SUPPLIES THIS ALREADY
-      # gtk.calcspritebox
 
-      file_data = $gtk.args.gtk.read_file("sprites/#{sprite_path}.png")
-      # puts file_data
-
-      if file_data[0, 8] == [137, 80, 78, 71, 13, 10, 26, 10].pack("C*")
-        # file has a PNG file signature, let's get the image header chunk
-
-        length, chunk_type = file_data[8, 8].unpack("l>a4")
-
-        raise "unknown format, expecting image header" unless chunk_type == "IHDR"
-
-        chunk_data = file_data[16, length].unpack("l>l>CCCCC")
-        width              = chunk_data[0]
-        height             = chunk_data[1]
-        bit_depth          = chunk_data[2]
-        color_type         = chunk_data[3]
-        compression_method = chunk_data[4]
-        filter_method      = chunk_data[5]
-        interlace_method   = chunk_data[6]
-
-        # puts "image size: #{width}x#{height}"
-      else
-        # handle other formats
-        mark_and_print "PNG PARSE BARF"
-      end
+      # file_data = $gtk.args.gtk.read_file("sprites/#{sprite_path}.png")
+      # # puts file_data
+      #
+      # if file_data[0, 8] == [137, 80, 78, 71, 13, 10, 26, 10].pack("C*")
+      #   # file has a PNG file signature, let's get the image header chunk
+      #
+      #   length, chunk_type = file_data[8, 8].unpack("l>a4")
+      #
+      #   raise "unknown format, expecting image header" unless chunk_type == "IHDR"
+      #
+      #   chunk_data = file_data[16, length].unpack("l>l>CCCCC")
+      #   width              = chunk_data[0]
+      #   height             = chunk_data[1]
+      #   bit_depth          = chunk_data[2]
+      #   color_type         = chunk_data[3]
+      #   compression_method = chunk_data[4]
+      #   filter_method      = chunk_data[5]
+      #   interlace_method   = chunk_data[6]
+      #
+      #   # puts "image size: #{width}x#{height}"
+      # else
+      #   # handle other formats
+      #   mark_and_print "PNG PARSE BARF"
+      # end
 
       # puts "image size: #{width}x#{height}"
+      image_size = $gtk.args.gtk.calcspritebox("sprites/#{sprite_path}.png")
 
       $services[:sprite_registry].register_basic_sprite(
         sprite_path,
-        width: width,
-        height: height
+        width: image_size[0],
+        height: image_size[1]
       )
       $services[:sprite_registry].alias_sprite(
         sprite_path,

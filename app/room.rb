@@ -252,8 +252,9 @@ class Room
         y: valid_position[:y],
         scale: @scale,
         data: rand(1000),
-        data_rate: rand(4) * 0.5,
+        data_rate: 1 + (rand(3) * 0.5), # what the hell is this computation
         facing: [:north, :south, :east, :west].sample.to_sym
+        # facing: :south
       )
       data_terminal.deactivate
       @terminals << data_terminal
@@ -286,6 +287,7 @@ class Room
   end
 
   def activate
+    @pickups.each { |p| p.activate }
     @terminals.each { |t| t.activate }
     @hazards.each { |h| h.activate }
     @agents.each { |a| a.activate }
@@ -293,6 +295,7 @@ class Room
   end
 
   def deactivate
+    @pickups.each { |p| p.deactivate }
     @terminals.each { |t| t.deactivate }
     @hazards.each { |h| h.deactivate }
     @agents.each { |a| a.deactivate }

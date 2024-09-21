@@ -5,6 +5,10 @@ module Zif
       @x, @y = x, y
     end
 
+    def active?
+      @active
+    end
+
     def activate
       # puts "#{@name} activated"
       @active = true
@@ -36,6 +40,11 @@ module Zif
 
       $gtk.args.audio[@name.to_sym] = nil
     end
+
+    def to_s
+      "name: #{@name}\n"
+      "xy: #{self.xy}"
+    end
   end
 
   class CompoundSprite
@@ -45,6 +54,23 @@ module Zif
         s.x = (@w - s.w).half
         s.y = (@h - s.h).half
       end
+    end
+
+    def rotate_sprites facing
+      puts "rotate sprites: #{facing}"
+      sprites.each do |s|
+        s.angle = case facing
+                  when :south
+                    0
+                  when :east
+                    90
+                  when :north
+                    180
+                  when :west
+                    270
+                  end
+      end
+      center_sprites # just in case
     end
   end
 end

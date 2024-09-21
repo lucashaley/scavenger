@@ -5,6 +5,7 @@ class Mine < Zif::CompoundSprite
   include Bufferable
   include Spatializeable
   include Tickable
+  include Shadowable
 
   attr_accessor :damage
   attr_accessor :audio_idle
@@ -24,6 +25,11 @@ class Mine < Zif::CompoundSprite
         ],
         blendmode_enum: :alpha,
         z: 0
+      },
+      {
+        name: "shadow",
+        blendmode_enum: BLENDMODE[:multiply],
+        z: -1
       }
     ],
     scales: [
@@ -43,9 +49,11 @@ class Mine < Zif::CompoundSprite
 
     set_position(x,y)
 
+    initialize_shadowable
     register_sprites_new
     initialize_scaleable(scale)
     center_sprites
+    # rotate_sprites([:north, :south, :east, :west].sample)
     initialize_collideable
     initialize_bufferable(:double)
     initialize_tickable
@@ -56,13 +64,14 @@ class Mine < Zif::CompoundSprite
     @sound_collide = "sounds/thump.wav"
 
     animation_name = "mine_main_#{scale}"
-    sprites.find { |s| s.name == animation_name }.run_animation_sequence(:idle)
+    @sprites.find { |s| s.name == animation_name }.run_animation_sequence(:idle)
 
     @audio_idle = 'sounds/mine_idle.wav'
   end
 
   def perform_tick
-    spatialize(@name.to_sym) if @active
+    spatialize(@name.to_sym)
+    perform_shadow_tick
   end
 
   def collide_action collidee, facing

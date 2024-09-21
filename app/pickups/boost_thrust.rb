@@ -5,6 +5,8 @@ class BoostThrust < Zif::CompoundSprite
   include Bounceable
   include Scaleable
   include Bufferable
+  include Tickable
+  include Shadowable
 
   attr_reader :amount, :duration, :start_duration
 
@@ -15,7 +17,7 @@ class BoostThrust < Zif::CompoundSprite
   }
 
   SPRITE_DETAILS = {
-    name: "boost",
+    name: "boostthrust",
     layers: [
       {
         name: "main",
@@ -24,8 +26,8 @@ class BoostThrust < Zif::CompoundSprite
       },
       {
         name: "shadow",
-        blendmode_enum: :mul,
-        z: 0
+        blendmode_enum: BLENDMODE[:multiply],
+        z: -1
       }
     ],
     scales: [
@@ -50,12 +52,15 @@ class BoostThrust < Zif::CompoundSprite
 
     # collate_sprites 'boost'
     # set_scale scale
+    initialize_shadowable
     register_sprites_new
     initialize_scaleable(scale)
     center_sprites
+    rotate_sprites([:north, :south, :east, :west].sample)
     initialize_collideable(sound_collide: 'sounds/pickup.wav')
     initialize_bounceable(bounce: bounce, sound_bounce: 'sounds/thump.wav')
     initialize_bufferable(:whole)
+    initialize_tickable
 
     # @bounce = bounce
 
@@ -89,21 +94,8 @@ class BoostThrust < Zif::CompoundSprite
     BOUNCE_SCALES[@scale]
   end
 
-  # This is a bit hacky to add the generic shadow
-  def register_sprites_new
-    super
-
-    $services[:sprite_registry].alias_sprite(
-      "shadow_large",
-      :boost_shadow_large
-    )
-    $services[:sprite_registry].alias_sprite(
-      "shadow_medium",
-      :boost_shadow_medium
-    )
-    $services[:sprite_registry].alias_sprite(
-      "shadow_small",
-      :boost_shadow_small
-    )
+  def perform_tick
+    # puts "BoostThrust: perform_tick"
+    perform_shadow_tick
   end
 end

@@ -201,7 +201,7 @@ class Door < Zif::CompoundSprite
 
 
     animation_name = "door_lights_#{scale}"
-    sprites.find { |s| s.name == animation_name }.run_animation_sequence(:idle)
+    @sprites.find { |s| s.name == animation_name }.run_animation_sequence(:idle)
 
     @approached = false
   end
@@ -298,12 +298,12 @@ class Door < Zif::CompoundSprite
       threshold = $SPRITE_SCALES[@scale] * 2
       if dist < threshold && @approached == false
         @approached = true
-        sprites.find { |s| s.name == "door_main_#{scale}" }.run_animation_sequence(:open)
-        sprites.find { |s| s.name == "door_lights_#{scale}" }.hide
+        @sprites.find { |s| s.name == "door_main_#{scale}" }.run_animation_sequence(:open)
+        @sprites.find { |s| s.name == "door_lights_#{scale}" }.hide
       elsif dist > threshold && @approached == true
         @approached = false
-        sprites.find { |s| s.name == "door_main_#{scale}" }.run_animation_sequence(:close)
-        sprites.find { |s| s.name == "door_lights_#{scale}" }.show
+        @sprites.find { |s| s.name == "door_main_#{scale}" }.run_animation_sequence(:close)
+        @sprites.find { |s| s.name == "door_lights_#{scale}" }.show
         # sprites.find { |s| s.name == "door_lights_#{scale}" }.run_animation_sequence(:idle)
       end
   end

@@ -16,11 +16,11 @@ class Attractor < Zif::CompoundSprite
   SPRITE_DETAILS = {
     name: "attractor",
     layers: [
-      {
-        name: "shadow",
-        blendmode_enum: :mul,
-        z: 0
-      },
+      # {
+      #   name: "shadow",
+      #   blendmode_enum: BLENDMODE[:multiply],
+      #   z: 0
+      # },
       {
         name: "main",
         blendmode_enum: :alpha,
