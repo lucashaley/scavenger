@@ -21,9 +21,15 @@ class Mine < Zif::CompoundSprite
             frames: 3,
             hold: 10,
             repeat: :forever
+          },
+          {
+            name: "blow",
+            frames: 7,
+            hold: 2,
+            repeat: :once
           }
         ],
-        blendmode_enum: :alpha,
+        blendmode_enum: :add,
         z: 0
       },
       {
@@ -74,6 +80,10 @@ class Mine < Zif::CompoundSprite
     perform_shadow_tick
   end
 
+  def kill_me
+    kill
+  end
+
   def collide_action collidee, facing
     puts 'collide_action'
 
@@ -94,7 +104,20 @@ class Mine < Zif::CompoundSprite
 
     # Damage the husk
     $game.scene.husk.damage 60
+
+    # play the animation
+    animation_name = "mine_main_#{scale}"
+    @sprites.find { |s| s.name == animation_name }.run_animation_sequence(:blow)
     # And get rid of the mine
-    kill
+    # kill
+  end
+
+  def complete_animation( animation )
+    puts "complete_animation"
+    case animation
+    when :blow
+      puts "complete_animation: blow"
+      kill
+    end
   end
 end

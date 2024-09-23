@@ -52,7 +52,7 @@ class Attractor < Zif::CompoundSprite
     center_sprites
     initialize_collideable
     initialize_bounceable(bounce: 0.9)
-    initialize_bufferable(:whole)
+    initialize_bufferable(:single)
 
     # initialize_collision
     # @bounce = 0.9

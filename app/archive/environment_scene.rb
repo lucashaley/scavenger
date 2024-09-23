@@ -292,7 +292,7 @@ class EnvironmentScene < Zif::Scene
     end
 
     # Deads cleanup
-    @pickups.reject! { |p| p.is_dead }
+    @pickups.reject! { |p| p.is_dead? }
 
     # stop sound if space key is pressed
     if $gtk.args.inputs.keyboard.key_down.space
@@ -350,7 +350,7 @@ class EnvironmentScene < Zif::Scene
     collision_doors_x.collide_x_with @ship if collision_doors_x
 
     # Check pickup collisions
-    collision_pickups_x = $gtk.args.geometry.find_intersect_rect @ship, @pickups.reject{ |p| p.is_dead }
+    collision_pickups_x = $gtk.args.geometry.find_intersect_rect @ship, @pickups.reject{ |p| p.is_dead? }
     collision_pickups_x.collide_x_with @ship if collision_pickups_x
 
     # Check if the player is out of screen area, and bounce them back
@@ -364,7 +364,7 @@ class EnvironmentScene < Zif::Scene
     collision_doors_y.collide_y_with @ship if collision_doors_y
 
     # Check pickup collisions
-    collision_pickups_y = $gtk.args.geometry.find_intersect_rect @ship, @pickups.reject{ |p| p.is_dead }
+    collision_pickups_y = $gtk.args.geometry.find_intersect_rect @ship, @pickups.reject{ |p| p.is_dead? }
     collision_pickups_y.collide_y_with @ship if collision_pickups_y
 
     # check if the player is out of screen area, and bounce them back

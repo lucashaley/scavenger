@@ -1,7 +1,7 @@
 module Deadable
   @dead = false
 
-  def is_dead
+  def is_dead?
     @dead
   end
 

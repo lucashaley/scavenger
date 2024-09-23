@@ -237,6 +237,21 @@ class Room
       @hazards << attractor
       @no_populate_buffer << attractor.buffer
     end
+
+    # Crates
+    # TODO: move this to a ~statics~ array
+    (rand(3)+1).times do
+      valid_position = find_empty_position
+      unless valid_position.nil?
+        crate = Crate.new(
+          x: valid_position.x,
+          y: valid_position.y,
+          scale: @scale
+        )
+        @hazards << crate
+        @no_populate_buffer << crate.buffer
+      end
+    end
   end
 
   def populate_terminals
@@ -271,11 +286,11 @@ class Room
   end
 
   def renders
-    (@pickups + @hazards + @terminals).reject(&:is_dead)
+    (@pickups + @hazards + @terminals).reject(&:is_dead?)
   end
 
   def renders_under_player
-    (@pickups + @hazards).reject(&:is_dead) + @terminals
+    (@pickups + @hazards).reject(&:is_dead?) + @terminals
   end
 
   def renders_over_player
@@ -283,29 +298,31 @@ class Room
   end
 
   def collidables
-    @walls + (@pickups + @hazards + @agents).reject(&:is_dead) + @terminals
+    @walls + (@pickups + @hazards + @agents).reject(&:is_dead?) + @terminals
   end
 
   def activate
-    @pickups.each { |p| p.activate }
-    @terminals.each { |t| t.activate }
-    @hazards.each { |h| h.activate }
-    @agents.each { |a| a.activate }
+    @doors.each(&:activate)
+    @pickups.each(&:activate)
+    @terminals.each(&:activate)
+    @hazards.each(&:activate)
+    @agents.each(&:activate)
     @hazards.each { |h| h.activate_effect if h.is_a?(Effectable) }
   end
 
   def deactivate
-    @pickups.each { |p| p.deactivate }
-    @terminals.each { |t| t.deactivate }
-    @hazards.each { |h| h.deactivate }
-    @agents.each { |a| a.deactivate }
+    @doors.each(&:deactivate)
+    @pickups.each(&:deactivate)
+    @terminals.each(&:deactivate)
+    @hazards.each(&:deactivate)
+    @agents.each(&:deactivate)
     @hazards.each { |h| h.deactivate_effect if h.is_a?(Effectable) }
   end
 
   def purge_deads
     # puts "Bring out your dead!"
-    @pickups.reject!(&:is_dead)
-    @hazards.reject!(&:is_dead)
+    @pickups.reject!(&:is_dead?)
+    @hazards.reject!(&:is_dead?)
   end
 
   def serialize

@@ -19,9 +19,14 @@ module Scaleable
   end
 
   def refresh_sprites
-    @sprites = @current_sprite_hash.values.sort_by(&:z_index)
-    center_sprites
-    view_actual_size!
+    raise StandardError, "@current_sprite_hash doesn't exist" if @current_sprite_hash.nil?
+    begin
+      @sprites = @current_sprite_hash.values.sort_by(&:z_index)
+      center_sprites
+      view_actual_size!
+    rescue => e
+      puts "There was an error in refreshing the sprites. #{e.message}"
+    end
   end
 
   # The naming convention so far is:
@@ -87,39 +92,6 @@ module Scaleable
 
       # mark_and_print("Already registered #{sprite_path}: #{$services[:sprite_registry].sprite_registered? sprite_path}")
       next if $services[:sprite_registry].sprite_registered? sprite_path
-
-      # data = IO.binread("sprites/#{sprite_path}", 100) # read first 100 bytes
-      # puts "sprites/#{sprite_path}"
-
-      # APPARENTLY THIS IS NOT NECESSARY
-      # BECAUSE DR SUPPLIES THIS ALREADY
-
-      # file_data = $gtk.args.gtk.read_file("sprites/#{sprite_path}.png")
-      # # puts file_data
-      #
-      # if file_data[0, 8] == [137, 80, 78, 71, 13, 10, 26, 10].pack("C*")
-      #   # file has a PNG file signature, let's get the image header chunk
-      #
-      #   length, chunk_type = file_data[8, 8].unpack("l>a4")
-      #
-      #   raise "unknown format, expecting image header" unless chunk_type == "IHDR"
-      #
-      #   chunk_data = file_data[16, length].unpack("l>l>CCCCC")
-      #   width              = chunk_data[0]
-      #   height             = chunk_data[1]
-      #   bit_depth          = chunk_data[2]
-      #   color_type         = chunk_data[3]
-      #   compression_method = chunk_data[4]
-      #   filter_method      = chunk_data[5]
-      #   interlace_method   = chunk_data[6]
-      #
-      #   # puts "image size: #{width}x#{height}"
-      # else
-      #   # handle other formats
-      #   mark_and_print "PNG PARSE BARF"
-      # end
-
-      # puts "image size: #{width}x#{height}"
       image_size = $gtk.args.gtk.calcspritebox("sprites/#{sprite_path}.png")
 
       $services[:sprite_registry].register_basic_sprite(
@@ -139,6 +111,7 @@ module Scaleable
     # mark_and_print("initialize_scaleable")
     # Get out if we're using the old, undefined classes
     return unless self.class.const_defined?(:SPRITE_DETAILS)
+    raise ArgumentError "No scale provided" if scale.nil?
 
     @scale = scale
     @scale_ratio ||= 1 # was used for non-square sprites, blechh
@@ -196,7 +169,7 @@ module Scaleable
               named: animation[:name].to_sym,
               paths_and_durations: paths,
               repeat: animation[:repeat]
-            )
+            ) { self.complete_animation(animation[:name].to_sym) if self.respond_to? (:complete_animation) }
           end
         end
 
@@ -206,6 +179,8 @@ module Scaleable
       end
     end
 
+    raise StandardError, "@sprite_scale_hash[@scale] not found: #{new_sprite.name}, #{@scale}\n#{@sprite_scale_hash}" \
+      if @sprite_scale_hash[@scale].nil?
     @current_sprite_hash = @sprite_scale_hash[@scale]
 
     refresh_sprites

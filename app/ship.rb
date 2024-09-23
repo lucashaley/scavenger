@@ -3,6 +3,7 @@ class Ship < Zif::CompoundSprite
   include Scaleable
   include Collideable
   include Zif::Traceable
+  include Shadowable
 
   attr_accessor :health_thrust, :health_ccw, :health_cw
   attr_accessor :health_east, :health_west, :health_north, :health_south
@@ -47,6 +48,11 @@ class Ship < Zif::CompoundSprite
         name: "thrustwest",
         blendmode_enum: :add,
         z: 5
+      },
+      {
+        name: "shadow",
+        blendmode_enum: BLENDMODE[:multiply],
+        z: -1
       }
     ],
     scales: [
@@ -76,6 +82,7 @@ class Ship < Zif::CompoundSprite
     mark_and_print("initialize")
     super(name)
 
+    initialize_shadowable
     register_sprites_new
     initialize_scaleable(:large) # hardcoding this for now
     center_sprites

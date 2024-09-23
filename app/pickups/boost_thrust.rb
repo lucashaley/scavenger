@@ -59,7 +59,7 @@ class BoostThrust < Zif::CompoundSprite
     rotate_sprites([:north, :south, :east, :west].sample)
     initialize_collideable(sound_collide: 'sounds/pickup.wav')
     initialize_bounceable(bounce: bounce, sound_bounce: 'sounds/thump.wav')
-    initialize_bufferable(:whole)
+    initialize_bufferable(:single)
     initialize_tickable
 
     # @bounce = bounce

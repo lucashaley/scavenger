@@ -1,7 +1,7 @@
 module Bufferable
   $BUFFER_SCALES = {
     none: 0,
-    whole: 1,
+    single: 1,
     double: 2,
     triple: 3
   }.freeze
@@ -11,6 +11,7 @@ module Bufferable
 
   def initialize_bufferable(buffer_scale)
     # puts "#{@x}, #{@y}"
+    raise ArgumentError unless $BUFFER_SCALES.key?(buffer_scale)
     raise "Bufferable received a zeroed location" if @x == 0 || @y == 0
 
     @buffer_scale = $BUFFER_SCALES[buffer_scale]

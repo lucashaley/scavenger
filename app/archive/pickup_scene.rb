@@ -225,7 +225,7 @@ class ClassScene < Zif::Scene
     # $gtk.add_caller_to_puts!
 
     # Deads cleanup
-    @pickups.reject! { |p| p.is_dead }
+    @pickups.reject! { |p| p.is_dead? }
 
     # stop sound if space key is pressed
     if $gtk.args.inputs.keyboard.key_down.space
