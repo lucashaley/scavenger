@@ -5,50 +5,56 @@ module Services
   # In turn, this calls {Zif::Action::Actionable#perform_actions} on all {Zif::Action::Actionable}s objects which have
   # been previously registered using {#register_actionable}.
   # @see Zif::Action::Actionable
-  class EffectService
+  class EmpService
     # @return [Array<Zif::Action::Actionable>] The list of {Zif::Action::Actionable}s to check each tick
-    attr_reader :effectables
+    attr_reader :empables
 
     # ------------------
     # @!group 1. Public Interface
 
     # Calls {reset_actionables}
     def initialize
-      reset_effectables
+      reset_empables
     end
 
     # Resets the {actionables} array.
-    def reset_effectables
-      @effectables = []
+    def reset_empables
+      @empables = []
     end
 
     # Adds an {Zif::Actions::Actionable} to the {actionables} array.
     # @param [Zif::Actions::Actionable] actionable
-    def register_effectable(effectable)
-      unless effectable.is_a?(HuskEngine::Effectable)
-        raise ArgumentError, 'Services::EffectService#register_effectable:' \
-                             " #{effectable} is not a Effectable"
+    def register_empable(empable)
+      unless empable.is_a?(HuskEngine::Empable)
+        raise ArgumentError, 'Services::EmpService#register_empable:' \
+          " #{empable} is not a Empable"
       end
 
-      @effectables << effectable
+      # puts "Registering empable: #{empable.name}"
+      @empables << empable
     end
+
+    # This doesn't work yet
+    # def tick_registered?(name)
+    #   # @tickables.key?(name)
+    # end
 
     # Removes an {Zif::Actions::Actionable} from the {actionables} array.
     # @param [Zif::Actions::Actionable] actionable
-    def remove_effectable(effectable)
-      @effectables.delete(effectable)
+    def remove_empable(empable)
+      @empables.delete(empable)
     end
 
     # Moves an {Zif::Actions::Actionable} to the start of the {actionables} array, so it is processed first
     # @param [Zif::Actions::Actionable] actionable
-    def promote_effectable(effectable)
-      @effectables.unshift(remove_effectable(effectable))
+    def promote_empable(empable)
+      @empables.unshift(remove_empable(empable))
     end
 
     # Moves an {Zif::Actions::Actionable} to the end of the {actionables} array, so it is processed last
     # @param [Zif::Actions::Actionable] actionable
-    def demote_effectable(effectable)
-      @effectables.push(remove_effectable(effectable))
+    def demote_empable(empable)
+      @empables.push(remove_empable(empable))
     end
 
     # ------------------
@@ -57,15 +63,17 @@ module Services
     # Iterate through {actionables} and invoke {Zif::Action::Actionable#perform_actions}
     # Unless you are doing something advanced, this should be invoked automatically by {Zif::Game#standard_tick}
     # @api private
-    def run_all_effects
-      effectables_count = @effectables&.length
+    def run_all_emps(emp_level)
+      # puts "EmpService: run_all_emps(#{emp_level})\n#{@empables}\n\n"
+      empables_count = @empables&.length
 
-      return false unless effectables_count&.positive?
+      return false unless empables_count&.positive?
 
       # Avoid blocks here.
       idx = 0
-      while idx < effectables_count
-        @effectables[idx].perform_effect
+      while idx < empables_count
+        mark = @empables[idx].name
+        @empables[idx].handle_emp(emp_level) if @empables[idx].active?
         idx += 1
       end
 

@@ -1,5 +1,5 @@
 module HuskGame
-  class BoostThrust < Zif::CompoundSprite
+  class BoostEmp < Zif::CompoundSprite
     # include Pickupable
     include HuskEngine::Collideable
     include HuskEngine::Deadable
@@ -18,7 +18,7 @@ module HuskGame
     }
 
     SPRITE_DETAILS = {
-      name: "boostthrust",
+      name: "boostemp",
       layers: [
         {
           name: "main",
@@ -56,7 +56,7 @@ module HuskGame
       start_duration: 10,
       scale: :large
     )
-      super(Zif.unique_name("BoostThrust"))
+      super(Zif.unique_name("BoostEmp"))
 
       set_position(x, y)
 
@@ -82,7 +82,7 @@ module HuskGame
     end
 
     def collide_action collidee, facing
-      puts "collide_action: #{facing}"
+      puts "#{class_name} collide_action: #{facing}"
 
       # Get the turret direction from the player
       # and compare it to the collision facing
@@ -91,7 +91,9 @@ module HuskGame
         (collidee.facing == :west && facing == :east) ||
         (collidee.facing == :east && facing == :west)
         play_once @sound_pickup_success
-        collidee.boost_thrust @amount, @duration, @start_duration
+        # collidee.boost_thrust @amount, @duration, @start_duration
+        puts "success!"
+        collidee.emp_count += 1
         kill
       else
         play_once @sound_bounce

@@ -2,7 +2,7 @@
 # All functionality has been shifted to the Pickupable mixin
 
 class Pickup < Zif::Sprite
-  include Bounceable
+  include HuskEngine::Bounceable
   include Deadable
   include Soundable
 

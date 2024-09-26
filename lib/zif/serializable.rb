@@ -35,7 +35,7 @@ module Zif
 
         attrs[str.to_sym] = instance_variable_get var if respond_to? "#{str}="
       end
-      attrs
+      attrs.sort.to_h
     end
 
     # In the included class, override this method to exclude attrs from serialization / printing

@@ -1,8 +1,8 @@
 class Wall < Zif::CompoundSprite
-  include Collideable
-  include Bounceable
-  include Scaleable
-  include Faceable
+  include HuskEngine::Collideable
+  include HuskEngine::Bounceable
+  include HuskEngine::Scaleable
+  include HuskEngine::Faceable
 
   BOUNCE_SCALES = {
     large: 0.8,
@@ -19,11 +19,20 @@ class Wall < Zif::CompoundSprite
         z: 1
       }
     ],
-    scales: [
-      :large,
-      :medium,
-      :small,
-    ]
+    scales: {
+      large: {
+        w: 64,
+        h: 64
+      },
+      medium: {
+        w: 32,
+        h: 32
+      },
+      small: {
+        w: 16,
+        h: 16
+      }
+    }
   }
 
   def initialize (

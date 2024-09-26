@@ -1,9 +1,9 @@
 class Breach < Zif::CompoundSprite
-  include Collideable
-  include Bounceable
-  include Scaleable
-  include Bufferable
-  include Spatializeable
+  include HuskEngine::Collideable
+  include HuskEngine::Bounceable
+  include HuskEngine::Scaleable
+  include HuskEngine::Bufferable
+  include HuskEngine::Spatializeable
 
   SPRITE_DETAILS = {
     name: "breach",
@@ -19,11 +19,20 @@ class Breach < Zif::CompoundSprite
         z: 1
       }
     ],
-    scales: [
-      :large,
-      :medium,
-      :small,
-    ]
+    scales: {
+      large: {
+        w: 64,
+        h: 64
+      },
+      medium: {
+        w: 32,
+        h: 32
+      },
+      small: {
+        w: 16,
+        h: 16
+      }
+    }
   }.freeze
 
   def initialize

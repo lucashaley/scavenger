@@ -1,8 +1,29 @@
 module Zif
   class Sprite
     attr_accessor :active
+
+    def class_name
+      self.class.name.split("::").last.downcase
+    end
+
     def set_position(x, y)
       @x, @y = x, y
+    end
+
+    def right_side
+      @x + @w
+    end
+
+    def top_side
+      @y + @h
+    end
+
+    def left_side
+      @x
+    end
+
+    def bottom_side
+      @y
     end
 
     def active?
@@ -41,10 +62,10 @@ module Zif
       $gtk.args.audio[@name.to_sym] = nil
     end
 
-    def to_s
-      "name: #{@name}\n"
-      "xy: #{self.xy}"
-    end
+    # def to_s
+    #   "name: #{@name}\n"
+    #   "xy: #{self.xy}"
+    # end
   end
 
   class CompoundSprite
@@ -57,20 +78,47 @@ module Zif
     end
 
     def rotate_sprites facing
-      puts "rotate sprites: #{facing}"
-      sprites.each do |s|
-        s.angle = case facing
-                  when :south
-                    0
-                  when :east
-                    90
-                  when :north
-                    180
-                  when :west
-                    270
-                  end
+      case facing
+      when Symbol
+        sprites.each do |s|
+          s.angle = case facing
+                    when :south
+                      0
+                    when :east
+                      90
+                    when :north
+                      180
+                    when :west
+                      270
+                    end
+        end
+      when Numeric
+        sprites.each do |s|
+          s.angle = facing
+        end
       end
+      # puts "rotate sprites: #{facing}"
+      # sprites.each do |s|
+      #   s.angle = case facing
+      #             when :south
+      #               0
+      #             when :east
+      #               90
+      #             when :north
+      #               180
+      #             when :west
+      #               270
+      #             end
+      # end
       center_sprites # just in case
     end
+
+    # def to_s
+    #   puts %{
+    #     Name: #{@name}
+    #     Sprite count: #{@sprites.count}
+    #     Sprite hash: #{@sprite_scale_hash}
+    #   }
+    # end
   end
 end

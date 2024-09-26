@@ -21,7 +21,14 @@ class SplashScene < Zif::Scene
       s.a = 0
     end
     $game.services[:action_service].register_actionable(@splash)
-    # mark_and_print "Prepare Scene: Splash Scene END"
+
+    # @bg_music =
+    $gtk.args.audio[:splash_music] ||= {
+      input: "music/Lucas_HuskGame_intro_DnB.wav",
+      looping: true,
+      gain: 0
+    }
+    @audio_fade = false
   end
 
   def perform_tick
@@ -36,10 +43,27 @@ class SplashScene < Zif::Scene
       @started = true
     end
 
-    if @current_scene_tick == 180
-      @splash.run_action(
-        @splash.new_action({a: 0}, duration: 1.seconds, easing: :smooth_step3) { @next_scene = :room }
-      )
+    unless @audio_fade
+      if $gtk.args.audio[:splash_music] && $gtk.args.audio[:splash_music].gain < 1.0
+        # increase the gain 1% every tick until we are at 100%
+        $gtk.args.audio[:splash_music].gain += 0.3
+        # clamp value to 1.0 max value
+        $gtk.args.audio[:splash_music].gain = 1.0 if $gtk.args.audio[:splash_music].gain > 1.0
+      end
+    else
+      if $gtk.args.audio[:splash_music] && $gtk.args.audio[:splash_music].gain > 0.0
+        # increase the gain 1% every tick until we are at 100%
+        $gtk.args.audio[:splash_music].gain -= 0.01667
+        # clamp value to 1.0 max value
+        $gtk.args.audio[:splash_music].gain = 0.0 if $gtk.args.audio[:splash_music].gain < 0.0
+      end
+    end
+
+    if @current_scene_tick == 300 || $gtk.args.inputs.mouse.click
+      # @splash.run_action(
+      #   @splash.new_action({a: 0}, duration: 1.seconds, easing: :smooth_step3) { @next_scene = :room }
+      # )
+      exit_splash
     end
 
     $gtk.args.outputs.solids << {
@@ -59,10 +83,17 @@ class SplashScene < Zif::Scene
     $gtk.args.outputs.sprites << [
       @splash
     ]
-    # puts "tick: #{@current_scene_tick}"
-    # mark_and_print("tick: #{@current_scene_tick}")
     @current_scene_tick += 1
-    # return :room if @current_scene_tick > 200
     return @next_scene
+  end
+
+  def exit_splash
+    @splash.run_action(
+      @splash.new_action({a: 0}, duration: 1.seconds, easing: :smooth_step3) do
+        $gtk.args.audio[:splash_music] = nil
+        @next_scene = :room
+      end
+    )
+    @audio_fade = true
   end
 end

@@ -3,7 +3,7 @@ devid=lucashaley
 devtitle=Animatology Studios
 gameid=husk
 gametitle=Husk
-version=0.1.11
+version=0.1.16
 # icon=metadata/icon.png
 
 # === Flags available at all licensing tiers ===
@@ -28,6 +28,7 @@ scale_quality=0
 #       - libs
 #         - saves <---- This directory will be ignored
 # ignore_directories=saves
+ignore_directories=_source,_assets
 
 
 # === Flags available in DragonRuby Game Toolkit Pro ====

@@ -25,7 +25,7 @@ module Services
     # Adds an {Zif::Actions::Actionable} to the {actionables} array.
     # @param [Zif::Actions::Actionable] actionable
     def register_tickable(tickable)
-      unless tickable.is_a?(Tickable)
+      unless tickable.is_a?(HuskEngine::Tickable)
         raise ArgumentError, 'Services::TickService#register_tickable:' \
           " #{tickable} is not a Tickable"
       end
@@ -71,6 +71,7 @@ module Services
       # Avoid blocks here.
       idx = 0
       while idx < tickables_count
+        mark = @tickables[idx].name
         @tickables[idx].perform_tick if @tickables[idx].active?
         idx += 1
       end

@@ -1,7 +1,7 @@
 # This module is a bit redundant, as functionality has moved to Collideable
 
 module Pickupable
-  include Bounceable
+  include HuskEngine::Bounceable
   include Soundable
 
   attr_accessor :sound_pickup_success

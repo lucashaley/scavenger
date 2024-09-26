@@ -1,10 +1,10 @@
 class Repulsor < Zif::CompoundSprite
-  include Collideable
-  include Bounceable
-  include Deadable
-  include Effectable
-  include Scaleable
-  include Bufferable
+  include HuskEngine::Collideable
+  include HuskEngine::Bounceable
+  include HuskEngine::Deadable
+  include HuskEngine::Effectable
+  include HuskEngine::Scaleable
+  include HuskEngine::Bufferable
   include Zif::Traceable
 
   BOUNCE_SCALES = {
@@ -27,11 +27,20 @@ class Repulsor < Zif::CompoundSprite
         z: 1
       }
     ],
-    scales: [
-      :large,
-      :medium,
-      :small,
-    ]
+    scales: {
+      large: {
+        w: 64,
+        h: 64
+      },
+      medium: {
+        w: 32,
+        h: 32
+      },
+      small: {
+        w: 16,
+        h: 16
+      }
+    }
   }.freeze
 
   def initialize(

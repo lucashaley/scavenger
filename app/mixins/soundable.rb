@@ -1,5 +1,7 @@
-module Soundable
-  def play_once file
-    $gtk.args.outputs.sounds << file
+module HuskEngine
+  module Soundable
+    def play_once file
+      $gtk.args.outputs.sounds << file
+    end
   end
 end
