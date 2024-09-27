@@ -17,7 +17,7 @@ class Pickup < Zif::Sprite
 
     @x = x
     @y = y
-    @bounce = bounce
+    # @bounce = bounce
     @sound_bounce = "sounds/thump.wav"
   end
 
