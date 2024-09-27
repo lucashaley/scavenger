@@ -1,13 +1,25 @@
 # To do
 
-- [ ] Figure out about the bounce, `bounce_off` is weird
+- [x] Figure out about the bounce, `bounce_off` is weird
 - [x] Isn't giving the right scale for pickup
 - [x] Light isn't lining up with center of scaled ship
 - [x] Create scaled version of door
 - [x] BoostThrust to use `collate_sprites`
 - [x] Rotating the turret doesn't work
-- [ ] Make scaled version of thrusters
+- [x] Make scaled version of thrusters
 - [x] Fix weird south door thing
-- [ ] Check out override bounce in boost_thrust.rb
+- [x] Check out override bounce in boost_thrust.rb
 - [ ] Does the turret reset direction when entering a room?
 - [x] Make the DataTerminal have different directions
+- [ ] Make breach start
+- [ ] Make breach finish
+- [x] Smaller ships' thrusters don't line up
+- [ ] Fix mine damage amount
+- [x] Remove main level from mine when exploding
+- [ ] Weight item population for different scaled rooms
+- [ ] Create overlays
+- [x] Move crates to dressings list
+- [x] Shadows are calculated from ship bottom left corner, not middle
+- [x] Buffers aren't working
+- [x] Tidy up power ups into parent class
+- [ ] Create UI for EMP charge
