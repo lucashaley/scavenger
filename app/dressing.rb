@@ -36,6 +36,10 @@ module HuskGame
       bounce_off(collidee, facing)
     end
 
+    def bounce
+      0.9
+    end
+
     def perform_tick
       perform_shadow_tick
     end

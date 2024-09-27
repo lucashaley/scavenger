@@ -60,6 +60,7 @@ module HuskGame
       entrance_door: nil
     )
       @tracer_service_name = :tracer
+      mark_and_print("initialize")
 
       # Set variables
       @name = name
@@ -117,7 +118,7 @@ module HuskGame
     # rubocop:enable Metrics/MethodLength
 
     def populate_doors
-      # mark_and_print ("populate_doors")
+      mark_and_print ("populate_doors")
       @doors_hash.each do |key, value|
         # there are no doors on this side yet
         next unless value.nil? && rand(3) + 1 > @chaos
@@ -167,7 +168,7 @@ module HuskGame
     end
 
     def populate_pickups
-      # mark_and_print "populate_pickups"
+      mark_and_print "populate_pickups"
       if rand(4) <= 3
         valid_position = find_empty_position
         return if valid_position.nil?
@@ -175,7 +176,7 @@ module HuskGame
         boost_thrust = BoostThrust.new(
           x: valid_position[:x],
           y: valid_position[:y],
-          bounce: 0.8,
+          # bounce: 0.8,
           amount: 10,
           duration: 3.seconds,
           start_duration: 10,
@@ -191,10 +192,6 @@ module HuskGame
       boost_emp = BoostEmp.new(
         x: valid_position[:x],
         y: valid_position[:y],
-        bounce: 0.8,
-        amount: 10,
-        duration: 3.seconds,
-        start_duration: 10,
         scale: @scale
       )
       @pickups << boost_emp
@@ -202,7 +199,7 @@ module HuskGame
     end
 
     def populate_hazards
-      # mark_and_print "populate_hazards"
+      mark_and_print "populate_hazards"
       odds = HAZARD_ODDS[@scale] # wait, this wont give us more than one
       if rand(odds[:in]) <= odds[:chance]
         valid_position = find_empty_position
@@ -210,8 +207,6 @@ module HuskGame
 
         # mark_and_print "populate_hazards: creating new Mine"
         mine = HuskGame::Mine.new(
-          # rand(600) + 40 - 32,
-          # rand(640) + 600 - 32,
           x: valid_position[:x],
           y: valid_position[:y],
           scale: @scale
@@ -224,8 +219,6 @@ module HuskGame
         valid_position = find_empty_position
         return if valid_position.nil?
 
-        # mark_and_print "populate_hazards: creating new Repulsor"
-        # mark_and_print "valid_position: #{valid_position}"
         repulsor = Repulsor.new(
           valid_position[:x],
           valid_position[:y],
@@ -241,8 +234,6 @@ module HuskGame
         valid_position = find_empty_position
         return if valid_position.nil?
 
-        # mark_and_print "populate_hazards: creating new Attractor"
-        # mark_and_print "valid_position: #{valid_position}"
         attractor = Attractor.new(
           valid_position[:x],
           valid_position[:y],
@@ -257,7 +248,7 @@ module HuskGame
     end
 
     def populate_terminals
-      # mark_and_print "populate_terminals"
+      mark_and_print "populate_terminals"
       if rand(1) == 0
         valid_position = find_empty_position
         return if valid_position.nil?
@@ -295,7 +286,7 @@ module HuskGame
     end
 
     def populate_agents
-      # mark_and_print("populate_agents")
+      mark_and_print("populate_agents")
 
       agent = HunterBlob.new(scale: @scale)
       agent.deactivate
@@ -433,29 +424,29 @@ module HuskGame
             @walls << if x.zero?
                         # this is the southwest corner
                         Wall.new(
-                          (x * pixel_scale) + viewscreen_offset_x,
-                          (y * pixel_scale) + viewscreen_offset_y,
-                          0.8,
-                          :southwest,
-                          @scale
+                          x: (x * pixel_scale) + viewscreen_offset_x,
+                          y: (y * pixel_scale) + viewscreen_offset_y,
+                          # 0.8,
+                          facing: :southwest,
+                          scale: @scale
                         )
                       elsif x == @tile_dimensions - 1
                         # this is the southeast corner
                         Wall.new(
-                          (x * pixel_scale) + viewscreen_offset_x,
-                          (y * pixel_scale) + viewscreen_offset_y,
-                          0.8,
-                          :southeast,
-                          @scale
+                          x: (x * pixel_scale) + viewscreen_offset_x,
+                          y: (y * pixel_scale) + viewscreen_offset_y,
+                          # 0.8,
+                          facing: :southeast,
+                          scale: @scale
                         )
                       else
                         # this is the south row
                         Wall.new(
-                          (x * pixel_scale) + viewscreen_offset_x,
-                          (y * pixel_scale) + viewscreen_offset_y,
-                          0.8,
-                          :south,
-                          @scale
+                          x: (x * pixel_scale) + viewscreen_offset_x,
+                          y: (y * pixel_scale) + viewscreen_offset_y,
+                          # 0.8,
+                          facing: :south,
+                          scale: @scale
                         )
                       end
           elsif y == @tile_dimensions - 1
@@ -463,49 +454,49 @@ module HuskGame
             @walls << if x.zero?
                         # this is the northwest corner
                         Wall.new(
-                          (x * pixel_scale) + viewscreen_offset_x,
-                          (y * pixel_scale) + viewscreen_offset_y,
-                          0.8,
-                          :northwest,
-                          @scale
+                          x: (x * pixel_scale) + viewscreen_offset_x,
+                          y: (y * pixel_scale) + viewscreen_offset_y,
+                          # 0.8,
+                          facing: :northwest,
+                          scale: @scale
                         )
                       elsif x == @tile_dimensions - 1
                         # this is the northeast corner
                         Wall.new(
-                          (x * pixel_scale) + viewscreen_offset_x,
-                          (y * pixel_scale) + viewscreen_offset_y,
-                          0.8,
-                          :northeast,
-                          @scale
+                          x: (x * pixel_scale) + viewscreen_offset_x,
+                          y: (y * pixel_scale) + viewscreen_offset_y,
+                          # 0.8,
+                          facing: :northeast,
+                          scale: @scale
                         )
                       else
                         # this is the north row
                         Wall.new(
-                          (x * pixel_scale) + viewscreen_offset_x,
-                          (y * pixel_scale) + viewscreen_offset_y,
-                          0.8,
-                          :north,
-                          @scale
+                          x: (x * pixel_scale) + viewscreen_offset_x,
+                          y: (y * pixel_scale) + viewscreen_offset_y,
+                          # 0.8,
+                          facing: :north,
+                          scale: @scale
                         )
                       end
           elsif x.zero?
             # this is a middle row
             @walls << Wall.new(
-              (x * pixel_scale) + viewscreen_offset_x,
-              (y * pixel_scale) + viewscreen_offset_y,
-              0.8,
-              :west,
-              @scale
+              x: (x * pixel_scale) + viewscreen_offset_x,
+              y: (y * pixel_scale) + viewscreen_offset_y,
+              # 0.8,
+              facing: :west,
+              scale: @scale
             )
             # this is a west edge
           elsif x == @tile_dimensions - 1
             # this is a east edge
             @walls << Wall.new(
-              (x * pixel_scale) + viewscreen_offset_x,
-              (y * pixel_scale) + viewscreen_offset_y,
-              0.8,
-              :east,
-              @scale
+              x: (x * pixel_scale) + viewscreen_offset_x,
+              y: (y * pixel_scale) + viewscreen_offset_y,
+              # 0.8,
+              facing: :east,
+              scale: @scale
             )
           else
             # this is the floor
@@ -519,6 +510,7 @@ module HuskGame
             end
           end
         end
+        # mark_and_print("creating_tiles done")
       end
 
       # This forces the creation of the containing_sprite

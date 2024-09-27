@@ -35,7 +35,7 @@ module HuskGame
       register_sprites_new
       initialize_scaleable(scale)
       initialize_collideable
-      initialize_bounceable(bounce: 0.3, sound_bounce: 'sounds/thump.wav')
+      initialize_bounceable(sound_bounce: 'sounds/thump.wav')
       initialize_bufferable(:double)
       initialize_tickable
       initialize_empable
@@ -53,7 +53,7 @@ module HuskGame
       @data_hold_time = 10
       @tolerance = tolerance
 
-      @bounce = 0.7
+      # @bounce = 0.7
       @sound_collide = "sounds/thump.wav"
 
       @sound_pickup_success = "sounds/pickup.wav"
@@ -154,6 +154,10 @@ module HuskGame
       # puts "CONNECTOR PERFORM_TICK"
       spatialize(@name.to_sym)
       perform_shadow_tick
+    end
+
+    def bounce
+      0.3
     end
 
     def handle_emp_low emp_level

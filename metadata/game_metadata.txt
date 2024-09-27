@@ -28,7 +28,7 @@ scale_quality=0
 #       - libs
 #         - saves <---- This directory will be ignored
 # ignore_directories=saves
-ignore_directories=_source,_assets
+ignore_directories=_source, _assets, _archive
 
 
 # === Flags available in DragonRuby Game Toolkit Pro ====

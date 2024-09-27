@@ -60,7 +60,7 @@ class Attractor < Zif::CompoundSprite
     initialize_scaleable(scale)
     center_sprites
     initialize_collideable
-    initialize_bounceable(bounce: 0.9)
+    initialize_bounceable
     initialize_bufferable(:single)
 
     # initialize_collision
@@ -119,5 +119,9 @@ class Attractor < Zif::CompoundSprite
       "shadow_small",
       :attractor_shadow_small
     )
+  end
+
+  def bounce
+    0.9
   end
 end

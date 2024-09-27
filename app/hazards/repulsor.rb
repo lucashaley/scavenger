@@ -60,7 +60,7 @@ class Repulsor < Zif::CompoundSprite
     center_sprites
     # set_scale scale
     initialize_collideable
-    initialize_bounceable(bounce: 0.9)
+    initialize_bounceable
     initialize_bufferable(:single)
 
     # initialize_collision
@@ -116,5 +116,9 @@ class Repulsor < Zif::CompoundSprite
       "shadow_small",
       :repulsor_shadow_small
     )
+  end
+
+  def bounce
+    0.9
   end
 end

@@ -10,14 +10,20 @@ module HuskEngine
       @emp_low = 120
       @emp_medium = 360
 
-      @emp_sound = 'sounds/emp_blast.wav'
+      # this needs to be the entity's reaction to EMP, not the EMP itself
+      # @emp_sound = 'sounds/emp_blast.wav'
+
+      raise StandardError "#{class_name}: method ~handle_emp_low~ is not defined" \
+        unless self.class.instance_methods.include?(:handle_emp_low)
+      raise StandardError "#{class_name}: method ~handle_emp_low~ is not defined" \
+        unless self.class.instance_methods.include?(:handle_emp_medium)
+      raise StandardError "#{class_name}: method ~handle_emp_low~ is not defined" \
+        unless self.class.instance_methods.include?(:handle_emp_high)
     end
 
     # Override this, or add each level method.
     def handle_emp emp_level
       puts "Empable handle_emp: #{emp_level}"
-
-      play_once @emp_sound unless @emp_sound.nil?
 
       # case emp_level
       # when :low

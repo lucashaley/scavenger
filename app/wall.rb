@@ -36,11 +36,11 @@ class Wall < Zif::CompoundSprite
   }
 
   def initialize (
-    x=0,
-    y=0,
-    bounce=0.8,
-    facing = :north,
-    scale = :large
+    x: 360,
+    y: 900,
+    # bounce=0.8,
+    facing: :north,
+    scale: :large
   )
     super(Zif.unique_name("Wall#{facing.to_s}"))
 
@@ -54,7 +54,8 @@ class Wall < Zif::CompoundSprite
     # set_scale scale
     initialize_scaleable(scale)
     initialize_collideable
-    initialize_bounceable(bounce: bounce)
+    # initialize_bounceable(bounce: bounce)
+    initialize_bounceable
   end
 
   def collide_action collidee, facing

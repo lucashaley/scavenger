@@ -2,6 +2,7 @@ module HuskGame
   class RoomScene < Zif::Scene
     include SpriteRegisters
     include Zif::Traceable
+    include HuskEngine::Soundable
 
     attr_accessor :ship, :husk
 
@@ -47,6 +48,7 @@ module HuskGame
       }
 
       @bg_music_state = :intro
+      @emp_sound = 'sounds/emp_blast.wav'.freeze
       @tracer_service_name = :tracer
     end
 
@@ -264,6 +266,8 @@ module HuskGame
         s.y = 1280 - 700
         s.blendmode_enum = Zif::Sprite::BLENDMODE[:multiply] # This seems redundant
       end
+      $game.services[:action_service].register_actionable(@light)
+
       @ui = Zif::Sprite.new.tap do |s|
         s.w = 720
         s.h = 1280
@@ -508,6 +512,30 @@ module HuskGame
       mark_and_print "handle_emp: #{@emp_power}"
       @ui_button_emp.unpress
 
+      play_once @emp_sound unless @emp_sound.nil?
+
+      # turn the light off for a bit
+      @light.run_action(
+        Zif::Actions::Sequence.new(
+          [
+            # Move from starting position to 1000x over 1 second, starting slowly,
+            # then flip the sprite at the end
+            @light.new_action(
+              {a: 255 - @emp_power.clamp(0, 255)},
+              duration: 7,
+              easing: :smooth_start
+            ) {  },
+            @light.new_action(
+              {a: 255},
+              duration: 14,
+              easing: :smooth_stop
+            ) {  }
+          ],
+          repeat: :once
+        )
+      )
+
+      # handle the effects
       $game.services[:emp_service].run_all_emps(@emp_power)
 
       # reset the power

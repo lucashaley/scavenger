@@ -71,6 +71,9 @@ module HuskGame
       medium: 0.4,
       small: 0.1
     }
+    def bounce
+      BOUNCE_SCALES[@scale]
+    end
     # SPRITE_SCALES = {
     #   large: 64,
     #   medium: 32,
@@ -102,7 +105,7 @@ module HuskGame
       initialize_scaleable(scale)
       center_sprites
       initialize_collideable
-      initialize_bounceable(bounce: BOUNCE_SCALES[scale])
+      initialize_bounceable
       initialize_tickable
 
       @exit_point = { x: 0, y: 0 }

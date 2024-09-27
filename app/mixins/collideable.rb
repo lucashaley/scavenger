@@ -13,13 +13,10 @@ module HuskEngine
     )
       @collision_enabled = true
       @sound_collide = sound_collide
-    end
 
-    # def set_collision_scale (scale=:large)
-    #   puts "set_collision_scale #{name}: #{scale}"
-    #   @h = collision_scales(scale)
-    #   @w = collision_scales(scale)
-    # end
+      raise StandardError "#{class_name}: method ~collide_action~ is not defined" \
+        unless self.class.instance_methods.include?(:collide_action)
+    end
 
     def collide_x_with (c)
       return unless @collision_enabled

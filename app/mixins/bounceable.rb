@@ -2,15 +2,19 @@ module HuskEngine
   module Bounceable
     include Soundable
 
-    attr_accessor :bounce
+    # attr_accessor :bounce
     attr_accessor :sound_bounce
 
     def initialize_bounceable(
-      bounce: 0.7,
-      sound_bounce: 'sounds/clank.wav')
+      # bounce: 0.7,
+      sound_bounce: 'sounds/clank.wav'
+    )
 
-      @bounce = bounce
+      # @bounce = bounce
       @sound_bounce = sound_bounce
+
+      raise StandardError "#{class_name}: method ~bounce~ is not defined" \
+        unless self.class.instance_methods.include?(:bounce)
     end
     def bounce_x_off(bouncer, collided_on)
       play_once @sound_bounce

@@ -351,28 +351,30 @@ module HuskGame
       end
     end
 
-    def bounce_x_off off
-      if @x > off.x
-        right_edge = off.x + off.w
-        @x = right_edge + (right_edge - @x)
-        @momentum.x *= -off.bounce
-      elsif x < off.x
-        @x -= (@x + @w - off.x)
-        @momentum.x *= -off.bounce
-      end
-    end
-
-    def bounce_y_off off
-      puts 'bounce_y_off'
-      puts off
-      if @y > off.y
-        @y -= (@y - @h - off.y)
-        @momentum.y *= -off.bounce
-      elsif @y < off.y
-        @y -= (@y + @h - off.y)
-        @momentum.y *= -off.bounce
-      end
-    end
+    # Checking if we need this
+    # TODO: uncomment or delete
+    # def bounce_x_off off
+    #   if @x > off.x
+    #     right_edge = off.x + off.w
+    #     @x = right_edge + (right_edge - @x)
+    #     @momentum.x *= -off.bounce
+    #   elsif x < off.x
+    #     @x -= (@x + @w - off.x)
+    #     @momentum.x *= -off.bounce
+    #   end
+    # end
+    #
+    # def bounce_y_off off
+    #   puts 'bounce_y_off'
+    #   puts off
+    #   if @y > off.y
+    #     @y -= (@y - @h - off.y)
+    #     @momentum.y *= -off.bounce
+    #   elsif @y < off.y
+    #     @y -= (@y + @h - off.y)
+    #     @momentum.y *= -off.bounce
+    #   end
+    # end
 
     def boost_thrust amount=10, duration=3.seconds, start_duration=10
       puts 'boost_thrust'
