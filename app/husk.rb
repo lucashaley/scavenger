@@ -1,7 +1,7 @@
 module HuskGame
   class Husk
     attr_accessor :health, :deterioration_rate, :deterioration_progress
-    attr_accessor :current_room, :rooms, :room_dimensions, :data_core
+    attr_accessor :current_room, :rooms, :room_dimensions, :data_core, :breach
 
     DOORS = {
       north:  1,
@@ -23,6 +23,7 @@ module HuskGame
 
       # @room_dimensions = room_dimensions
 
+      @breach = nil
       @entrypoint = Room.new(name: 'entrypoint', scale: :large, husk: self)
       switch_rooms @entrypoint
 
@@ -48,7 +49,8 @@ module HuskGame
       # before we can create the husk and room
       # $game.scene.ship.set_scale room.scale
       # door.exit_door $game.scene.ship unless door.nil?
-      $gtk.args.state.ship.set_scale room.scale
+      # $gtk.args.state.ship.set_scale room.scale
+      $gtk.args.state.ship.switch_rooms room.scale
       door.exit_door $gtk.args.state.ship unless door.nil?
     end
 

@@ -118,6 +118,7 @@ module HuskGame
       @drag = drag
       @angular_drag = angular_drag
       @health_thrust = @health_ccw = @health_cw = 1.0
+      # Health is a float from 0.0 to 1.0
       @health_north = @health_south = @health_east = @health_west = 1.0
 
       @facing = :north
@@ -143,6 +144,8 @@ module HuskGame
       @data_progress.x = 720 - 40 - 440 # 360 - (400 * 0.5)
       @data_progress.y = 1200
       @data_progress.view_actual_size!
+
+      puts self
     end
 
     def add_thrust_x input
@@ -241,6 +244,13 @@ module HuskGame
       # Reset the movement
       @effect.y = 0
       @energy.y = 0
+    end
+
+    def momentum_magnitude
+      $gtk.args.geometry.vec2_magnitude @momentum
+    end
+    def relative_speed
+      (momentum_magnitude * 0.05).clamp(0, 1)
     end
 
     def rotate_ccw
@@ -376,6 +386,11 @@ module HuskGame
     #   end
     # end
 
+    def switch_rooms scale
+      set_scale scale
+      @current_sprite_hash[:turret].angle = FACING_KEYED[@facing] * 90
+    end
+
     def boost_thrust amount=10, duration=3.seconds, start_duration=10
       puts 'boost_thrust'
       current_thrust = @thrust
@@ -394,6 +409,26 @@ module HuskGame
         )
       )
     end
+
+    def change_health amount, side
+      puts "change_health(#{amount}, #{side})"
+
+      case side
+      when :north
+        @health_north = (@health_north += amount).clamp(0, 1.0)
+        puts "health_north: #{@health_north}"
+      when :south
+        @health_south = (@health_south += amount).clamp(1, 1.0)
+        puts "health_south: #{@health_south}"
+      when :east
+        @health_east = (@health_east += amount).clamp(0, 1.0)
+        puts "health_east: #{@health_east}"
+      when :west
+        @health_west = (@health_west += amount).clamp(0, 1.0)
+        puts "health_west: #{@health_west}"
+      end
+    end
+
 
     def add_data (amount)
       # puts "Ship:add_data #{amount}"
@@ -422,17 +457,17 @@ module HuskGame
         end
         case data_corrupted
         when true
-          c = 155
+          c = 180
         when false
-          c = 224
+          c = 250
         when nil
           c = 32
         end
         output << {
           x: x_offset,
-          y: (20 * i) + y_offset,
-          w: 64,
-          h: 16,
+          y: (40 * i) + y_offset,
+          w: 96,
+          h: 32,
           r: c - 16,
           g: c,
           b: c - 16,
@@ -440,9 +475,9 @@ module HuskGame
         }
         output << {
           x: x_offset,
-          y: (20 * i) + y_offset,
-          w: 64,
-          h: 16,
+          y: (40 * i) + y_offset,
+          w: 96,
+          h: 32,
           r: 255,
           g: 255,
           b: 255,
@@ -455,6 +490,19 @@ module HuskGame
     def emp_count=(c)
       puts "emp_count=#{c}"
       @emp_count = c.clamp(0, @emp_storage)
+    end
+
+    def to_s
+      {
+        name: @name,
+        health_north: @health_north,
+        health_south: @health_south,
+        health_east: @health_east,
+        health_west: @health_west,
+        emp_count: @emp_count,
+        data_block_count: @data_block_count,
+        data_blocks: @data_blocks,
+      }.to_s
     end
   end
 end

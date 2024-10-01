@@ -21,7 +21,9 @@ module HuskEngine
     def collide_x_with (c)
       return unless @collision_enabled
 
-      play_once @sound_collide unless @sound_collide.nil?
+      # puts "collide_x_with: #{c.relative_speed}"
+
+      # play_once @sound_collide unless @sound_collide.nil?
 
       # First we need to know which side we're being hit on
       # and then the direction the ship is facing
@@ -36,6 +38,8 @@ module HuskEngine
 
     def collide_y_with (c)
       return unless @collision_enabled
+
+      # puts "collide_y_with: #{c.relative_speed}"
 
       # This seems like a good idea
       # But it probably isn't -- we want to have more control over when audio is played

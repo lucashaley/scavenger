@@ -47,6 +47,7 @@ module HuskGame
       @interfacing = false
       @data = data
       @remaining_data = data
+      @stage = :full
       @corrupted = false
       @data_rate = data_rate
       raise(StandardError, "Connector initialization data_rate is zero!") if data_rate <= 0
@@ -109,32 +110,13 @@ module HuskGame
           end
 
           @interfacing = true
-          puts "interfacing: #{@interfacing}, data_rate: #{@data_rate}"
+          # puts "interfacing: #{@interfacing}, data_rate: #{@data_rate}"
 
           collidee.add_data(@data_rate)
-          # @data -= @data_rate
-          @remaining_data -= @data_rate
 
-          # Update the lights sprite
-          # TODO: put this in a method, as we change the values elsewhere
-          if @remaining_data == (@data * 0.667).truncate
-            puts "TWO THIRDS!"
-            puts @sprites
-            @sprites.find { |s| s.name == "dataterminal_lights_#{scale}" }.assign(
-              {path: "sprites/dataterminal/dataterminal_lights_#{@scale.to_s}_2.png"}
-            )
-          elsif @remaining_data == (@data * 0.333).truncate
-            puts "ONE THIRD"
-            @sprites.find { |s| s.name == "dataterminal_lights_#{scale}" }.assign(
-              {path: "sprites/dataterminal/dataterminal_lights_#{@scale.to_s}_1.png"}
-            )
-          end
-
+          reduce_data @data_rate
 
           if @remaining_data <= 0
-            # the data block has been collected
-            @sprites.find { |s| s.name == "dataterminal_lights_#{scale}" }.hide
-
             collidee.add_data_block(name: @name, size: @data, corrupted: @corrupted)
             audio_feedback = @corrupted ? "sounds/data_corrupted.wav" : "sounds/data_collected.wav"
             play_once audio_feedback
@@ -147,6 +129,30 @@ module HuskGame
       else
         # play_once @sound_collide
         bounce_off(collidee, collided_on)
+      end
+    end
+
+    def reduce_data(data=nil)
+      @remaining_data -= data
+
+      if @stage == :full && @remaining_data <= (@data * 0.667).truncate
+        puts "TWO THIRDS!"
+        @stage = :two_thirds
+        @sprites.find { |s| s.name == "#{class_name}_lights_#{scale}" }.assign(
+          {path: "sprites/#{class_name}/#{class_name}_lights_#{@scale.to_s}_2.png"}
+        )
+      elsif @stage == :two_thirds && @remaining_data <= (@data * 0.333).truncate
+        puts "ONE THIRD"
+        @stage = :one_third
+        @sprites.find { |s| s.name == "#{class_name}_lights_#{scale}" }.assign(
+          {path: "sprites/#{class_name}/#{class_name}_lights_#{@scale.to_s}_1.png"}
+        )
+      end
+
+
+      if @remaining_data <= 0
+        # the data block has been collected
+        @sprites.find { |s| s.name == "#{class_name}_lights_#{scale}" }.hide
       end
     end
 

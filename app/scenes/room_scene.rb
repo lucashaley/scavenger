@@ -299,6 +299,13 @@ module HuskGame
       }
     end
 
+    def unload_scene
+      # $gtk.args.audio[:bg_music] = nil
+      $gtk.args.audio.clear
+      $gtk.args.outputs.static_sprites.clear
+      $gtk.args.outputs.static_labels.clear
+    end
+
     def perform_tick
       # $gtk.add_caller_to_puts!
       # mark_and_print ("perform_tick")
@@ -317,7 +324,8 @@ module HuskGame
       handle_light
       handle_render
 
-      # Is the game over?
+
+      return :game_complete if @husk.breach.locked
       return :game_over if @husk.health <= 0
     end
 
@@ -509,7 +517,7 @@ module HuskGame
     end
 
     def handle_emp
-      mark_and_print "handle_emp: #{@emp_power}"
+      # mark_and_print "handle_emp: #{@emp_power}"
       @ui_button_emp.unpress
 
       play_once @emp_sound unless @emp_sound.nil?

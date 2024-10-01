@@ -93,6 +93,7 @@ module HuskGame
         breach = Breach.new
         @terminals << breach
         @no_populate_buffer << breach.buffer
+        @husk.breach = breach
       end
 
       unless entrance_door.nil?
@@ -118,7 +119,7 @@ module HuskGame
     # rubocop:enable Metrics/MethodLength
 
     def populate_doors
-      mark_and_print ("populate_doors")
+      # mark_and_print ("populate_doors")
       @doors_hash.each do |key, value|
         # there are no doors on this side yet
         next unless value.nil? && rand(3) + 1 > @chaos
@@ -168,7 +169,7 @@ module HuskGame
     end
 
     def populate_pickups
-      mark_and_print "populate_pickups"
+      # mark_and_print "populate_pickups"
       if rand(4) <= 3
         valid_position = find_empty_position
         return if valid_position.nil?
@@ -199,7 +200,7 @@ module HuskGame
     end
 
     def populate_hazards
-      mark_and_print "populate_hazards"
+      # mark_and_print "populate_hazards"
       odds = HAZARD_ODDS[@scale] # wait, this wont give us more than one
       if rand(odds[:in]) <= odds[:chance]
         valid_position = find_empty_position
@@ -248,7 +249,7 @@ module HuskGame
     end
 
     def populate_terminals
-      mark_and_print "populate_terminals"
+      # mark_and_print "populate_terminals"
       if rand(1) == 0
         valid_position = find_empty_position
         return if valid_position.nil?
@@ -283,10 +284,22 @@ module HuskGame
         @no_populate_buffer << data_core.buffer
         @husk.data_core = data_core
       end
+
+      valid_position = find_empty_position
+      unless valid_position.nil?
+        repairer = Repairer.new(
+          x: valid_position[:x],
+          y: valid_position[:y],
+          scale: @scale
+        )
+        repairer.deactivate
+        @terminals << repairer
+        @no_populate_buffer << repairer.buffer
+      end
     end
 
     def populate_agents
-      mark_and_print("populate_agents")
+      # mark_and_print("populate_agents")
 
       agent = HunterBlob.new(scale: @scale)
       agent.deactivate

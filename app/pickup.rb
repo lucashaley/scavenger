@@ -35,7 +35,7 @@ module HuskGame
     end
 
     def collide_action collidee, facing
-      puts "collide_action: #{facing}"
+      # puts "collide_action: #{facing}"
 
       # Get the turret direction from the player
       # and compare it to the collision facing

@@ -8,7 +8,7 @@ module HuskGame
     include HuskEngine::Tickable
     include HuskEngine::Shadowable
 
-    attr_accessor :damage
+    attr_accessor :damage, :blown
     attr_accessor :audio_idle
 
     SPRITE_DETAILS = {
@@ -83,6 +83,7 @@ module HuskGame
       initialize_tickable
 
       @damage = damage
+      @blown = false
 
       # initialize_collision
       @sound_collide = "sounds/thump.wav"
@@ -101,21 +102,26 @@ module HuskGame
     def collide_action collidee, facing
       puts 'collide_action'
 
+      return if @blown
+
       @sprites.find { |s| s.name == "mine_main_#{@scale}" }.hide
 
+      blowback = 6
+
+      collidee.change_health -0.25, facing
       case facing
       when :north
-        collidee.health_north *= @damage
-        collidee.momentum.y += 4
+        # collidee.health_north *= @damage
+        collidee.momentum.y += blowback
       when :south
-        collidee.health_south *= @damage
-        collidee.momentum.y += -4
+        # collidee.health_south *= @damage
+        collidee.momentum.y += -blowback
       when :east
-        collidee.health_east *= @damage
-        collidee.momentum.x += 4
+        # collidee.health_east *= @damage
+        collidee.momentum.x += blowback
       when :west
-        collidee.health_west *= @damage
-        collidee.momentum.x += -4
+        # collidee.health_west *= @damage
+        collidee.momentum.x += -blowback
       end
 
       # Damage the husk
@@ -126,6 +132,7 @@ module HuskGame
       @sprites.find { |s| s.name == animation_name }.run_animation_sequence(:blow)
       # And get rid of the mine
       # kill
+      @blown = true
     end
 
     def complete_animation( animation )

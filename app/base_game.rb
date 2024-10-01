@@ -43,6 +43,7 @@ module HuskGame
 
       register_scene(:room, RoomScene)
       register_scene(:game_over, GameOverScene)
+      register_scene(:game_complete, GameCompleteScene)
 
       @scene = SplashScene.new
       # @scene = RoomScene.new

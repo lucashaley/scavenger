@@ -185,8 +185,28 @@ module HuskGame
         @room = room
         # @name = @room.name + '_door' + @door_side.to_s # can this be one line later?
         # mark_and_print("creating new door, no destination")
+
+        # # Get a random scale, but weighted
+        # # There's gotta be a better way to do this
+        # scale_weights = [[0, 4], [4, 8], [8, 10]]
+        # r = rand(10)
+        # new_scale = nil
+        # if r.between? *scale_weights[0]
+        #   new_scale = :large
+        # elsif r.between? *scale_weights[1]
+        #   new_scale = :medium
+        # elsif r.between? *scale_weights[2]
+        #   new_scale = :small
+        # end
+
+        scales = []
+        scales += [:large] * 4
+        scales += [:medium] * 4
+        scales += [:small] * 2
+
         @destination_door = Door.new(
-          scale: $SPRITE_SCALES.keys.sample.to_sym, # this is a random scale
+          # scale: $SPRITE_SCALES.keys.sample.to_sym, # this is a random scale
+          scale: scales.sample,
           door_side: destination_side,
           destination_door: self
         )
@@ -220,15 +240,15 @@ module HuskGame
       @approached = false
     end
 
-    def create_connecting_room
-      # mark_and_print "create_connecting_room"
-      room = Room.new(
-        name: @room.name + "_" + @door_side.to_s,
-        entrance_door: self,
-        chaos: @room.chaos + 1, # the higher the chaos, the smaller chance of further rooms
-        scale: $SPRITE_SCALES.keys.sample.to_sym # this chooses a random size
-      )
-    end
+    # def create_connecting_room
+    #   # mark_and_print "create_connecting_room"
+    #   room = Room.new(
+    #     name: @room.name + "_" + @door_side.to_s,
+    #     entrance_door: self,
+    #     chaos: @room.chaos + 1, # the higher the chaos, the smaller chance of further rooms
+    #     scale: $SPRITE_SCALES.keys.sample.to_sym # this chooses a random size
+    #   )
+    # end
 
     def enter_door player
       # puts "enter_door: #{player}"

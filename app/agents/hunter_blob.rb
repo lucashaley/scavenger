@@ -114,7 +114,22 @@ module HuskGame
 
     def collide_action collidee, facing
       mark_and_print ("Collide with HunterBlob!")
+      puts "facing: #{facing}"
       collidee.add_data_block(name: 'hunterblob', size: 1, corrupted: true)
+
+      blowback = 6
+
+      case facing
+      when :north
+        collidee.momentum.y += blowback
+      when :south
+        collidee.momentum.y += -blowback
+      when :east
+        collidee.momentum.x += blowback
+      when :west
+        collidee.momentum.x += -blowback
+      end
+
       kill
     end
 

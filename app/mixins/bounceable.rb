@@ -17,7 +17,7 @@ module HuskEngine
         unless self.class.instance_methods.include?(:bounce)
     end
     def bounce_x_off(bouncer, collided_on)
-      play_once @sound_bounce
+      play_once @sound_bounce, bouncer.relative_speed
 
       # puts "bounce_x_off #{bouncer.name}, x: #{bouncer.x}"
       right_edge = @x + @w
@@ -32,7 +32,7 @@ module HuskEngine
     end
 
     def bounce_y_off(bouncer, collided_on)
-      play_once @sound_bounce
+      play_once @sound_bounce, bouncer.relative_speed
 
       # puts 'bounce_y_off'
       case collided_on
@@ -46,10 +46,10 @@ module HuskEngine
     end
 
     def bounce_off(bouncer, collided_on)
-      puts "bounce_off #{bouncer.name}"
-      play_once @sound_bounce unless @sound_bounce.nil?
+      # puts "bounce_off #{bouncer.name}"
+      play_once @sound_bounce, bouncer.relative_speed unless @sound_bounce.nil?
 
-      puts "bounce_off #{bouncer.name}: x: #{@x}, #{right_side}, #{collided_on}"
+      # puts "bounce_off #{bouncer.name}: x: #{@x}, #{right_side}, #{collided_on}"
 
 
       # x: 300

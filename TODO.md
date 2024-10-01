@@ -9,12 +9,12 @@
 - [x] Make scaled version of thrusters
 - [x] Fix weird south door thing
 - [x] Check out override bounce in boost_thrust.rb
-- [ ] Does the turret reset direction when entering a room?
+- [x] Turret direction when entering a room
 - [x] Make the DataTerminal have different directions
 - [ ] Make breach start
 - [ ] Make breach finish
 - [x] Smaller ships' thrusters don't line up
-- [ ] Fix mine damage amount
+- [x] Fix mine damage amount
 - [x] Remove main level from mine when exploding
 - [ ] Weight item population for different scaled rooms
 - [ ] Create overlays
@@ -22,4 +22,13 @@
 - [x] Shadows are calculated from ship bottom left corner, not middle
 - [x] Buffers aren't working
 - [x] Tidy up power ups into parent class
-- [ ] Create UI for EMP charge
+- [x] Create UI for EMP charge
+- [x] Move DataTerminal light control to method
+- [ ] Player render ordering?
+- [x] Fix mine causing repeat damage (across animation)
+- [x] Create repairer
+- [ ] Audio for collecting data
+- [ ] Create lights for repairer
+- [ ] Add kickback to hunterblob collision
+- [ ] Add shutdown to game scene
+- [ ] Make 40p medium version
