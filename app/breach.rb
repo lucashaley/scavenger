@@ -63,7 +63,7 @@ module HuskGame
     end
 
     def collide_action(collidee, collided_on)
-      puts "BUFFER COLLIDE"
+      # puts "BUFFER COLLIDE"
 
       current_location = collidee.xy
 
@@ -75,7 +75,7 @@ module HuskGame
         if move_dist <= @move_threshold
           # then check if the player is near the middle of the breach
           center_dist = $gtk.args.geometry.distance_squared(collidee.center, self.center)
-          puts "center_dist: #{center_dist}"
+          # puts "center_dist: #{center_dist}"
           if center_dist <= @distance_threshold
             @docking = true
             @current_hold += 1
@@ -86,7 +86,7 @@ module HuskGame
             # Lock the player in if dock time is done
             lock_in(collidee) if @current_hold >= @hold_threshold
           else
-            puts "TOO FAR"
+            # puts "TOO FAR"
             @docking = false
             @current_hold = 0
           end
@@ -101,7 +101,7 @@ module HuskGame
     end
 
     def lock_in player
-      puts "LOCK IN!!!!!!"
+      # puts "LOCK IN!!!!!!"
 
       # Move the player to the center
       player.run_action(

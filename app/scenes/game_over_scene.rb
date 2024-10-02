@@ -9,15 +9,9 @@ module HuskGame
       @next_scene = nil
 
       @black_background = {
-        x: 0,
-        y: 0,
-        w: 720,
-        h: 1280,
+        x: 0, y: 0, w: 720, h: 1280,
         path: :solid,
-        r: 0,
-        g: 0,
-        b: 0,
-        a: 255
+        r: 0, g: 0, b: 0, a: 255
       }
       $gtk.args.outputs.static_sprites << @black_background
 

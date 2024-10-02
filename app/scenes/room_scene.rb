@@ -50,6 +50,7 @@ module HuskGame
       @bg_music_state = :intro
       @emp_sound = 'sounds/emp_blast.wav'.freeze
       @tracer_service_name = :tracer
+      @shutdown = nil
     end
 
     def switch_rooms destination_door
@@ -63,6 +64,20 @@ module HuskGame
     def prepare_scene
       puts "\n\nROOM_SCENE: PREPARE_SCENE\n\n"
       register_all_sprites
+
+      @fader = Zif::Sprite.new.tap do |f|
+        f.x = 0
+        f.y = 0
+        f.w = 720
+        f.h = 1280
+        f.path = :solid
+        f.r = 0
+        f.g = 0
+        f.b = 0
+        f.a = 0
+      end
+      $game.services[:action_service].register_actionable(@fader)
+      $gtk.args.outputs.static_sprites << @fader
 
       # Create the ship
       # It's a little disappointing we need to make the ship
@@ -304,6 +319,8 @@ module HuskGame
       $gtk.args.audio.clear
       $gtk.args.outputs.static_sprites.clear
       $gtk.args.outputs.static_labels.clear
+      $gtk.args.outputs[:viewport_mask].clear
+      $gtk.args.outputs[:viewport].clear
     end
 
     def perform_tick
@@ -324,9 +341,15 @@ module HuskGame
       handle_light
       handle_render
 
+      # Shader stuff
+      # $gtk.args.outputs.shader_path ||= "shaders/crt.glsl"
+      # $gtk.args.outputs.shader_tex1 = :viewport
+      # $gtk.args.outputs.shader_tex2 = :viewport_mask
 
-      return :game_complete if @husk.breach.locked
-      return :game_over if @husk.health <= 0
+
+      handle_shutdown if @shutdown.nil? && (@husk.breach.locked || @husk.health <= 0)
+      return :game_complete if @husk.breach.locked && @shutdown == :done
+      return :game_over if @husk.health <= 0 && @shutdown == :done
     end
 
     # It might be nice to have this, instead of the return value in the perform_tick method
@@ -336,6 +359,21 @@ module HuskGame
     # end
 
     private
+
+    # get our fade out going
+    def handle_shutdown
+      @shutdown = :started
+      @player_control = false
+
+      $gtk.args.state.run.data_blocks = @ship.data_blocks
+      puts "state: #{$gtk.args.state.run.data_blocks}"
+
+      @fader.run_action(
+        @fader.new_action({a: 255}, duration: 0.5.seconds, easing: :smooth_step3) {
+          @shutdown = :done
+        }
+      )
+    end
 
     # This changes the bg music based upon the husk health -- the worse the health, the faster the music.
     def handle_bgmusic
@@ -565,8 +603,24 @@ module HuskGame
     def handle_render
       # mark_and_print("handle_render")
 
-      # Figure out the buffers
-      # $gtk.args.outputs.borders << @husk.current_room.no_populate_buffer.map { |s| s.merge!({r: 255, g: 0, b: 255, a: 255}) }
+      # Outputs for shaders
+      # $gtk.args.outputs[:viewport].transient!
+      # $gtk.args.outputs[:viewport].w = 720
+      # $gtk.args.outputs[:viewport].h = 1280
+      # $gtk.args.outputs[:viewport].sprites << [
+      #   @husk.current_room.tiles_target.containing_sprite.assign({ x: 40, y: 560 }),
+      #   @husk.current_room.renders_under_player,
+      #   @ship,
+      #   @light,
+      #   @husk.current_room.renders_over_player,
+      #   # @room.doors,
+      #   @husk.current_room.doors,
+      #   @light,
+      # ]
+      #
+      # $gtk.args.outputs[:viewport_mask].w = 720
+      # $gtk.args.outputs[:viewport_mask].h = 1280
+      # $gtk.args.outputs[:viewport_mask].sprites << { x: 0, y: 0, w: 720, h: 1280, path: "sprites/viewport_mask.png" }
 
       $gtk.args.outputs.sprites.clear
       $gtk.args.outputs.sprites << [
@@ -591,7 +645,7 @@ module HuskGame
       # Player info
       # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
       # $gtk.args.outputs.debug.watch pretty_format(@map.layers[:ship].sprites), label_style: @label_style, background_style: @background_style
-      $gtk.args.outputs.debug.watch [@ship.emp_count], label_style: $LABEL_STYLE, background_style: $BACKGROUND_STYLE
+      # $gtk.args.outputs.debug.watch [@ship.emp_count], label_style: $LABEL_STYLE, background_style: $BACKGROUND_STYLE
     end
   end
 end
