@@ -45,27 +45,20 @@ module SpriteRegisters
       width: 70,
       height: 70
     )
-    # $services[:sprite_registry].alias_sprite(
-    #   "shadow_large",
-    #   :boost_shadow_large
-    # )
     $services[:sprite_registry].register_basic_sprite(
       "shadow_medium",
+      width: 46,
+      height: 46
+    )
+    $services[:sprite_registry].register_basic_sprite(
+      "shadow_small",
       width: 36,
       height: 36
     )
-    # $services[:sprite_registry].alias_sprite(
-    #   "shadow_medium",
-    #   :boost_shadow_medium
-    # )
     $services[:sprite_registry].register_basic_sprite(
-      "shadow_small",
+      "shadow_tiny",
       width: 20,
       height: 20
     )
-    # $services[:sprite_registry].alias_sprite(
-    #   "shadow_small",
-    #   :boost_shadow_small
-    # )
   end
 end

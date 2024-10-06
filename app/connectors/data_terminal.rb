@@ -1,18 +1,4 @@
 module HuskGame
-  # class DataTerminal < Zif::CompoundSprite
-  #   include Zif::Traceable
-  #   include HuskEngine::Collideable
-  #   include HuskEngine::Bounceable
-  #   include HuskEngine::Scaleable
-  #   include HuskEngine::Faceable
-  #   include HuskEngine::Bufferable
-  #   include HuskEngine::Spatializeable
-  #   include HuskEngine::Tickable
-  #   include HuskEngine::Shadowable
-  #
-  #
-  #   attr_reader :interfacing, :data, :data_rate, :tolerance
-  #   attr_accessor :audio_idle
   class DataTerminal < Connector
 
     BOUNCE_SCALES = {
@@ -46,10 +32,14 @@ module HuskGame
           h: 64
         },
         medium: {
+          w: 40,
+          h: 40
+        },
+        small: {
           w: 32,
           h: 32
         },
-        small: {
+        tiny: {
           w: 16,
           h: 16
         }

@@ -52,10 +52,14 @@ module HuskGame
           h: 64
         },
         medium: {
+          w: 40,
+          h: 40
+        },
+        small: {
           w: 32,
           h: 32
         },
-        small: {
+        tiny: {
           w: 16,
           h: 16
         }
@@ -100,7 +104,7 @@ module HuskGame
     end
 
     def collide_action collidee, facing
-      puts 'collide_action'
+      puts 'mine collide_action'
 
       return if @blown
 
@@ -135,7 +139,7 @@ module HuskGame
       @blown = true
     end
 
-    def complete_animation( animation )
+    def complete_animation(animation)
       puts "complete_animation"
       case animation
       when :blow

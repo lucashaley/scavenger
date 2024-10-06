@@ -48,6 +48,7 @@ module HuskGame
       }
 
       @bg_music_state = :intro
+      @bg_music_volume = 0.3
       @emp_sound = 'sounds/emp_blast.wav'.freeze
       @tracer_service_name = :tracer
       @shutdown = nil
@@ -310,8 +311,18 @@ module HuskGame
       $gtk.args.audio[:bg_music] ||= {
         input: "music/Lucas_HuskGame_intro.wav",
         looping: false,
-        gain: 0.5
+        gain: @bg_music_volume
       }
+
+      # puts "creating audio"
+      # bg_music = HuskEngine::Audite.new(
+      #   input: "music/Lucas_HuskGame_intro.wav",
+      #   looping: false,
+      #   gain: 0.5
+      # )
+      # puts "done creating audio"
+      # $gtk.args.audio[:bg_music] = bg_music
+      # puts "done assiging audio"
     end
 
     def unload_scene
@@ -352,12 +363,6 @@ module HuskGame
       return :game_over if @husk.health <= 0 && @shutdown == :done
     end
 
-    # It might be nice to have this, instead of the return value in the perform_tick method
-    # def game_over
-    #   puts "\n\nGAME OVER\n========="
-    #   $game.scene = :game_over
-    # end
-
     private
 
     # get our fade out going
@@ -379,76 +384,39 @@ module HuskGame
     def handle_bgmusic
       # mark_and_print ("handle_bgmusic")
       if $gtk.args.audio[:bg_music].nil? && $gtk.args.state.bgmusic.playing
-        # puts "handle_bgmusic: #{$gtk.args.audio[:bg_music]}"
-        case @bg_music_state
-        when :intro
-          $gtk.args.audio[:bg_music] = {
-            input: "music/Lucas_HuskGame_108.wav",
-            looping: false,
-            gain: 0.5
-          }
-          @bg_music_state = :theme_108
-        when :theme_108
-          if @husk.health < 0.5
-            $gtk.args.audio[:bg_music] = {
-              input: "music/Lucas_HuskGame_118.wav",
-              looping: false,
-              gain: 0.5
-            }
-            @bg_music_state = :theme_118
-          else
-            if rand(2) == 0
-              $gtk.args.audio[:bg_music] = {
-                input: "music/Lucas_HuskGame_108.wav",
-                looping: false,
-                gain: 0.5
-              }
-            else
-              $gtk.args.audio[:bg_music] = {
-                input: "music/Lucas_HuskGame_108_DnB.wav",
-                looping: false,
-                gain: 0.5
-              }
-            end
-          end
-        when :theme_118
-          if @husk.health < 0.25
-            $gtk.args.audio[:bg_music] = {
-              input: "music/Lucas_HuskGame_128.wav",
-              looping: false,
-              gain: 0.5
-            }
-            @bg_music_state = :theme_128
-          else
-            if rand(2) == 0
-              $gtk.args.audio[:bg_music] = {
-                input: "music/Lucas_HuskGame_118.wav",
-                looping: false,
-                gain: 0.5
-              }
-            else
-              $gtk.args.audio[:bg_music] = {
-                input: "music/Lucas_HuskGame_118_DnB.wav",
-                looping: false,
-                gain: 0.5
-              }
-            end
-          end
-        when :theme_128
-          if rand(1) == 0
-            $gtk.args.audio[:bg_music] = {
-              input: "music/Lucas_HuskGame_128.wav",
-              looping: false,
-              gain: 0.5
-            }
-          else
-            $gtk.args.audio[:bg_music] = {
-              input: "music/Lucas_HuskGame_128_DnB.wav",
-              looping: false,
-              gain: 0.5
-            }
-          end
+        @bg_music_state = case @husk.health
+                          when 0.5..1.0
+                            :theme_108
+                          when 0.25..0.5
+                            :theme_118
+                          when 0.0..0.25
+                            :theme_128
+                          end
+        input = case @bg_music_state
+                when :intro
+                  "108"
+                when :theme_108
+                  ["108", "108_DnB"].sample
+                when :theme_118
+                  ["118", "118_DnB"].sample
+                when :theme_128
+                  ["128", "128_DnB"].sample
+                end
+        $gtk.args.audio[:bg_music] = {
+          input: "music/Lucas_HuskGame_#{input}.wav",
+          looping: false,
+          gain: @bg_music_volume
+        }
+      end
+
+      # Ducking music for voiceovers
+      unless $gtk.args.audio[:bg_music].nil?
+        if $gtk.args.audio[:voiceover]
+          $gtk.args.audio[:bg_music].gain -= 0.1
+        else
+          $gtk.args.audio[:bg_music].gain += 0.1
         end
+        $gtk.args.audio[:bg_music].gain = $gtk.args.audio[:bg_music].gain.clamp(0.1, @bg_music_volume)
       end
     end
 
@@ -464,9 +432,11 @@ module HuskGame
 
       # stop sound if space key is pressed
       if $gtk.args.inputs.keyboard.key_down.m
-        $gtk.args.audio[:bg_music] = nil
+        raise StandardError "no bg_music" if $gtk.args.audio[:bg_music].nil?
+        $gtk.args.audio[:bg_music].gain = 0.0
+        @bg_music_volume = 0.0
         # OR
-        $gtk.args.audio.delete :bg_music
+        # $gtk.args.audio.delete :bg_music
         $gtk.args.state.bgmusic.playing = false
       end
     end
@@ -564,8 +534,6 @@ module HuskGame
       @light.run_action(
         Zif::Actions::Sequence.new(
           [
-            # Move from starting position to 1000x over 1 second, starting slowly,
-            # then flip the sprite at the end
             @light.new_action(
               {a: 255 - @emp_power.clamp(0, 255)},
               duration: 7,
@@ -645,7 +613,7 @@ module HuskGame
       # Player info
       # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
       # $gtk.args.outputs.debug.watch pretty_format(@map.layers[:ship].sprites), label_style: @label_style, background_style: @background_style
-      # $gtk.args.outputs.debug.watch [@ship.emp_count], label_style: $LABEL_STYLE, background_style: $BACKGROUND_STYLE
+      $gtk.args.outputs.debug.watch [@ship.emp_count, @husk.health], label_style: $LABEL_STYLE, background_style: $BACKGROUND_STYLE
     end
   end
 end

@@ -45,6 +45,8 @@ module HuskGame
       data_rate: 0.05
     )
       super(x: x, y: y, scale: scale, facing: facing, tolerance: tolerance, data: data, data_rate: data_rate)
+
+      @audio_idle = 'sounds/repairer_idle.wav'
     end
 
     def collide_action(collidee, collided_on)
@@ -88,27 +90,16 @@ module HuskGame
         if entering
           @interfacing = true
 
-          # opposite_facing = case collided_on
-          #                   when :north
-          #                     :south
-          #                   when :south
-          #                     :north
-          #                   when :east
-          #                     :west
-          #                   when :west
-          #                     :east
-          #                   end
-          # collidee.change_health @data_rate, opposite_facing
           collidee.change_health @data_rate, collided_on
 
           # reduce_data @data_rate
           # TODO Add this back in again once we have light sprites for repairer
 
-          if @remaining_data <= 0
-
-            # audio_feedback = @corrupted ? "sounds/data_corrupted.wav" : "sounds/data_collected.wav"
-            # play_once audio_feedback
-          end
+          # if @remaining_data <= 0
+          #
+          #   # audio_feedback = @corrupted ? "sounds/data_corrupted.wav" : "sounds/data_collected.wav"
+          #   # play_once audio_feedback
+          # end
 
           @previous_data_tick = Kernel.tick_count
         else

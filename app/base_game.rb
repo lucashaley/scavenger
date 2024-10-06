@@ -7,10 +7,12 @@ module HuskGame
 
       @tracer_service_name = :tracer
 
+      # TODO: It would be good to not rely upon this any more
       $SPRITE_SCALES = {
         large: 64,
-        medium: 32,
-        small: 16
+        medium: 40,
+        small: 32,
+        tiny: 16
       }.freeze
 
       $LABEL_STYLE = {

@@ -106,6 +106,7 @@ module HuskEngine
 
       # Work through the data, starting with each layer
       details = self.class::SPRITE_DETAILS
+      # puts "details: #{details}"
       new_sprite = nil
 
       details[:layers].each do |layer|

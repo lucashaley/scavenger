@@ -11,5 +11,12 @@ module HuskEngine
         }
       end
     end
+
+    def play_voiceover(file)
+      puts "play_voiceover #{file}"
+      $gtk.args.audio[:voiceover] = {
+        input: file
+      }
+    end
   end
 end

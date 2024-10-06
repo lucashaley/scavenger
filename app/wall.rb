@@ -25,10 +25,14 @@ class Wall < Zif::CompoundSprite
         h: 64
       },
       medium: {
+        w: 40,
+        h: 40
+      },
+      small: {
         w: 32,
         h: 32
       },
-      small: {
+      tiny: {
         w: 16,
         h: 16
       }
@@ -46,16 +50,37 @@ class Wall < Zif::CompoundSprite
 
     set_position(x, y)
 
-    # wall_type = 'wall' + facing.to_s
-    SPRITE_DETAILS.name = 'wall' + facing.to_s
+    # Taking this out to try rotating compound sprites
+    unless [:north, :south, :east, :west].include? facing
+      # puts "CORNER"
+      SPRITE_DETAILS.name = 'wallcorner'
+    else
+      # puts "WALL"
+      SPRITE_DETAILS.name = 'wall'
+    end
     register_sprites_new
 
-    # collate_sprites wall_type
-    # set_scale scale
     initialize_scaleable(scale)
     initialize_collideable
-    # initialize_bounceable(bounce: bounce)
     initialize_bounceable
+
+    init_faceable(facing)
+    # Walls have corner pieces, unlike everything else
+    # So we have to special-check for them
+    if [:north, :south, :east, :west].include? facing
+      rotate_sprites(@facing)
+    else
+      case facing
+      when :southwest
+        rotate_sprites :south
+      when :southeast
+        rotate_sprites :east
+      when :northwest
+        rotate_sprites :west
+      when :northeast
+        rotate_sprites :north
+      end
+    end
   end
 
   def collide_action collidee, facing

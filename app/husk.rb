@@ -1,5 +1,7 @@
 module HuskGame
   class Husk
+    include HuskEngine::Soundable
+
     attr_accessor :health, :deterioration_rate, :deterioration_progress
     attr_accessor :current_room, :rooms, :room_dimensions, :data_core, :breach
 
@@ -33,6 +35,8 @@ module HuskGame
       @deterioration_progress.y = 1220
       @deterioration_progress.view_actual_size!
       # @deterioration_progress.hide
+
+      @warning = :none
     end
 
     def switch_rooms room, door=nil
@@ -58,8 +62,23 @@ module HuskGame
       @health -= @deterioration_rate
       @deterioration_progress.progress = @health
 
-      # Game over!
-      # $game.scene.game_over if @health <= 0
+      if @health < 0.4 && @warning == :none
+        puts "Warning!"
+        @warning = :once
+        play_voiceover("sounds/voice_warninghuskstructuralintegrityisfailing.wav")
+      end
+      if @health < 0.3 && @warning == :once
+        @warning = :twice
+        play_voiceover("sounds/voice_warning.wav")
+      end
+      if @health < 0.2 && @warning == :twice
+        @warning = :thrice
+        play_voiceover("sounds/voice_returntobreach.wav")
+      end
+      if @health < 0.1 && @warning == :thrice
+        @warning = :fourice
+        play_voiceover("sounds/voice_returntobreach.wav")
+      end
     end
 
     # I don't like to work with such small values

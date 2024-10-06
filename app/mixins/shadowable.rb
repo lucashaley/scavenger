@@ -4,12 +4,14 @@ module HuskEngine
     SHADOW_SCALE_OFFSETS = {
       large: 8,
       medium: 6,
-      small: 2
+      small: 4,
+      tiny: 2
     }
     SHADOW_CENTER_OFFSETS = {
       large: 3,
       medium: 2,
-      small: 2
+      small: 2,
+      tiny: 1
     }
     def initialize_shadowable
       @class_name = self.class.name.split("::").last.downcase
@@ -24,6 +26,10 @@ module HuskEngine
       $services[:sprite_registry].alias_sprite(
         "shadow_small",
         "#{@class_name}_shadow_small".to_sym
+      )
+      $services[:sprite_registry].alias_sprite(
+        "shadow_tiny",
+        "#{@class_name}_shadow_tiny".to_sym
       )
 
       raise StandardError "Shadow didn't register" unless $services[:sprite_registry].sprite_registered?("#{@class_name}_shadow_large".to_sym)

@@ -4,6 +4,7 @@ module HuskGame
     include HuskEngine::Scaleable
     include HuskEngine::Collideable
     include HuskEngine::Shadowable
+    include HuskEngine::Soundable
     include Zif::Traceable
 
     attr_accessor :health_thrust, :health_ccw, :health_cw
@@ -16,7 +17,7 @@ module HuskGame
     attr_accessor :thrust_sprite
     attr_reader :emp_count, :emp_storage
     attr_accessor :data, :data_progress
-    attr_reader :data_blocks, :data_block_count
+    attr_reader :data_blocks, :data_block_count, :data_core
 
     SPRITE_DETAILS = {
       name: "ship",
@@ -413,6 +414,8 @@ module HuskGame
     def change_health amount, side
       puts "change_health(#{amount}, #{side})"
 
+      play_voiceover("sounds/voice_dronedamaged.wav")
+
       case side
       when :north
         @health_north = (@health_north += amount).clamp(0, 1.0)
@@ -443,6 +446,18 @@ module HuskGame
       end
       puts "data_blocks: #{@data_blocks}"
       @data_progress.progress = 0
+    end
+
+    def add_data_core
+      if @data_core = :empty
+        @data_core = :full
+        # Make a good noise or something
+        play_voiceover("sounds/voice_datacorecollected.wav")
+      elsif @data_core = :full || @data_core = :overloaded
+        @data_core = :overloaded
+        # Make a bad noise
+        play_voiceover("sounds/voice_datacoreoverloaded.wav")
+      end
     end
 
     def render_data_blocks

@@ -54,7 +54,7 @@ module Zif
         always:  Float::INFINITY
       }.freeze
 
-      EASING_FUNCS = %i[
+        EASING_FUNCS = %i[
         immediate linear flip
         smooth_start smooth_start3 smooth_start4 smooth_start5
         smooth_stop smooth_stop3 smooth_stop4 smooth_stop5

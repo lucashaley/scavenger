@@ -30,5 +30,7 @@
 - [ ] Audio for collecting data
 - [ ] Create lights for repairer
 - [ ] Add kickback to hunterblob collision
-- [ ] Add shutdown to game scene
+- [x] Add shutdown to game scene
 - [ ] Make 40p medium version
+- [x] DataTerminal turn off audio when empty
+- [ ] Create new audio for Repairer

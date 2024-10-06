@@ -9,6 +9,10 @@ module HuskEngine
 
     attr_accessor :facing
 
+    def init_faceable facing
+      @facing = facing
+    end
+
     # This is pretty ugly, but what the hell
     def face_turn_ccw
       @facing = FACING_KEYED.key((FACING_KEYED[@facing] + 1) % 4)

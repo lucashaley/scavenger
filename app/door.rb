@@ -19,10 +19,29 @@ module HuskGame
       layers: [
         {
           name: "main",
+          # animations: [
+          #   {
+          #     name: "open",
+          #     frames: 5,
+          #     hold: 3,
+          #     repeat: :once
+          #   },
+          #   {
+          #     name: "close",
+          #     frames: 4,
+          #     hold: 3,
+          #     repeat: :once
+          #   }
+          # ],
+          blendmode_enum: :alpha,
+          z: 3
+        },
+        {
+          name: "doors",
           animations: [
             {
               name: "open",
-              frames: 5,
+              frames: 4,
               hold: 3,
               repeat: :once
             },
@@ -34,7 +53,7 @@ module HuskGame
             }
           ],
           blendmode_enum: :alpha,
-          z: 0
+          z: 2
         },
         {
           name: "lights",
@@ -47,7 +66,7 @@ module HuskGame
             }
           ],
           blendmode_enum: :add,
-          z: 1
+          z: 4
         }
       ],
       scales: {
@@ -56,13 +75,17 @@ module HuskGame
           h: 64
         },
         medium: {
+          w: 40,
+          h: 40
+        },
+        small: {
           w: 32,
           h: 32
         },
-        small: {
-          w: 16,
-          h: 16
-        }
+        # tiny: {
+        #   w: 16,
+        #   h: 16
+        # }
       }
     }.freeze
 
@@ -74,14 +97,6 @@ module HuskGame
     def bounce
       BOUNCE_SCALES[@scale]
     end
-    # SPRITE_SCALES = {
-    #   large: 64,
-    #   medium: 32,
-    #   small: 16
-    # }
-    # def sprite_scales scale
-    #   SPRITE_SCALES[scale]
-    # end
 
     def initialize (
       scale: :large,
@@ -161,6 +176,7 @@ module HuskGame
 
       # Rotate the sprites
       # it might be easier to have pre-rotated sprites
+      # TODO: This can be from the Sprite.rotate_sprites method instead
       @sprite_scale_hash.each_value do |scale|
         # puts "sc: #{scale}"
         scale.each_value do |layer|
@@ -186,23 +202,11 @@ module HuskGame
         # @name = @room.name + '_door' + @door_side.to_s # can this be one line later?
         # mark_and_print("creating new door, no destination")
 
-        # # Get a random scale, but weighted
-        # # There's gotta be a better way to do this
-        # scale_weights = [[0, 4], [4, 8], [8, 10]]
-        # r = rand(10)
-        # new_scale = nil
-        # if r.between? *scale_weights[0]
-        #   new_scale = :large
-        # elsif r.between? *scale_weights[1]
-        #   new_scale = :medium
-        # elsif r.between? *scale_weights[2]
-        #   new_scale = :small
-        # end
-
         scales = []
         scales += [:large] * 4
         scales += [:medium] * 4
         scales += [:small] * 2
+        # scales += [:tiny] # Not yet
 
         @destination_door = Door.new(
           # scale: $SPRITE_SCALES.keys.sample.to_sym, # this is a random scale
@@ -210,11 +214,6 @@ module HuskGame
           door_side: destination_side,
           destination_door: self
         )
-        # rescue => error
-        #   puts "\n\nWELL FUCK\n========="
-        #   mark_and_print(@name)
-        #   mark_and_print (error.message)
-        # end
       else
         # If there is a destination_door
         # then we create a new room
@@ -239,16 +238,6 @@ module HuskGame
 
       @approached = false
     end
-
-    # def create_connecting_room
-    #   # mark_and_print "create_connecting_room"
-    #   room = Room.new(
-    #     name: @room.name + "_" + @door_side.to_s,
-    #     entrance_door: self,
-    #     chaos: @room.chaos + 1, # the higher the chaos, the smaller chance of further rooms
-    #     scale: $SPRITE_SCALES.keys.sample.to_sym # this chooses a random size
-    #   )
-    # end
 
     def enter_door player
       # puts "enter_door: #{player}"
@@ -332,11 +321,11 @@ module HuskGame
       threshold = $SPRITE_SCALES[@scale] * 2
       if dist < threshold && @approached == false
         @approached = true
-        @sprites.find { |s| s.name == "door_main_#{scale}" }.run_animation_sequence(:open)
+        @sprites.find { |s| s.name == "door_doors_#{scale}" }.run_animation_sequence(:open)
         @sprites.find { |s| s.name == "door_lights_#{scale}" }.hide
       elsif dist > threshold && @approached == true
         @approached = false
-        @sprites.find { |s| s.name == "door_main_#{scale}" }.run_animation_sequence(:close)
+        @sprites.find { |s| s.name == "door_doors_#{scale}" }.run_animation_sequence(:close)
         @sprites.find { |s| s.name == "door_lights_#{scale}" }.show
         # sprites.find { |s| s.name == "door_lights_#{scale}" }.run_animation_sequence(:idle)
       end

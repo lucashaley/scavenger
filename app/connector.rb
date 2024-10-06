@@ -91,14 +91,14 @@ module HuskGame
 
         # This is ripped from the door
         # Possible chance of optimization/refactor
-        puts "tolerance: #{@tolerance}"
+        # puts "tolerance: #{@tolerance}"
         entering = case @facing
                    when :north, :south
                      collidee.center_x.between?(center_x - @tolerance, center_x + @tolerance)
                    when :east, :west
                      collidee.center_y.between?(center_y - @tolerance, center_y + @tolerance)
                    end
-        puts "entering: #{entering}"
+        # puts "entering: #{entering}"
         if entering
           @previous_data_tick ||= Kernel.tick_count
 
@@ -118,8 +118,11 @@ module HuskGame
 
           if @remaining_data <= 0
             collidee.add_data_block(name: @name, size: @data, corrupted: @corrupted)
-            audio_feedback = @corrupted ? "sounds/data_corrupted.wav" : "sounds/data_collected.wav"
-            play_once audio_feedback
+            audio_feedback = @corrupted ? "sounds/voice_datacorrupted.wav" : "sounds/voice_datacollected.wav"
+            play_voiceover audio_feedback
+            # turn off the audio
+            @audio_idle = nil
+            $gtk.args.audio[@name.to_sym] = nil
           end
 
           @previous_data_tick = Kernel.tick_count

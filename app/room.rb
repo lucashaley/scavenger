@@ -20,7 +20,8 @@ module HuskGame
                   :terminals,
                   :agents,
                   :dressings,
-                  :decorations
+                  :decorations,
+                  :overlays
 
     DOORS = {
       none: 0,
@@ -77,6 +78,7 @@ module HuskGame
       @agents = []
       @dressings = []
       @decorations = []
+      @overlays = []
       @doors_hash = {
         north: nil,
         south: nil,
@@ -110,6 +112,7 @@ module HuskGame
       populate_agents
       populate_dressings
       populate_decorations
+      populate_overlays
 
       # This is dumping to args for Palantir
       # $gtk.args.state.rooms[@name] = { doors: @doors }
@@ -357,6 +360,24 @@ module HuskGame
         )
         @decorations << gash
       end
+      rand(2).times do
+        cable01 = Cable01.new(
+          x: rand(720),
+          y: rand(720) + 560,
+          scale: :large
+        )
+        @decorations << cable01
+      end
+    end
+
+    def populate_overlays
+      @overlays << {
+        x: 40,
+        y: 560,
+        w: 640,
+        h: 640,
+        path: "sprites/overlay01/overlay01_main_large.png"
+      }
     end
 
 
@@ -369,7 +390,7 @@ module HuskGame
     end
 
     def renders_over_player
-      @walls + @agents
+      @walls + @agents + @overlays
     end
 
     def collidables
@@ -519,7 +540,8 @@ module HuskGame
               s.w = pixel_scale
               s.h = pixel_scale
               s.angle = rand(4) * 90
-              s.path = "sprites/1bit_floor_#{pixel_scale}_0#{rand(6)}.png"
+              # s.path = "sprites/1bit_floor_#{pixel_scale}_0#{rand(6)}.png"
+              s.path = "sprites/floor_#{@scale.to_s}_0#{rand(6)}.png"
             end
           end
         end
