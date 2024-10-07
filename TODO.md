@@ -34,3 +34,5 @@
 - [ ] Make 40p medium version
 - [x] DataTerminal turn off audio when empty
 - [ ] Create new audio for Repairer
+- [ ] Create spawner
+- [ ] Add room switch fader
