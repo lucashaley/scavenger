@@ -60,6 +60,9 @@ module HuskGame
       # puts "#{destination_door}"
       @husk.switch_rooms destination_door.room, destination_door
       # puts "\n\nRoomScene new room: #{@husk.current_room}"
+      
+      # Fade
+      # Do fade here
     end
 
     def prepare_scene
