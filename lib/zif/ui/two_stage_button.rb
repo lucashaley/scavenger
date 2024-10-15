@@ -36,10 +36,7 @@ module Zif
         @normal = []
         @pressed = []
         @is_pressed = false
-        @on_mouse_up = lambda { |_sprite, point|
-          block&.call(point)
-          toggle_pressed if @is_pressed
-        }
+        @on_mouse_up =  
         @on_mouse_changed = ->(_sprite, point) { toggle_on_change(point) }
         @on_mouse_down = ->(_sprite, _point) { toggle_pressed }
         @label_y_offset = 0

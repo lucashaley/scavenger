@@ -5,12 +5,15 @@ module HuskGame
     include HuskEngine::Soundable
 
     attr_accessor :ship, :husk
+    attr_accessor :player_controls
 
     FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
     BUTTONS_CENTER = {x: 280, y: 260}.freeze
 
     def initialize
       puts "\n\nROOM_SCENE: INIT\n\n"
+      super
+
       @tile_dimensions = 64
       @map_dimensions = 10
 
@@ -22,6 +25,8 @@ module HuskGame
         bottom: 1280 - 80 - @ui_viewscreen_dimensions,
         left: @ui_viewscreen_border
       }
+
+      @ui_cluster = UiCluster.new()
 
       @ship
       @player_control = true
@@ -603,10 +608,14 @@ module HuskGame
         # @room.doors,
         @husk.current_room.doors,
         @light,
+        @husk.current_room.overlays,
+        @light,
         @ui,
         @husk.deterioration_progress,
         @ship.data_progress,
         @buttons,
+        @ui_cluster.render
+        # @player_controls.containing_sprite.assign({x: 40, y: 120})
       # @camera.layers
       ]
 

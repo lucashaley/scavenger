@@ -1,10 +1,10 @@
 module HuskGame
   class Door < Zif::CompoundSprite
-    include ::HuskEngine::Collideable
-    include ::HuskEngine::Bounceable
-    include ::HuskEngine::Scaleable
-    include ::HuskEngine::Bufferable
-    include ::HuskEngine::Tickable
+    include HuskEngine::Collideable
+    include HuskEngine::Bounceable
+    include HuskEngine::Scaleable
+    include HuskEngine::Bufferable
+    include HuskEngine::Tickable
     include Zif::Traceable
 
     attr_accessor :room
@@ -42,13 +42,13 @@ module HuskGame
             {
               name: "open",
               frames: 4,
-              hold: 3,
+              hold: 4,
               repeat: :once
             },
             {
               name: "close",
               frames: 4,
-              hold: 3,
+              hold: 4,
               repeat: :once
             }
           ],
@@ -61,7 +61,7 @@ module HuskGame
             {
               name: "idle",
               frames: 7,
-              hold: 3,
+              hold: 4,
               repeat: :forever
             }
           ],
@@ -322,11 +322,11 @@ module HuskGame
       if dist < threshold && @approached == false
         @approached = true
         @sprites.find { |s| s.name == "door_doors_#{scale}" }.run_animation_sequence(:open)
-        @sprites.find { |s| s.name == "door_lights_#{scale}" }.hide
+        # @sprites.find { |s| s.name == "door_lights_#{scale}" }.hide
       elsif dist > threshold && @approached == true
         @approached = false
         @sprites.find { |s| s.name == "door_doors_#{scale}" }.run_animation_sequence(:close)
-        @sprites.find { |s| s.name == "door_lights_#{scale}" }.show
+        # @sprites.find { |s| s.name == "door_lights_#{scale}" }.show
         # sprites.find { |s| s.name == "door_lights_#{scale}" }.run_animation_sequence(:idle)
       end
     end

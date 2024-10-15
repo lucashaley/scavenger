@@ -1,5 +1,8 @@
 require 'app/mixins/general'
 
+require 'app/ui_button'
+require 'app/ui_cluster'
+
 require 'app/services/effect_service.rb'
 require 'app/services/tick_service.rb'
 require 'app/services/emp_service'
@@ -16,6 +19,7 @@ require 'app/ui/components/tall_button.rb'
 
 require 'app/sprite_registers.rb'
 
+
 require 'app/mixins/sprite.rb'
 require 'app/mixins/deadable.rb'
 require 'app/mixins/soundable.rb'
@@ -31,6 +35,8 @@ require 'app/mixins/spatializeable.rb'
 require 'app/mixins/tickable.rb'
 require 'app/mixins/shadowable.rb'
 require 'app/mixins/empable'
+require 'app/mixins/roomable'
+require 'app/spawner'
 
 require 'app/room'
 require 'app/husk.rb'

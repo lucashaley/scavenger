@@ -17,9 +17,9 @@ module HuskEngine
 
       @buffer_scale = $BUFFER_SCALES[buffer_scale] # 3
 
-      # sprite_scale = $SPRITE_SCALES[@scale] # 32
-      sprite_scale = self.class::SPRITE_DETAILS[:scales][scale]
-      # scaled_buffer = sprite_scale * @buffer_scale # 96
+      sprite_scale = self.class::SPRITE_DETAILS[:scales][@scale]
+
+      raise StandardError("Bufferable sprite scales didn't go") if sprite_scale.nil?
       scaled_buffer = sprite_scale.transform_values { |v| v * @buffer_scale }
       @buffer = {
         x: @x - scaled_buffer.w,

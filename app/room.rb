@@ -16,6 +16,7 @@ module HuskGame
                   :doors_hash,
                   :no_populate_buffer,
                   :hazards,
+                  :spawners,
                   :pickups,
                   :terminals,
                   :agents,
@@ -61,7 +62,7 @@ module HuskGame
       entrance_door: nil
     )
       @tracer_service_name = :tracer
-      mark_and_print("initialize")
+      # mark_and_print("initialize")
 
       # Set variables
       @name = name
@@ -73,6 +74,7 @@ module HuskGame
       @tiles_target = Zif::RenderTarget.new(@name, width: 640, height: 640)
       @doors = []
       @hazards = []
+      @spawners = []
       @pickups = []
       @terminals = []
       @agents = []
@@ -108,6 +110,7 @@ module HuskGame
       populate_terminals
       populate_pickups
       populate_hazards
+      populate_spawners
       # populate_terminals
       populate_agents
       populate_dressings
@@ -251,6 +254,19 @@ module HuskGame
       end
     end
 
+    def populate_spawners
+      spawner = Spawner.new(
+        x: 300,
+        y: 860,
+        scale: @scale,
+        spawn_class: :HunterBlob,
+        spawn_rate: 20.seconds,
+        room: self
+      )
+      spawner.deactivate
+      @spawners << spawner
+    end
+
     def populate_terminals
       # mark_and_print "populate_terminals"
       if rand(1) == 0
@@ -386,13 +402,14 @@ module HuskGame
     end
 
     def renders_under_player
-      @decorations + (@pickups + @hazards).reject(&:is_dead?) + @terminals + @dressings
+      @decorations + (@pickups + @hazards).reject(&:is_dead?) + @terminals + @dressings + @spawners
     end
 
     def renders_over_player
-      @walls + @agents + @overlays
+      @walls + @agents
     end
 
+    # TODO: Clean up this weirdness
     def collidables
       @walls + (@pickups + @hazards + @agents).reject(&:is_dead?) + @terminals + @dressings
     end
@@ -402,6 +419,7 @@ module HuskGame
       @pickups.each(&:activate)
       @terminals.each(&:activate)
       @hazards.each(&:activate)
+      @spawners.each(&:activate)
       @agents.each(&:activate)
       @dressings.each(&:activate)
       @hazards.each { |h| h.activate_effect if h.is_a?(HuskEngine::Effectable) }

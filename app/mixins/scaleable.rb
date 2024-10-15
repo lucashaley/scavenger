@@ -111,7 +111,7 @@ module HuskEngine
 
       details[:layers].each do |layer|
         # puts "Creating #{layer[:name]}"
-        details[:scales].each do |scale_k, scale_v|
+        details[:scales].each_key do |scale_k|
           # puts "Create #{layer[:name]}: #{scale.to_s}"
           # Create the scale hash if it doesn't exist already
           # This is weird, because in our naming convention
