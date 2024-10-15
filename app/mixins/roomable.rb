@@ -3,7 +3,7 @@ module HuskGame
     attr_accessor :room
 
     def initialize_roomable room
-      puts "ROOMABLE INITIALIZE_ROOMABLE"
+      # puts "ROOMABLE INITIALIZE_ROOMABLE"
       raise StandardError ("initialize_roomable NO ROOM!") if room.nil?
       @room = room
     end
