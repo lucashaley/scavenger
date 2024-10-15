@@ -3,3 +3,14 @@ class String
     self.gsub(",", "\n")
   end
 end
+
+class Array
+  def add_2d(b)
+    raise ArgumentError if count != b.count
+
+    [
+      self[0] + b[0],
+      self[1] + b[1]
+    ]
+  end
+end
