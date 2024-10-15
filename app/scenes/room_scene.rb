@@ -3,6 +3,7 @@ module HuskGame
     include SpriteRegisters
     include Zif::Traceable
     include HuskEngine::Soundable
+    include HuskGame::FragmentUi
 
     attr_accessor :ship, :husk
     attr_accessor :player_controls
@@ -26,7 +27,7 @@ module HuskGame
         left: @ui_viewscreen_border
       }
 
-      @ui_cluster = UiCluster.new()
+      # @ui_cluster = UiCluster.new()
 
       @ship
       @player_control = true
@@ -87,6 +88,8 @@ module HuskGame
       puts "\n\nROOM_SCENE: PREPARE_SCENE\n\n"
       register_all_sprites
 
+      # @ui_cluster = UiCluster.new()
+
       @fader = Zif::Sprite.new.tap do |f|
         f.x = 0
         f.y = 0
@@ -127,176 +130,176 @@ module HuskGame
       # BUTTONS_CENTER = {x: 280, y: 260}.freeze
 
       # DIRECTION BUTTONS
-      @ui_button_north = Zif::UI::TwoStageButton.new.tap do |b|
-        b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
-        b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
-        b.w = 128
-        b.h = 128
-        b.x = BUTTONS_CENTER.x - b.w.half
-        b.y = BUTTONS_CENTER.y + b.h
-        b.labels << Zif::UI::Label.new(
-          'north',
-          size: -1,
-          font: FONT,
-          alignment: :center,
-          vertical_alignment: :center,
-          r: 255,
-          g: 255,
-          b: 255
-        )
-        b.recenter_label
-        b.unpress
-      end
-      @ui_button_south = Zif::UI::TwoStageButton.new.tap do |b|
-        b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
-        b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
-        b.w = 128
-        b.h = 128
-        b.x = BUTTONS_CENTER.x - b.w.half
-        b.y = BUTTONS_CENTER.y - b.h
-        b.labels << Zif::UI::Label.new(
-          'south',
-          size: -1,
-          font: FONT,
-          alignment: :center,
-          vertical_alignment: :center,
-          r: 255,
-          g: 255,
-          b: 255
-        )
-        b.recenter_label
-        b.unpress
-      end
-      @ui_button_east = Zif::UI::TwoStageButton.new.tap do |b|
-        b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
-        b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
-        b.w = 128
-        b.h = 128
-        b.x = BUTTONS_CENTER.x + b.w.half
-        b.y = BUTTONS_CENTER.y
-        b.labels << Zif::UI::Label.new(
-          'east',
-          size: -1,
-          font: FONT,
-          alignment: :center,
-          vertical_alignment: :center,
-          r: 255,
-          g: 255,
-          b: 255
-        )
-        b.recenter_label
-        b.unpress
-      end
-      @ui_button_west = Zif::UI::TwoStageButton.new.tap do |b|
-        b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
-        b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
-        b.w = 128
-        b.h = 128
-        b.x = BUTTONS_CENTER.x - b.w.half - b.w
-        b.y = BUTTONS_CENTER.y
-        b.labels << Zif::UI::Label.new(
-          'west',
-          size: -1,
-          font: FONT,
-          alignment: :center,
-          vertical_alignment: :center,
-          r: 255,
-          g: 255,
-          b: 255
-        )
-        b.recenter_label
-        b.unpress
-      end
-
-      # ROTATION BUTTONS
-      rotate_ccw = lambda do |r|
-        @ship.rotate_ccw
-      end
-      rotate_cw = lambda do |r|
-        @ship.rotate_cw
-      end
-      @ui_button_ccw = Zif::UI::TwoStageButton.new('ui_button_ccw', &rotate_ccw).tap do |b|
-        b.normal << $services[:sprite_registry].construct(:ui_button_rotate_up)
-        b.pressed << $services[:sprite_registry].construct(:ui_button_rotate_down)
-        b.w = 128
-        b.h = 128
-        b.x = BUTTONS_CENTER.x - b.w.half - b.w
-        b.y = BUTTONS_CENTER.y + b.h
-        b.labels << Zif::UI::Label.new(
-          'ccw',
-          size: -1,
-          font: FONT,
-          alignment: :center,
-          vertical_alignment: :center,
-          r: 255,
-          g: 255,
-          b: 255
-        )
-        b.recenter_label
-        b.unpress
-      end
-      @ui_button_cw = Zif::UI::TwoStageButton.new('ui_button_cw', &rotate_cw).tap do |b|
-        b.normal << $services[:sprite_registry].construct(:ui_button_rotate_up)
-        b.pressed << $services[:sprite_registry].construct(:ui_button_rotate_down)
-        b.w = 128
-        b.h = 128
-        b.x = BUTTONS_CENTER.x + b.w.half
-        b.y = BUTTONS_CENTER.y - b.h
-        b.labels << Zif::UI::Label.new(
-          'cw',
-          size: -1,
-          font: FONT,
-          alignment: :center,
-          vertical_alignment: :center,
-          r: 255,
-          g: 255,
-          b: 255
-        )
-        b.flip_horizontally = true
-        b.flip_vertically = true
-        b.recenter_label
-        b.unpress
-      end
-
-      # EMP BUTTON
-      @ui_button_emp = Zif::UI::TwoStageButton.new.tap do |b|
-        b.normal << $services[:sprite_registry].construct(:ui_button_rotate_up)
-        b.pressed << $services[:sprite_registry].construct(:ui_button_rotate_down)
-        b.w = 128
-        b.h = 128
-        b.x = BUTTONS_CENTER.x - b.w.half
-        b.y = BUTTONS_CENTER.y
-        b.labels << Zif::UI::Label.new(
-          'emp',
-          size: 1,
-          font: FONT,
-          alignment: :center,
-          vertical_alignment: :center,
-          r: 255,
-          g: 255,
-          b: 255
-        )
-        # b.flip_horizontally = true
-        # b.flip_vertically = true
-        b.recenter_label
-        b.unpress
-        b.on_mouse_down = ->(_sprite, _point) { @ui_button_emp.unpress if @ship.emp_count == 0 }
-        b.on_mouse_up = ->(_sprite, _point) { handle_emp unless @ship.emp_count == 0 }
-      end
-
-      # little array for buttons
-      @buttons = [
-        @ui_button_north,
-        @ui_button_south,
-        @ui_button_east,
-        @ui_button_west,
-        @ui_button_ccw,
-        @ui_button_cw,
-        @ui_button_emp
-      ]
+      # @ui_button_north = Zif::UI::TwoStageButton.new.tap do |b|
+      #   b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
+      #   b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
+      #   b.w = 128
+      #   b.h = 128
+      #   b.x = BUTTONS_CENTER.x - b.w.half
+      #   b.y = BUTTONS_CENTER.y + b.h
+      #   b.labels << Zif::UI::Label.new(
+      #     'north',
+      #     size: -1,
+      #     font: FONT,
+      #     alignment: :center,
+      #     vertical_alignment: :center,
+      #     r: 255,
+      #     g: 255,
+      #     b: 255
+      #   )
+      #   b.recenter_label
+      #   b.unpress
+      # end
+      # @ui_button_south = Zif::UI::TwoStageButton.new.tap do |b|
+      #   b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
+      #   b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
+      #   b.w = 128
+      #   b.h = 128
+      #   b.x = BUTTONS_CENTER.x - b.w.half
+      #   b.y = BUTTONS_CENTER.y - b.h
+      #   b.labels << Zif::UI::Label.new(
+      #     'south',
+      #     size: -1,
+      #     font: FONT,
+      #     alignment: :center,
+      #     vertical_alignment: :center,
+      #     r: 255,
+      #     g: 255,
+      #     b: 255
+      #   )
+      #   b.recenter_label
+      #   b.unpress
+      # end
+      # @ui_button_east = Zif::UI::TwoStageButton.new.tap do |b|
+      #   b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
+      #   b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
+      #   b.w = 128
+      #   b.h = 128
+      #   b.x = BUTTONS_CENTER.x + b.w.half
+      #   b.y = BUTTONS_CENTER.y
+      #   b.labels << Zif::UI::Label.new(
+      #     'east',
+      #     size: -1,
+      #     font: FONT,
+      #     alignment: :center,
+      #     vertical_alignment: :center,
+      #     r: 255,
+      #     g: 255,
+      #     b: 255
+      #   )
+      #   b.recenter_label
+      #   b.unpress
+      # end
+      # @ui_button_west = Zif::UI::TwoStageButton.new.tap do |b|
+      #   b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
+      #   b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
+      #   b.w = 128
+      #   b.h = 128
+      #   b.x = BUTTONS_CENTER.x - b.w.half - b.w
+      #   b.y = BUTTONS_CENTER.y
+      #   b.labels << Zif::UI::Label.new(
+      #     'west',
+      #     size: -1,
+      #     font: FONT,
+      #     alignment: :center,
+      #     vertical_alignment: :center,
+      #     r: 255,
+      #     g: 255,
+      #     b: 255
+      #   )
+      #   b.recenter_label
+      #   b.unpress
+      # end
+      #
+      # # ROTATION BUTTONS
+      # rotate_ccw = lambda do |r|
+      #   @ship.rotate_ccw
+      # end
+      # rotate_cw = lambda do |r|
+      #   @ship.rotate_cw
+      # end
+      # @ui_button_ccw = Zif::UI::TwoStageButton.new('ui_button_ccw', &rotate_ccw).tap do |b|
+      #   b.normal << $services[:sprite_registry].construct(:ui_button_rotate_up)
+      #   b.pressed << $services[:sprite_registry].construct(:ui_button_rotate_down)
+      #   b.w = 128
+      #   b.h = 128
+      #   b.x = BUTTONS_CENTER.x - b.w.half - b.w
+      #   b.y = BUTTONS_CENTER.y + b.h
+      #   b.labels << Zif::UI::Label.new(
+      #     'ccw',
+      #     size: -1,
+      #     font: FONT,
+      #     alignment: :center,
+      #     vertical_alignment: :center,
+      #     r: 255,
+      #     g: 255,
+      #     b: 255
+      #   )
+      #   b.recenter_label
+      #   b.unpress
+      # end
+      # @ui_button_cw = Zif::UI::TwoStageButton.new('ui_button_cw', &rotate_cw).tap do |b|
+      #   b.normal << $services[:sprite_registry].construct(:ui_button_rotate_up)
+      #   b.pressed << $services[:sprite_registry].construct(:ui_button_rotate_down)
+      #   b.w = 128
+      #   b.h = 128
+      #   b.x = BUTTONS_CENTER.x + b.w.half
+      #   b.y = BUTTONS_CENTER.y - b.h
+      #   b.labels << Zif::UI::Label.new(
+      #     'cw',
+      #     size: -1,
+      #     font: FONT,
+      #     alignment: :center,
+      #     vertical_alignment: :center,
+      #     r: 255,
+      #     g: 255,
+      #     b: 255
+      #   )
+      #   b.flip_horizontally = true
+      #   b.flip_vertically = true
+      #   b.recenter_label
+      #   b.unpress
+      # end
+      #
+      # # EMP BUTTON
+      # @ui_button_emp = Zif::UI::TwoStageButton.new.tap do |b|
+      #   b.normal << $services[:sprite_registry].construct(:ui_button_rotate_up)
+      #   b.pressed << $services[:sprite_registry].construct(:ui_button_rotate_down)
+      #   b.w = 128
+      #   b.h = 128
+      #   b.x = BUTTONS_CENTER.x - b.w.half
+      #   b.y = BUTTONS_CENTER.y
+      #   b.labels << Zif::UI::Label.new(
+      #     'emp',
+      #     size: 1,
+      #     font: FONT,
+      #     alignment: :center,
+      #     vertical_alignment: :center,
+      #     r: 255,
+      #     g: 255,
+      #     b: 255
+      #   )
+      #   # b.flip_horizontally = true
+      #   # b.flip_vertically = true
+      #   b.recenter_label
+      #   b.unpress
+      #   b.on_mouse_down = ->(_sprite, _point) { @ui_button_emp.unpress if @ship.emp_count == 0 }
+      #   b.on_mouse_up = ->(_sprite, _point) { handle_emp unless @ship.emp_count == 0 }
+      # end
+      #
+      # # little array for buttons
+      # @buttons = [
+      #   @ui_button_north,
+      #   @ui_button_south,
+      #   @ui_button_east,
+      #   @ui_button_west,
+      #   @ui_button_ccw,
+      #   @ui_button_cw,
+      #   @ui_button_emp
+      # ]
 
       # Register all buttons as Clickables
-      @buttons.each { |b| $game.services[:input_service].register_clickable b }
+      # @buttons.each { |b| $game.services[:input_service].register_clickable b }
 
       @light = $services[:sprite_registry].construct(:light).tap do |s|
         s.x = 40
@@ -334,16 +337,6 @@ module HuskGame
         looping: false,
         gain: @bg_music_volume
       }
-
-      # puts "creating audio"
-      # bg_music = HuskEngine::Audite.new(
-      #   input: "music/Lucas_HuskGame_intro.wav",
-      #   looping: false,
-      #   gain: 0.5
-      # )
-      # puts "done creating audio"
-      # $gtk.args.audio[:bg_music] = bg_music
-      # puts "done assiging audio"
     end
 
     def unload_scene
@@ -371,6 +364,9 @@ module HuskGame
       handle_player_input if @ship.player_control
 
       handle_light
+
+      handle_ui
+
       handle_render
 
       # Shader stuff
@@ -473,23 +469,23 @@ module HuskGame
       # Handle mouse clicks in directional buttons
       # We do this in the tick because button needs to repeat while held
       #
-      if @ui_button_north.is_pressed
-        # @ui_button_north.label.y = -0.1
-        @ship.add_thrust_y (1.0)
-      end
-      if @ui_button_south.is_pressed
-        @ship.add_thrust_y (-1.0)
-      end
-      if @ui_button_east.is_pressed
-        @ship.add_thrust_x (1.0)
-      end
-      if @ui_button_west.is_pressed
-        # @ui_button_west.label.y = -0.01
-        @ship.add_thrust_x (-1.0)
-      end
-      if @ui_button_emp.is_pressed && @ship.emp_count > 0
-        @emp_power += 1
-      end
+      # if @ui_button_north.is_pressed
+      #   # @ui_button_north.label.y = -0.1
+      #   @ship.add_thrust_y (1.0)
+      # end
+      # if @ui_button_south.is_pressed
+      #   @ship.add_thrust_y (-1.0)
+      # end
+      # if @ui_button_east.is_pressed
+      #   @ship.add_thrust_x (1.0)
+      # end
+      # if @ui_button_west.is_pressed
+      #   # @ui_button_west.label.y = -0.01
+      #   @ship.add_thrust_x (-1.0)
+      # end
+      # if @ui_button_emp.is_pressed && @ship.emp_count > 0
+      #   @emp_power += 1
+      # end
 
       # Handle the basic movement.
       # The left_right and up_down convenience methods are great
@@ -546,8 +542,9 @@ module HuskGame
     end
 
     def handle_emp
+      return if @ship.emp_count <= 0
       # mark_and_print "handle_emp: #{@emp_power}"
-      @ui_button_emp.unpress
+      @ui_button_emp.unpress unless @ui_button_emp.nil?
 
       play_once @emp_sound unless @emp_sound.nil?
 
@@ -626,14 +623,31 @@ module HuskGame
         @ui,
         @husk.deterioration_progress,
         @ship.data_progress,
-        @buttons,
-        @ui_cluster.render
+        # @buttons,
+        # @ui_cluster.render
         # @player_controls.containing_sprite.assign({x: 40, y: 120})
       # @camera.layers
       ]
 
       # This renders out the data boxes, maybe use sprites later on
       $gtk.args.outputs.primitives << @ship.render_data_blocks
+
+      # debug for button centers
+      $gtk.args.outputs.debug << $gtk.args.state.ui.buttons.map do |b|
+        {
+          x: b.click_center.x,
+          y: b.click_center.y,
+          w: 10,
+          h: 10,
+          r: 255,
+          g: 10,
+          b: 10,
+          a: 255,
+          primitive_marker: :solid
+        }
+      end
+
+      $gtk.args.outputs.sprites << $gtk.args.state.ui.buttons
 
       # Player info
       # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
