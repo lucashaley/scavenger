@@ -45,6 +45,9 @@ module HuskGame
       @current_room = room
       @current_room.activate
 
+      if $game.scene.is_a? RoomScene
+        $game.scene.fade_in(0.2.seconds)
+      end
 
       # gotta be a better way
       # Look into create a scaleable service

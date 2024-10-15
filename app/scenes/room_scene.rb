@@ -60,14 +60,27 @@ module HuskGame
     end
 
     def switch_rooms destination_door
-      # puts "\n\nRoomScene::switching rooms\n==============="
-      # puts "isn't this exciting"
-      # puts "#{destination_door}"
-      @husk.switch_rooms destination_door.room, destination_door
-      # puts "\n\nRoomScene new room: #{@husk.current_room}"
-      
-      # Fade
-      # Do fade here
+      fade_out(0.2.seconds) do
+        @husk.switch_rooms destination_door.room, destination_door
+      end
+    end
+
+    def fade_out(duration, &block)
+      duration ||= 0.5.seconds
+      @fader.run_action(
+        @fader.new_action({a: 255}, duration: duration, easing: :smooth_step3) {
+          block.call unless block.nil?
+        }
+      )
+    end
+
+    def fade_in(duration, &block)
+      duration ||= 0.5.seconds
+      @fader.run_action(
+        @fader.new_action({a: 0}, duration: duration, easing: :smooth_step3) {
+          block.call unless block.nil?
+        }
+      )
     end
 
     def prepare_scene
