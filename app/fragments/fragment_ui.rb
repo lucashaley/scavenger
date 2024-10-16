@@ -97,32 +97,36 @@ module HuskGame
 
       # reset button down states
 
-      if mouse.held
-        current_button = ui.buttons.find do |b|
+      if mouse.held || mouse.down
+        # puts "ui.click: #{ui.click}"
+
+        # which button are we pressing?
+        ui.current_button = ui.buttons.find do |b|
           mouse.inside_circle? b.click_center, b.click_radius
         end
+        # puts "current button: #{ui.current_button}"
 
         # The player can hold down and move around directionally
-        if current_button&.type == :directional
-          current_button.path = current_button.path_down
-          case current_button.id
+        if ui.current_button&.type == :directional && ui.last_button.type == :directional
+          ui.current_button.path = ui.current_button.path_down
+          case ui.current_button.id
           when :north
             ship.add_thrust_y(gameplay.button_thrust)
           when :south
-            ship.add_thrust_y(-1.0)
+            ship.add_thrust_y(-gameplay.button_thrust)
           when :east
-            ship.add_thrust_x(1.0)
+            ship.add_thrust_x(gameplay.button_thrust)
           when :west
-            ship.add_thrust_x(-1.0)
+            ship.add_thrust_x(-gameplay.button_thrust)
           else
             raise StandardError "Directional button pressed is not recognized"
           end
         end
 
         # the rotation buttons need to be clicked separately
-        if current_button&.type == :rotational && ui.click == :up
-          current_button.path = current_button.path_down
-          case current_button.id
+        if ui.current_button&.type == :rotational && ui.click == :up
+          ui.current_button.path = ui.current_button.path_down
+          case ui.current_button.id
           when :cw
             ship.rotate_cw
           when :ccw
@@ -133,11 +137,11 @@ module HuskGame
         end
 
         # Handle emp charging
-        if current_button&.type == :functional
-          case current_button.id
+        if ui.current_button&.type == :functional && (ui.click == :up || ui.last_button&.id == ui.current_button.id)
+          case ui.current_button.id
           when :emp
             if @ship.emp_count > 0
-              current_button.path = current_button.path_down
+              ui.current_button.path = ui.current_button.path_down
               # @emp_power += 1
               boost_emp_charge(1)
             end
@@ -146,19 +150,29 @@ module HuskGame
           end
         end
 
+        # Prepare to check for separate clicks
+        ui.click = :down
+
+        # TODO: Something off here
+        # Probably should move the ui.click = :down above here
+        # And set ui.click = :up if moved away
+        # The issue is that you can mouse down *not* on a button
+        # Then move onto a button
         # check if click has moved too far away
-        if current_button
-          ui.last_button = current_button
+        if ui.current_button
+          ui.last_button = ui.current_button
         else
           # mouse has moved too far from the button
           ui.last_button.path = ui.last_button.path_up unless ui.last_button.nil?
+          ui.current_button = nil
+          ui.click = :up
         end
 
-        # Prepare to check for separate clicks
-        ui.click = :down
+        # # Prepare to check for separate clicks
+        # ui.click = :down
       end
 
-      if mouse.up
+      if mouse.up && ui.current_button
         released_button = ui.buttons.find do |b|
           mouse.inside_circle? b.click_center, b.click_radius
         end
@@ -175,6 +189,7 @@ module HuskGame
           end
         end
 
+        ui.current_button = nil
         ui.click = :up
       end
 
@@ -182,16 +197,27 @@ module HuskGame
     end
 
     def handle_statuses
-      # emp
-      max_emp_charge = 4.seconds
-      emp_status_level = ((@emp_power / max_emp_charge) * 3).truncate
-      $gtk.args.state.ui.statuses.emp_charge.path = "sprites/playercontrols/emp_charge_0#{emp_status_level}.png"
+      # emp charge
+      ui = $gtk.args.state.ui
+      gameplay = $gtk.args.state.gameplay
+      emp_status_level = ((@emp_power / gameplay.max_emp_power) * 3).truncate
+      ui.statuses.emp_charge.path = "sprites/playercontrols/emp_charge_0#{emp_status_level}.png"
+
+      # TODO: this is finding every tick? UGH
+      # emp button
+      emp_button = ui.buttons.find do |b|
+        b.id == :emp
+      end
+      if @ship.emp_count <= 0 && emp_button
+        emp_button.path = "sprites/playercontrols/emp_none.png"
+      end
     end
 
     def boost_emp_charge(amount)
-      max_emp_charge = 4.seconds
+      puts "boost emp charge: #{amount}"
+      gameplay = $gtk.args.state.gameplay
       @emp_power += amount
-      @emp_power = @emp_power.clamp(0, max_emp_charge)
+      @emp_power = @emp_power.clamp(0, gameplay.max_emp_power)
     end
 
     def create_ui_button(
