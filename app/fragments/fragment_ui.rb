@@ -6,11 +6,12 @@ module HuskGame
       ui = $gtk.args.state.ui
       mouse = $gtk.args.inputs.mouse
       ship = $gtk.args.state.ship
+      gameplay = $gtk.args.state.gameplay
 
       ui.click ||= :up
 
       # assemble the statics
-      ui.statics = {
+      ui.statics ||= {
         buttons_offset: { x: 240, y: 320 },
         directional_padding: 118,
         rotational_padding: 110
@@ -84,6 +85,16 @@ module HuskGame
         ),
       ]
 
+      ui.statuses ||= {
+        emp_charge: create_ui_status(
+          id: :emp_charge,
+          x: ui.statics.buttons_offset.x + ui.statics.rotational_padding,
+          y: ui.statics.buttons_offset.y + ui.statics.rotational_padding,
+          h: 166,
+          w: 166
+        )
+      }
+
       # reset button down states
 
       if mouse.held
@@ -96,15 +107,15 @@ module HuskGame
           current_button.path = current_button.path_down
           case current_button.id
           when :north
-            @ship.add_thrust_y(1.0)
+            ship.add_thrust_y(gameplay.button_thrust)
           when :south
-            @ship.add_thrust_y(-1.0)
+            ship.add_thrust_y(-1.0)
           when :east
-            @ship.add_thrust_x(1.0)
+            ship.add_thrust_x(1.0)
           when :west
-            @ship.add_thrust_x(-1.0)
+            ship.add_thrust_x(-1.0)
           else
-            raise StandardError "Button pressed is not recognized"
+            raise StandardError "Directional button pressed is not recognized"
           end
         end
 
@@ -113,9 +124,11 @@ module HuskGame
           current_button.path = current_button.path_down
           case current_button.id
           when :cw
-            @ship.rotate_cw
+            ship.rotate_cw
           when :ccw
-            @ship.rotate_ccw
+            ship.rotate_ccw
+          else
+            raise StandardError "Rotational button not recognized"
           end
         end
 
@@ -125,8 +138,11 @@ module HuskGame
           when :emp
             if @ship.emp_count > 0
               current_button.path = current_button.path_down
-              @emp_power += 1
+              # @emp_power += 1
+              boost_emp_charge(1)
             end
+          else
+            raise StandardError "Functional button not recognized"
           end
         end
 
@@ -151,7 +167,7 @@ module HuskGame
           released_button.path = released_button.path_up
         end
 
-        if released_button.type == :functional
+        if released_button&.type == :functional
           # handle the function
           case released_button.id
           when :emp
@@ -161,6 +177,21 @@ module HuskGame
 
         ui.click = :up
       end
+
+      handle_statuses
+    end
+
+    def handle_statuses
+      # emp
+      max_emp_charge = 4.seconds
+      emp_status_level = ((@emp_power / max_emp_charge) * 3).truncate
+      $gtk.args.state.ui.statuses.emp_charge.path = "sprites/playercontrols/emp_charge_0#{emp_status_level}.png"
+    end
+
+    def boost_emp_charge(amount)
+      max_emp_charge = 4.seconds
+      @emp_power += amount
+      @emp_power = @emp_power.clamp(0, max_emp_charge)
     end
 
     def create_ui_button(
@@ -188,6 +219,24 @@ module HuskGame
         click_radius: click_radius,
         type: type,
         is_pressed: false
+      }
+    end
+
+    def create_ui_status(
+      id: nil,
+      x: 0,
+      y: 0,
+      w: 0,
+      h: 0
+    )
+      {
+        name: id.to_s,
+        id: id,
+        x: x - w.half,
+        y: y - h.half,
+        w: w,
+        h: h,
+        path: "sprites/playercontrols/#{id.to_s}_00.png",
       }
     end
   end

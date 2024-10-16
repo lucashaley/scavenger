@@ -1,6 +1,7 @@
 require 'app/mixins/general'
 
-require 'app/fragment_ui'
+require 'app/fragments/fragment_ship'
+require 'app/fragments/fragment_ui'
 
 require 'app/ui_button'
 require 'app/ui_cluster'

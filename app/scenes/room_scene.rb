@@ -4,6 +4,7 @@ module HuskGame
     include Zif::Traceable
     include HuskEngine::Soundable
     include HuskGame::FragmentUi
+    include HuskGame::FragmentShip
 
     attr_accessor :ship, :husk
     attr_accessor :player_controls
@@ -58,6 +59,13 @@ module HuskGame
       @emp_sound = 'sounds/emp_blast.wav'.freeze
       @tracer_service_name = :tracer
       @shutdown = nil
+
+      # Prep the arg states
+      state = $gtk.args.state
+      state.gameplay = {
+        max_emp_power: 4.seconds,
+        button_thrust: 0.8
+      }
     end
 
     def switch_rooms destination_door
@@ -122,184 +130,6 @@ module HuskGame
       @husk = Husk.new
       puts "husk: #{@husk}"
 
-
-
-      # Create the navigation buttons
-      # Hopefully these work with mobile touches
-      # FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
-      # BUTTONS_CENTER = {x: 280, y: 260}.freeze
-
-      # DIRECTION BUTTONS
-      # @ui_button_north = Zif::UI::TwoStageButton.new.tap do |b|
-      #   b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
-      #   b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
-      #   b.w = 128
-      #   b.h = 128
-      #   b.x = BUTTONS_CENTER.x - b.w.half
-      #   b.y = BUTTONS_CENTER.y + b.h
-      #   b.labels << Zif::UI::Label.new(
-      #     'north',
-      #     size: -1,
-      #     font: FONT,
-      #     alignment: :center,
-      #     vertical_alignment: :center,
-      #     r: 255,
-      #     g: 255,
-      #     b: 255
-      #   )
-      #   b.recenter_label
-      #   b.unpress
-      # end
-      # @ui_button_south = Zif::UI::TwoStageButton.new.tap do |b|
-      #   b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
-      #   b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
-      #   b.w = 128
-      #   b.h = 128
-      #   b.x = BUTTONS_CENTER.x - b.w.half
-      #   b.y = BUTTONS_CENTER.y - b.h
-      #   b.labels << Zif::UI::Label.new(
-      #     'south',
-      #     size: -1,
-      #     font: FONT,
-      #     alignment: :center,
-      #     vertical_alignment: :center,
-      #     r: 255,
-      #     g: 255,
-      #     b: 255
-      #   )
-      #   b.recenter_label
-      #   b.unpress
-      # end
-      # @ui_button_east = Zif::UI::TwoStageButton.new.tap do |b|
-      #   b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
-      #   b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
-      #   b.w = 128
-      #   b.h = 128
-      #   b.x = BUTTONS_CENTER.x + b.w.half
-      #   b.y = BUTTONS_CENTER.y
-      #   b.labels << Zif::UI::Label.new(
-      #     'east',
-      #     size: -1,
-      #     font: FONT,
-      #     alignment: :center,
-      #     vertical_alignment: :center,
-      #     r: 255,
-      #     g: 255,
-      #     b: 255
-      #   )
-      #   b.recenter_label
-      #   b.unpress
-      # end
-      # @ui_button_west = Zif::UI::TwoStageButton.new.tap do |b|
-      #   b.normal << $services[:sprite_registry].construct(:ui_button_large_up)
-      #   b.pressed << $services[:sprite_registry].construct(:ui_button_large_down)
-      #   b.w = 128
-      #   b.h = 128
-      #   b.x = BUTTONS_CENTER.x - b.w.half - b.w
-      #   b.y = BUTTONS_CENTER.y
-      #   b.labels << Zif::UI::Label.new(
-      #     'west',
-      #     size: -1,
-      #     font: FONT,
-      #     alignment: :center,
-      #     vertical_alignment: :center,
-      #     r: 255,
-      #     g: 255,
-      #     b: 255
-      #   )
-      #   b.recenter_label
-      #   b.unpress
-      # end
-      #
-      # # ROTATION BUTTONS
-      # rotate_ccw = lambda do |r|
-      #   @ship.rotate_ccw
-      # end
-      # rotate_cw = lambda do |r|
-      #   @ship.rotate_cw
-      # end
-      # @ui_button_ccw = Zif::UI::TwoStageButton.new('ui_button_ccw', &rotate_ccw).tap do |b|
-      #   b.normal << $services[:sprite_registry].construct(:ui_button_rotate_up)
-      #   b.pressed << $services[:sprite_registry].construct(:ui_button_rotate_down)
-      #   b.w = 128
-      #   b.h = 128
-      #   b.x = BUTTONS_CENTER.x - b.w.half - b.w
-      #   b.y = BUTTONS_CENTER.y + b.h
-      #   b.labels << Zif::UI::Label.new(
-      #     'ccw',
-      #     size: -1,
-      #     font: FONT,
-      #     alignment: :center,
-      #     vertical_alignment: :center,
-      #     r: 255,
-      #     g: 255,
-      #     b: 255
-      #   )
-      #   b.recenter_label
-      #   b.unpress
-      # end
-      # @ui_button_cw = Zif::UI::TwoStageButton.new('ui_button_cw', &rotate_cw).tap do |b|
-      #   b.normal << $services[:sprite_registry].construct(:ui_button_rotate_up)
-      #   b.pressed << $services[:sprite_registry].construct(:ui_button_rotate_down)
-      #   b.w = 128
-      #   b.h = 128
-      #   b.x = BUTTONS_CENTER.x + b.w.half
-      #   b.y = BUTTONS_CENTER.y - b.h
-      #   b.labels << Zif::UI::Label.new(
-      #     'cw',
-      #     size: -1,
-      #     font: FONT,
-      #     alignment: :center,
-      #     vertical_alignment: :center,
-      #     r: 255,
-      #     g: 255,
-      #     b: 255
-      #   )
-      #   b.flip_horizontally = true
-      #   b.flip_vertically = true
-      #   b.recenter_label
-      #   b.unpress
-      # end
-      #
-      # # EMP BUTTON
-      # @ui_button_emp = Zif::UI::TwoStageButton.new.tap do |b|
-      #   b.normal << $services[:sprite_registry].construct(:ui_button_rotate_up)
-      #   b.pressed << $services[:sprite_registry].construct(:ui_button_rotate_down)
-      #   b.w = 128
-      #   b.h = 128
-      #   b.x = BUTTONS_CENTER.x - b.w.half
-      #   b.y = BUTTONS_CENTER.y
-      #   b.labels << Zif::UI::Label.new(
-      #     'emp',
-      #     size: 1,
-      #     font: FONT,
-      #     alignment: :center,
-      #     vertical_alignment: :center,
-      #     r: 255,
-      #     g: 255,
-      #     b: 255
-      #   )
-      #   # b.flip_horizontally = true
-      #   # b.flip_vertically = true
-      #   b.recenter_label
-      #   b.unpress
-      #   b.on_mouse_down = ->(_sprite, _point) { @ui_button_emp.unpress if @ship.emp_count == 0 }
-      #   b.on_mouse_up = ->(_sprite, _point) { handle_emp unless @ship.emp_count == 0 }
-      # end
-      #
-      # # little array for buttons
-      # @buttons = [
-      #   @ui_button_north,
-      #   @ui_button_south,
-      #   @ui_button_east,
-      #   @ui_button_west,
-      #   @ui_button_ccw,
-      #   @ui_button_cw,
-      #   @ui_button_emp
-      # ]
-
-      # Register all buttons as Clickables
-      # @buttons.each { |b| $game.services[:input_service].register_clickable b }
 
       @light = $services[:sprite_registry].construct(:light).tap do |s|
         s.x = 40
@@ -466,27 +296,6 @@ module HuskGame
       # and movement, called thrust.
       # That way we can softly decrement thrust after the input stops.
 
-      # Handle mouse clicks in directional buttons
-      # We do this in the tick because button needs to repeat while held
-      #
-      # if @ui_button_north.is_pressed
-      #   # @ui_button_north.label.y = -0.1
-      #   @ship.add_thrust_y (1.0)
-      # end
-      # if @ui_button_south.is_pressed
-      #   @ship.add_thrust_y (-1.0)
-      # end
-      # if @ui_button_east.is_pressed
-      #   @ship.add_thrust_x (1.0)
-      # end
-      # if @ui_button_west.is_pressed
-      #   # @ui_button_west.label.y = -0.01
-      #   @ship.add_thrust_x (-1.0)
-      # end
-      # if @ui_button_emp.is_pressed && @ship.emp_count > 0
-      #   @emp_power += 1
-      # end
-
       # Handle the basic movement.
       # The left_right and up_down convenience methods are great
       @ship.add_thrust $gtk.args.inputs.left_right, $gtk.args.inputs.up_down
@@ -648,6 +457,7 @@ module HuskGame
       end
 
       $gtk.args.outputs.sprites << $gtk.args.state.ui.buttons
+      $gtk.args.outputs.sprites << $gtk.args.state.ui.statuses.values
 
       # Player info
       # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
