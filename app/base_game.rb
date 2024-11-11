@@ -43,9 +43,11 @@ module HuskGame
       @services.register(:tick_service, Services::TickService.new)
       @services.register(:emp_service, Services::EmpService.new)
 
+      register_scene(:menu_main, MenuMainScene)
       register_scene(:room, RoomScene)
       register_scene(:game_over, GameOverScene)
       register_scene(:game_complete, GameCompleteScene)
+      register_scene(:menu_about, AboutScene)
 
       @scene = SplashScene.new
       # @scene = RoomScene.new

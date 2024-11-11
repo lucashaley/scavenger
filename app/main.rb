@@ -6,18 +6,12 @@ require 'app/require.rb'
 
 # Scenes
 require 'app/base_game.rb'
-# require 'app/movement_scene.rb'
-# require 'app/walls_scene.rb'
-# require 'app/ui_scene.rb'
-# require 'app/door_scene.rb'
-# require 'app/class_scene.rb'
-# require 'app/pickup_scene.rb'
-# require 'app/animation_scene.rb'
-# require 'app/environment_scene.rb'
+
 require 'app/scenes/splash_scene.rb'
 require 'app/scenes/room_scene.rb'
 require 'app/scenes/game_over_scene'
 require 'app/scenes/game_complete_scene'
+require 'app/scenes/menu_main_scene'
 
 def tick args
   # $gtk.trace_nil_punning! # Not sure what this does

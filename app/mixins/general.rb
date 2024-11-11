@@ -14,3 +14,11 @@ class Array
     ]
   end
 end
+
+class Integer
+  def frames
+    # This does nothing
+    # But it provides context
+    self
+  end
+end

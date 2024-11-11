@@ -1,4 +1,6 @@
 require 'app/mixins/general'
+require 'app/scenes/utility_scene'
+require 'app/scenes/about_scene'
 
 require 'app/fragments/fragment_ship'
 require 'app/fragments/fragment_input'
