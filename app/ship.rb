@@ -146,6 +146,8 @@ module HuskGame
       @data_progress.y = 1200
       @data_progress.view_actual_size!
 
+      @inventory = []
+
       puts self
     end
 
@@ -505,6 +507,10 @@ module HuskGame
     def emp_count=(c)
       puts "emp_count=#{c}"
       @emp_count = c.clamp(0, @emp_storage)
+    end
+
+    def has_item?(item)
+      @inventory.include?(item)
     end
 
     def to_s

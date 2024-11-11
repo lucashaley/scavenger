@@ -5,6 +5,7 @@ module HuskGame
     include HuskEngine::Scaleable
     include HuskEngine::Bufferable
     include HuskEngine::Tickable
+    include HuskEngine::Lockable
     include Zif::Traceable
 
     attr_accessor :room
@@ -122,6 +123,7 @@ module HuskGame
       initialize_collideable
       initialize_bounceable
       initialize_tickable
+      initialize_lockable(locked: [true, false].sample, keyitem: :doorkey)
 
       @exit_point = { x: 0, y: 0 }
 
@@ -292,10 +294,13 @@ module HuskGame
 
     def collide_action collidee, facing
       puts "Door collision: #{facing} vs #{@door_side}"
+      puts "locked: #{@locked}"
+
+      has_key = collidee.has_item?(@keyitem)
 
       # Again, there has to be a better way
-      if ((facing == :north || :south) && (@door_side == :north || :south)) ||
-        ((facing == :east || :west) && (@door_side == :east || :west))
+      if (!@locked || has_key) && (((facing == :north || :south) && (@door_side == :north || :south)) ||
+        ((facing == :east || :west) && (@door_side == :east || :west)))
 
         entering = case @door_side
                    when :north, :south
@@ -317,6 +322,8 @@ module HuskGame
     end
 
     def perform_tick
+      return if @locked && $gtk.args.state.ship.has_item?(@keyitem) == false
+
       dist = $gtk.args.geometry.distance self.rect, $gtk.args.state.ship.rect #$game.scene.ship.rect
       threshold = $SPRITE_SCALES[@scale] * 2
       if dist < threshold && @approached == false

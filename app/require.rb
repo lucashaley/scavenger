@@ -42,6 +42,7 @@ require 'app/mixins/tickable.rb'
 require 'app/mixins/shadowable.rb'
 require 'app/mixins/empable'
 require 'app/mixins/roomable'
+require 'app/mixins/lockable'
 require 'app/spawner'
 
 require 'app/room'
