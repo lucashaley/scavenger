@@ -40,4 +40,6 @@
 - [x] Move overlay above lights
 - [ ] Clean up button code
 - [ ] Make more things Roomable?
-- [ ] Scale the pushback on HunterBlob collisions
+- [x] Scale the pushback on HunterBlob collisions
+- [ ] New UI: shouldn't be able to roll from direction to rotation
+- [ ] Make both directions of door have the same lock status
