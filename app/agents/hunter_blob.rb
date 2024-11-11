@@ -32,6 +32,13 @@ module HuskGame
       }
     }.freeze
 
+    BLOWBACK_SCALES = {
+      large: 6,
+      medium: 4,
+      small: 3,
+      tiny: 2
+    }.freeze
+
     def initialize(
       x: 360,
       y: 960,
@@ -117,7 +124,7 @@ module HuskGame
       puts "facing: #{facing}"
       collidee.add_data_block(name: 'hunterblob', size: 1, corrupted: true)
 
-      blowback = 6
+      blowback = BLOWBACK_SCALES[@scale]
 
       case facing
       when :north
