@@ -512,6 +512,9 @@ module HuskGame
     def has_item?(item)
       @inventory.include?(item)
     end
+    def add_item(item)
+      @inventory << item
+    end
 
     def to_s
       {

@@ -216,6 +216,7 @@ module HuskGame
           door_side: destination_side,
           destination_door: self
         )
+        @destination_door.locked = @locked
       else
         # If there is a destination_door
         # then we create a new room
