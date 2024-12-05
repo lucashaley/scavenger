@@ -10,6 +10,7 @@ module HuskGame
     include HuskEngine::Tickable
     include HuskEngine::Shadowable
     include HuskEngine::Empable
+    include HuskEngine::Stateable
 
 
     attr_reader :interfacing, :data, :data_rate, :tolerance
@@ -39,6 +40,7 @@ module HuskGame
       initialize_bufferable(:double)
       initialize_tickable
       initialize_empable
+      initialize_stateable(:connectors)
 
       # variable assign
       @facing = facing

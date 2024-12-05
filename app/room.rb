@@ -3,6 +3,7 @@ module HuskGame
   # rubocop:disable Metrics/ClassLength
   class Room
     include Zif::Traceable
+    include HuskEngine::Stateable
 
     attr_accessor :name,
                   :husk,
@@ -121,6 +122,7 @@ module HuskGame
       # $gtk.args.state.rooms[@name] = { doors: @doors }
 
       # puts "\n\nnew room doors: #{@doors}\n\n"
+      # initialize_stateable(:rooms)
     end
     # rubocop:enable Metrics/MethodLength
 

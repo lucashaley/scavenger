@@ -6,6 +6,7 @@ module HuskGame
     include HuskEngine::Spatializeable
     include HuskEngine::Tickable
     include HuskEngine::Empable
+    include HuskEngine::Stateable
 
     attr_accessor :momentum
 
@@ -55,6 +56,7 @@ module HuskGame
       center_sprites
       initialize_collideable
       initialize_tickable
+      initialize_stateable("agent") # add to data hash above
 
       initialize_empable
       @emp_low = 100
