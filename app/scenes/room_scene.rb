@@ -67,6 +67,11 @@ module HuskGame
         max_emp_power: 4.seconds,
         button_thrust: 0.8
       }
+
+      # Should these be based on rooms?
+      state.agents = []
+      state.hazards = []
+      state.pickups = []
     end
 
     def switch_rooms destination_door
@@ -171,7 +176,6 @@ module HuskGame
     end
 
     def unload_scene
-      # $gtk.args.audio[:bg_music] = nil
       $gtk.args.audio.clear
       $gtk.args.outputs.static_sprites.clear
       $gtk.args.outputs.static_labels.clear
