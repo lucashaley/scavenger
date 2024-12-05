@@ -72,5 +72,12 @@ module HuskGame
         gain: 0.4
       }
     end
+
+    def unload_scene
+      super
+
+      # remove all the audio
+      $gtk.args.audio.clear
+    end
   end
 end
