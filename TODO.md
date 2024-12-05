@@ -42,4 +42,10 @@
 - [ ] Make more things Roomable?
 - [x] Scale the pushback on HunterBlob collisions
 - [ ] New UI: shouldn't be able to roll from direction to rotation
-- [ ] Make both directions of door have the same lock status
+- [x] Make both directions of door have the same lock status
+- [ ] Add more things to args.state
+- [x] Stop music from menu screen to game
+- [ ] Fade music out from menu screen to game
+- [ ] Move agents etc state to state.rooms
+- [ ] UI for ship damage
+- [ ] Keycard or memory slot door unlock?
