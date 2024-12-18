@@ -49,3 +49,5 @@
 - [ ] Move agents etc state to state.rooms
 - [ ] UI for ship damage
 - [ ] Keycard or memory slot door unlock?
+- [ ] Finish scaling objects
+- [ ] create unlock terminal
