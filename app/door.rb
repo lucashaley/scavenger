@@ -83,10 +83,10 @@ module HuskGame
           w: 32,
           h: 32
         },
-        # tiny: {
-        #   w: 16,
-        #   h: 16
-        # }
+        tiny: {
+          w: 16,
+          h: 16
+        }
       }
     }.freeze
 

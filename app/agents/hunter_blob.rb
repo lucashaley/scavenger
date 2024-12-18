@@ -23,10 +23,14 @@ module HuskGame
           h: 64
         },
         medium: {
+          w: 40,
+          h: 40
+        },
+        small: {
           w: 32,
           h: 32
         },
-        small: {
+        tiny: {
           w: 16,
           h: 16
         }
