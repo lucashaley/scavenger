@@ -150,6 +150,43 @@ module HuskGame
         s.path = 'sprites/1bit_ui.png'
       end
 
+      @ui_ship_health = Zif::Sprite.new.tap do |s|
+        s.w = 124
+        s.h = 124
+        s.path = 'sprites/ui_ship_health.png'
+      end
+      @ui_ship_health_west = {
+        w: 124,
+        h: 124,
+        path: 'sprites/ui_ship_health_west.png',
+        blendmode_enum: 2,
+        a: 255
+      }
+      # @ui_ship_health_west = Zif::Sprite.new.tap do |s|
+      #   s.w = 124
+      #   s.h = 124
+      #   s.path = 'sprites/ui_ship_health_west.png'
+      #   s.blendmode_enum = :add
+      # end
+      @ui_ship_health_east = Zif::Sprite.new.tap do |s|
+        s.w = 124
+        s.h = 124
+        s.path = 'sprites/ui_ship_health_east.png'
+        s.blendmode_enum = :add
+      end
+      @ui_ship_health_north = Zif::Sprite.new.tap do |s|
+        s.w = 124
+        s.h = 124
+        s.path = 'sprites/ui_ship_health_north.png'
+        s.blendmode_enum = :add
+      end
+      @ui_ship_health_south = Zif::Sprite.new.tap do |s|
+        s.w = 124
+        s.h = 124
+        s.path = 'sprites/ui_ship_health_south.png'
+        s.blendmode_enum = :add
+      end
+
       @ui_label_husk = Zif::UI::Label.new(
         'husk integrity:',
         size: -1,
@@ -339,6 +376,22 @@ module HuskGame
       # $gtk.args.outputs[:viewport_mask].h = 1280
       # $gtk.args.outputs[:viewport_mask].sprites << { x: 0, y: 0, w: 720, h: 1280, path: "sprites/viewport_mask.png" }
 
+      # puts [
+      #   @ship.health_west * 128,
+      #   @ship.health_east * 128,
+      #   @ship.health_north * 128,
+      #   @ship.health_south * 128
+      #      ]
+
+      # @ui_ship_health_west.assign({a: @ship.health_west * 255})
+
+      @ui_ship_health_west.a = @ship.health_west * 255
+      @ui_ship_health_east.a = @ship.health_east * 255
+      @ui_ship_health_north.a = @ship.health_north * 255
+      @ui_ship_health_south.a = @ship.health_south * 255
+
+      # puts "west: #{@ui_ship_health_west.a}"
+
       $gtk.args.outputs.sprites.clear
       $gtk.args.outputs.sprites << [
         @husk.current_room.tiles_target.containing_sprite.assign({ x: 40, y: 560 }),
@@ -351,32 +404,39 @@ module HuskGame
         @light,
         @husk.current_room.overlays,
         @light,
-        @ui,
+        [
+          @ui,
+          @ui_ship_health,
+          @ui_ship_health_west,
+          @ui_ship_health_east,
+          @ui_ship_health_north,
+          @ui_ship_health_south
+        ],
         @husk.deterioration_progress,
         @ship.data_progress,
         # @buttons,
         # @ui_cluster.render
         # @player_controls.containing_sprite.assign({x: 40, y: 120})
       # @camera.layers
-      ]
+      ].flatten
 
       # This renders out the data boxes, maybe use sprites later on
       $gtk.args.outputs.primitives << @ship.render_data_blocks
 
-      # debug for button centers
-      $gtk.args.outputs.debug << $gtk.args.state.ui.buttons.map do |b|
-        {
-          x: b.click_center.x,
-          y: b.click_center.y,
-          w: 10,
-          h: 10,
-          r: 255,
-          g: 10,
-          b: 10,
-          a: 255,
-          primitive_marker: :solid
-        }
-      end
+      # # debug for button centers
+      # $gtk.args.outputs.debug << $gtk.args.state.ui.buttons.map do |b|
+      #   {
+      #     x: b.click_center.x,
+      #     y: b.click_center.y,
+      #     w: 10,
+      #     h: 10,
+      #     r: 255,
+      #     g: 10,
+      #     b: 10,
+      #     a: 255,
+      #     primitive_marker: :solid
+      #   }
+      # end
 
       $gtk.args.outputs.sprites << $gtk.args.state.ui.buttons
       $gtk.args.outputs.sprites << $gtk.args.state.ui.statuses.values
@@ -384,7 +444,7 @@ module HuskGame
       # Player info
       # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
       # $gtk.args.outputs.debug.watch pretty_format(@map.layers[:ship].sprites), label_style: @label_style, background_style: @background_style
-      $gtk.args.outputs.debug.watch [@ship.emp_count, @husk.health], label_style: $LABEL_STYLE, background_style: $BACKGROUND_STYLE
+      $gtk.args.outputs.debug.watch [@ship.emp_count, @husk.health, @husk.current_room.scale], label_style: $LABEL_STYLE, background_style: $BACKGROUND_STYLE
     end
   end
 end
