@@ -42,14 +42,14 @@ module HuskGame
     HAZARD_ODDS = {
       large: {
         chance: 1,
-        in: 3
+        in: 6
       },
       medium: {
         chance: 2,
         in: 5
       },
       small: {
-        chance: 1,
+        chance: 3,
         in: 6
       }
     }.freeze
