@@ -2,3 +2,5 @@
 *.afphoto~lock~
 *.afpalette
 *.mp3
+
+.DS_Store
