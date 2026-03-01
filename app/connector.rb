@@ -16,6 +16,10 @@ module HuskGame
     attr_reader :interfacing, :data, :data_rate, :tolerance
     attr_accessor :audio_idle
 
+    def indicator_layer_name
+      "lights"
+    end
+
     def initialize(
       x: 0,
       y: 0,
@@ -140,24 +144,24 @@ module HuskGame
     def reduce_data(data=nil)
       @remaining_data -= data
 
+      indicator = @sprites.find { |s| s.name == "#{class_name}_#{indicator_layer_name}_#{scale}" }
+
       if @stage == :full && @remaining_data <= (@data * 0.667).truncate
         puts "TWO THIRDS!"
         @stage = :two_thirds
-        @sprites.find { |s| s.name == "#{class_name}_lights_#{scale}" }.assign(
-          {path: "sprites/#{class_name}/#{class_name}_lights_#{@scale.to_s}_2.png"}
+        indicator&.assign(
+          {path: "sprites/#{class_name}/#{class_name}_#{indicator_layer_name}_#{@scale.to_s}_2.png"}
         )
       elsif @stage == :two_thirds && @remaining_data <= (@data * 0.333).truncate
         puts "ONE THIRD"
         @stage = :one_third
-        @sprites.find { |s| s.name == "#{class_name}_lights_#{scale}" }.assign(
-          {path: "sprites/#{class_name}/#{class_name}_lights_#{@scale.to_s}_1.png"}
+        indicator&.assign(
+          {path: "sprites/#{class_name}/#{class_name}_#{indicator_layer_name}_#{@scale.to_s}_1.png"}
         )
       end
 
-
       if @remaining_data <= 0
-        # the data block has been collected
-        @sprites.find { |s| s.name == "#{class_name}_lights_#{scale}" }.hide
+        indicator&.hide
       end
     end
 
@@ -183,7 +187,8 @@ module HuskGame
     def handle_emp_high emp_level
       puts "Connector: handle_emp_high"
       @remaining_data = 0
-      @sprites.find { |s| s.name == "dataterminal_lights_#{scale}" }.hide
+      indicator = @sprites.find { |s| s.name == "#{class_name}_#{indicator_layer_name}_#{scale}" }
+      indicator&.hide
     end
   end
 end

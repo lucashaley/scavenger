@@ -11,6 +11,10 @@ module HuskGame
       @sprite_details ||= $game.services[:sprite_data_loader].load('datacore')
     end
 
+    def indicator_layer_name
+      "network"
+    end
+
     def initialize(
       x: 0,
       y: 0,
