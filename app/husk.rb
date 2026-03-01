@@ -68,19 +68,19 @@ module HuskGame
       if @health < 0.4 && @warning == :none
         puts "Warning!"
         @warning = :once
-        play_voiceover("sounds/voice_warninghuskstructuralintegrityisfailing.wav")
+        play_voiceover(HuskGame::AssetPaths::Audio::VOICE_WARNING_HUSK_INTEGRITY)
       end
       if @health < 0.3 && @warning == :once
         @warning = :twice
-        play_voiceover("sounds/voice_warning.wav")
+        play_voiceover(HuskGame::AssetPaths::Audio::VOICE_WARNING)
       end
       if @health < 0.2 && @warning == :twice
         @warning = :thrice
-        play_voiceover("sounds/voice_returntobreach.wav")
+        play_voiceover(HuskGame::AssetPaths::Audio::VOICE_RETURN_TO_BREACH)
       end
       if @health < 0.1 && @warning == :thrice
         @warning = :fourice
-        play_voiceover("sounds/voice_returntobreach.wav")
+        play_voiceover(HuskGame::AssetPaths::Audio::VOICE_RETURN_TO_BREACH)
       end
     end
 

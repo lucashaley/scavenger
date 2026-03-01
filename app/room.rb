@@ -32,13 +32,6 @@ module HuskGame
       south: 4,
       west: 8
     }.freeze
-    DOOR_BITS = {
-      none: 0,
-      north: 1,
-      east: 2,
-      south: 4,
-      west: 8
-    }.freeze
     HAZARD_ODDS = {
       large: {
         chance: 1,
@@ -71,8 +64,8 @@ module HuskGame
       @chaos = chaos
       @scale = scale
       pixel_scale = $SPRITE_SCALES[@scale]
-      @tile_dimensions = 640.div(pixel_scale)
-      @tiles_target = Zif::RenderTarget.new(@name, width: 640, height: 640)
+      @tile_dimensions = HuskGame::Constants::VIEWSCREEN_SIZE.div(pixel_scale)
+      @tiles_target = Zif::RenderTarget.new(@name, width: HuskGame::Constants::VIEWSCREEN_SIZE, height: HuskGame::Constants::VIEWSCREEN_SIZE)
       @doors = []
       @hazards = []
       @spawners = []
@@ -143,23 +136,24 @@ module HuskGame
       end
     end
 
-    def find_empty_position wh=nil
+    def find_empty_position wh=nil, max_attempts=100
       wh ||= {
         w: $SPRITE_SCALES[@scale],
         h: $SPRITE_SCALES[@scale]
       }
-      # playable_x = 640 - ($SPRITE_SCALES[@scale] * 2) - $SPRITE_SCALES[@scale] # That last one is for the thing itself
       wall_doubled = $SPRITE_SCALES[@scale] * 2
-      playable_x = 640 - wall_doubled - wh.w
-      playable_x_margin = 40 + $SPRITE_SCALES[@scale]
-      playable_y = 640 - wall_doubled - wh.h
-      # playable_y = 640 - ($SPRITE_SCALES[@scale] * 2) - $SPRITE_SCALES[@scale]
-      playable_y_margin = 560 + $SPRITE_SCALES[@scale]
+      playable_x = HuskGame::Constants::VIEWSCREEN_SIZE - wall_doubled - wh.w
+      playable_x_margin = HuskGame::Constants::VIEWSCREEN_OFFSET_X + $SPRITE_SCALES[@scale]
+      playable_y = HuskGame::Constants::VIEWSCREEN_SIZE - wall_doubled - wh.h
+      playable_y_margin = HuskGame::Constants::VIEWSCREEN_OFFSET_Y + $SPRITE_SCALES[@scale]
       success = false
       loops = 0
       # puts "find_empty_position initial state: #{playable_x}, #{playable_y}, #{playable_x_margin}, #{playable_y_margin}"
       until success
-        return nil if loops > 20
+        if loops > max_attempts
+          puts "WARNING: find_empty_position failed after #{max_attempts} attempts for #{wh}"
+          return nil
+        end
         temp = {
           x: rand(playable_x) + playable_x_margin,
           y: rand(playable_y) + playable_y_margin,
@@ -205,55 +199,57 @@ module HuskGame
       )
       @pickups << boost_emp
       @no_populate_buffer << boost_emp.buffer
+
+      if @chaos >= 3 && rand(4) == 0
+        valid_position = find_empty_position
+        unless valid_position.nil?
+          boost_data = BoostData.new(x: valid_position[:x], y: valid_position[:y], scale: @scale)
+          @pickups << boost_data
+          @no_populate_buffer << boost_data.buffer
+        end
+      end
     end
 
     def populate_hazards
-      # mark_and_print "populate_hazards"
-      odds = HAZARD_ODDS[@scale] # wait, this wont give us more than one
-      if rand(odds[:in]) <= odds[:chance]
-        valid_position = find_empty_position
-        return if valid_position.nil? # This is ganky and isn't doing what we want
-
-        # mark_and_print "populate_hazards: creating new Mine"
-        mine = HuskGame::Mine.new(
-          x: valid_position[:x],
-          y: valid_position[:y],
-          scale: @scale
-        )
-        mine.deactivate
-        @hazards << mine
-        @no_populate_buffer << mine.buffer
+      odds = HAZARD_ODDS[@scale]
+      spawn_hazard(odds[:chance], odds[:in], effectable: false) do |x, y|
+        HuskGame::Mine.new(x: x, y: y, scale: @scale)
       end
-      if rand(4) == 3
-        valid_position = find_empty_position
-        return if valid_position.nil?
 
-        repulsor = Repulsor.new(
-          valid_position[:x],
-          valid_position[:y],
-          @scale
-        )
-        # mark_and_print repulsor
-        repulsor.effect_target = $gtk.args.state.ship
-        $game.services[:effect_service].register_effectable repulsor
-        @hazards << repulsor
-        @no_populate_buffer << repulsor.buffer
+      spawn_hazard(0, 4, effectable: true) do |x, y|
+        Repulsor.new(x, y, @scale)
       end
-      if rand(8) == 7
-        valid_position = find_empty_position
-        return if valid_position.nil?
 
-        attractor = Attractor.new(
-          valid_position[:x],
-          valid_position[:y],
-          @scale
-        )
-        # mark_and_print attractor
-        attractor.effect_target = $gtk.args.state.ship
-        $game.services[:effect_service].register_effectable attractor
-        @hazards << attractor
-        @no_populate_buffer << attractor.buffer
+      spawn_hazard(0, 8, effectable: true) do |x, y|
+        Attractor.new(x, y, @scale)
       end
+    end
+
+    def spawn_hazard(chance, out_of, effectable: false)
+      return unless rand(out_of) <= chance
+
+      valid_position = find_empty_position
+      return if valid_position.nil?
+
+      hazard = yield(valid_position[:x], valid_position[:y])
+
+      if effectable
+        setup_effectable_hazard(hazard)
+      else
+        hazard.deactivate
+        add_hazard(hazard)
+      end
+    end
+
+    def add_hazard(hazard)
+      @hazards << hazard
+      @no_populate_buffer << hazard.buffer
+    end
+
+    def setup_effectable_hazard(hazard)
+      hazard.effect_target = $gtk.args.state.ship
+      $game.services[:effect_service].register_effectable hazard
+      add_hazard(hazard)
     end
 
     def populate_spawners
@@ -270,53 +266,59 @@ module HuskGame
     end
 
     def populate_terminals
-      # mark_and_print "populate_terminals"
-      if rand(1) == 0
-        valid_position = find_empty_position
-        return if valid_position.nil?
+      populate_data_terminal
+      populate_data_core
+      populate_repairer
+    end
 
-        data_terminal = DataTerminal.new(
-          # x: rand(600) + 40 - 32,
-          # y: rand(640) + 600 - 32,
-          x: valid_position[:x],
-          y: valid_position[:y],
-          scale: @scale,
-          data: rand(1000),
-          data_rate: 1 + (rand(3) * 0.5), # what the hell is this computation
-          facing: [:north, :south, :east, :west].sample.to_sym
-          # facing: :south
-        )
-        data_terminal.deactivate
-        @terminals << data_terminal
-        @no_populate_buffer << data_terminal.buffer
-      end
-
-      if @chaos >= 3 && @husk.data_core.nil?
-        valid_position = find_empty_position({ w: 128, h:128 })
-        return if valid_position.nil?
-
-        data_core = DataCore.new(
-          x: valid_position[:x],
-          y: valid_position[:y],
-          scale: @scale,
-          )
-        data_core.deactivate
-        @terminals << data_core
-        @no_populate_buffer << data_core.buffer
-        @husk.data_core = data_core
-      end
+    def populate_data_terminal
+      return unless rand(1) == 0 # Always true, but keeping for potential future randomization
 
       valid_position = find_empty_position
-      unless valid_position.nil?
-        repairer = Repairer.new(
-          x: valid_position[:x],
-          y: valid_position[:y],
-          scale: @scale
-        )
-        repairer.deactivate
-        @terminals << repairer
-        @no_populate_buffer << repairer.buffer
-      end
+      return if valid_position.nil?
+
+      data_terminal = DataTerminal.new(
+        x: valid_position[:x],
+        y: valid_position[:y],
+        scale: @scale,
+        data: rand(1000),
+        data_rate: 1 + (rand(3) * 0.5),
+        facing: [:north, :south, :east, :west].sample.to_sym
+      )
+      add_terminal(data_terminal)
+    end
+
+    def populate_data_core
+      return unless @chaos >= 3 && @husk.data_core.nil?
+
+      valid_position = find_empty_position({ w: 128, h: 128 })
+      return if valid_position.nil?
+
+      data_core = DataCore.new(
+        x: valid_position[:x],
+        y: valid_position[:y],
+        scale: @scale
+      )
+      add_terminal(data_core)
+      @husk.data_core = data_core
+    end
+
+    def populate_repairer
+      valid_position = find_empty_position
+      return if valid_position.nil?
+
+      repairer = Repairer.new(
+        x: valid_position[:x],
+        y: valid_position[:y],
+        scale: @scale
+      )
+      add_terminal(repairer)
+    end
+
+    def add_terminal(terminal)
+      terminal.deactivate
+      @terminals << terminal
+      @no_populate_buffer << terminal.buffer
     end
 
     def populate_agents
@@ -344,8 +346,8 @@ module HuskGame
         valid_position = find_empty_position
         unless valid_position.nil?
           crate = Crate.new(
-            x: valid_position.x,
-            y: valid_position.y,
+            x: valid_position[:x],
+            y: valid_position[:y],
             scale: @scale
           )
           @dressings << crate
@@ -357,8 +359,8 @@ module HuskGame
         valid_position = find_empty_position({ w: 128, h:128 })
         unless valid_position.nil?
           crate_big = CrateBig.new(
-            x: valid_position.x,
-            y: valid_position.y,
+            x: valid_position[:x],
+            y: valid_position[:y],
             scale: @scale
           )
           @dressings << crate_big
@@ -390,30 +392,52 @@ module HuskGame
 
     def populate_overlays
       @overlays << {
-        x: 40,
-        y: 560,
-        w: 640,
-        h: 640,
-        path: "sprites/overlay01/overlay01_main_large.png"
+        x: HuskGame::Constants::VIEWSCREEN_OFFSET_X,
+        y: HuskGame::Constants::VIEWSCREEN_OFFSET_Y,
+        w: HuskGame::Constants::VIEWSCREEN_SIZE,
+        h: HuskGame::Constants::VIEWSCREEN_SIZE,
+        path: HuskGame::AssetPaths::Sprites::OVERLAY_01_LARGE
       }
     end
 
 
     def renders
-      (@pickups + @hazards + @terminals).reject(&:is_dead?)
+      @cached_renders ||= (@pickups + @hazards + @terminals).reject(&:is_dead?)
     end
 
     def renders_under_player
-      @decorations + (@pickups + @hazards).reject(&:is_dead?) + @terminals + @dressings + @spawners
+      @cached_renders_under ||= @decorations + (@pickups + @hazards).reject(&:is_dead?) + @terminals + @dressings + @spawners
     end
 
     def renders_over_player
-      @walls + @agents
+      @cached_renders_over ||= @walls + @agents
     end
 
-    # TODO: Clean up this weirdness
     def collidables
-      @walls + (@pickups + @hazards + @agents).reject(&:is_dead?) + @terminals + @dressings
+      @cached_collidables ||= @walls + (@pickups + @hazards + @agents).reject(&:is_dead?) + @terminals + @dressings
+    end
+
+    def invalidate_caches
+      @cached_renders = nil
+      @cached_renders_under = nil
+      @cached_renders_over = nil
+      @cached_collidables = nil
+    end
+
+    # Get collidables near a specific object using spatial partitioning
+    def collidables_near(obj)
+      spatial_grid = $game&.services&.named(:spatial_grid)
+      return collidables unless spatial_grid
+
+      spatial_grid.get_nearby(obj)
+    end
+
+    # Rebuild the spatial grid for collision optimization
+    def rebuild_spatial_grid
+      spatial_grid = $game&.services&.named(:spatial_grid)
+      return unless spatial_grid
+
+      spatial_grid.rebuild(collidables)
     end
 
     def activate
@@ -425,6 +449,8 @@ module HuskGame
       @agents.each(&:activate)
       @dressings.each(&:activate)
       @hazards.each { |h| h.activate_effect if h.is_a?(HuskEngine::Effectable) }
+      invalidate_caches
+      rebuild_spatial_grid
     end
 
     def deactivate
@@ -438,9 +464,11 @@ module HuskGame
     end
 
     def purge_deads
-      # puts "Bring out your dead!"
+      old_pickup_count = @pickups.length
+      old_hazard_count = @hazards.length
       @pickups.reject!(&:is_dead?)
       @hazards.reject!(&:is_dead?)
+      invalidate_caches if @pickups.length != old_pickup_count || @hazards.length != old_hazard_count
     end
 
     def serialize
@@ -463,115 +491,76 @@ module HuskGame
     end
 
     def create_tiles
-      # mark_and_print "creating tiles"
-      viewscreen_offset_x = 40
-      viewscreen_offset_y = 560
+      viewscreen_offset_x = HuskGame::Constants::VIEWSCREEN_OFFSET_X
+      viewscreen_offset_y = HuskGame::Constants::VIEWSCREEN_OFFSET_Y
       pixel_scale = $SPRITE_SCALES[@scale]
 
-      # Create tiles
       @walls = []
-      # @tiles = Array.new(@tile_dimensions){Array.new(@tile_dimensions)}
       @tile_dimensions.times do |x|
         @tile_dimensions.times do |y|
-          if y.zero?
-            # this is the south row
-            @walls << if x.zero?
-                        # this is the southwest corner
-                        Wall.new(
-                          x: (x * pixel_scale) + viewscreen_offset_x,
-                          y: (y * pixel_scale) + viewscreen_offset_y,
-                          # 0.8,
-                          facing: :southwest,
-                          scale: @scale
-                        )
-                      elsif x == @tile_dimensions - 1
-                        # this is the southeast corner
-                        Wall.new(
-                          x: (x * pixel_scale) + viewscreen_offset_x,
-                          y: (y * pixel_scale) + viewscreen_offset_y,
-                          # 0.8,
-                          facing: :southeast,
-                          scale: @scale
-                        )
-                      else
-                        # this is the south row
-                        Wall.new(
-                          x: (x * pixel_scale) + viewscreen_offset_x,
-                          y: (y * pixel_scale) + viewscreen_offset_y,
-                          # 0.8,
-                          facing: :south,
-                          scale: @scale
-                        )
-                      end
-          elsif y == @tile_dimensions - 1
-            # this is the north row
-            @walls << if x.zero?
-                        # this is the northwest corner
-                        Wall.new(
-                          x: (x * pixel_scale) + viewscreen_offset_x,
-                          y: (y * pixel_scale) + viewscreen_offset_y,
-                          # 0.8,
-                          facing: :northwest,
-                          scale: @scale
-                        )
-                      elsif x == @tile_dimensions - 1
-                        # this is the northeast corner
-                        Wall.new(
-                          x: (x * pixel_scale) + viewscreen_offset_x,
-                          y: (y * pixel_scale) + viewscreen_offset_y,
-                          # 0.8,
-                          facing: :northeast,
-                          scale: @scale
-                        )
-                      else
-                        # this is the north row
-                        Wall.new(
-                          x: (x * pixel_scale) + viewscreen_offset_x,
-                          y: (y * pixel_scale) + viewscreen_offset_y,
-                          # 0.8,
-                          facing: :north,
-                          scale: @scale
-                        )
-                      end
-          elsif x.zero?
-            # this is a middle row
-            @walls << Wall.new(
-              x: (x * pixel_scale) + viewscreen_offset_x,
-              y: (y * pixel_scale) + viewscreen_offset_y,
-              # 0.8,
-              facing: :west,
-              scale: @scale
-            )
-            # this is a west edge
-          elsif x == @tile_dimensions - 1
-            # this is a east edge
-            @walls << Wall.new(
-              x: (x * pixel_scale) + viewscreen_offset_x,
-              y: (y * pixel_scale) + viewscreen_offset_y,
-              # 0.8,
-              facing: :east,
-              scale: @scale
-            )
-          else
-            # this is the floor
-            @tiles_target.sprites << Zif::Sprite.new.tap do |s|
-              s.x = x * pixel_scale
-              s.y = y * pixel_scale
-              s.w = pixel_scale
-              s.h = pixel_scale
-              s.angle = rand(4) * 90
-              # s.path = "sprites/1bit_floor_#{pixel_scale}_0#{rand(6)}.png"
-              s.path = "sprites/floor_#{@scale.to_s}_0#{rand(6)}.png"
-            end
-          end
+          create_tile_at(x, y, pixel_scale, viewscreen_offset_x, viewscreen_offset_y)
         end
-        # mark_and_print("creating_tiles done")
       end
 
-      # This forces the creation of the containing_sprite
-      # puts "\n\nContaining sprite: #{@tiles_target.containing_sprite.nil?}"
-      raise ArgumentError "No containing sprite" if @tiles_target.containing_sprite.nil?
-      # mark(@tiles_target.containing_sprite.nil?)
+      validate_tiles_target
     end
+
+    private
+
+    def create_tile_at(x, y, pixel_scale, offset_x, offset_y)
+      facing = determine_wall_facing(x, y)
+
+      if facing
+        create_wall_tile(x, y, pixel_scale, offset_x, offset_y, facing)
+      else
+        create_floor_tile(x, y, pixel_scale)
+      end
+    end
+
+    def determine_wall_facing(x, y)
+      max_index = @tile_dimensions - 1
+
+      # South row
+      return :southwest if y.zero? && x.zero?
+      return :southeast if y.zero? && x == max_index
+      return :south if y.zero?
+
+      # North row
+      return :northwest if y == max_index && x.zero?
+      return :northeast if y == max_index && x == max_index
+      return :north if y == max_index
+
+      # West/East edges
+      return :west if x.zero?
+      return :east if x == max_index
+
+      nil # Interior tile (floor)
+    end
+
+    def create_wall_tile(x, y, pixel_scale, offset_x, offset_y, facing)
+      @walls << Wall.new(
+        x: (x * pixel_scale) + offset_x,
+        y: (y * pixel_scale) + offset_y,
+        facing: facing,
+        scale: @scale
+      )
+    end
+
+    def create_floor_tile(x, y, pixel_scale)
+      @tiles_target.sprites << Zif::Sprite.new.tap do |s|
+        s.x = x * pixel_scale
+        s.y = y * pixel_scale
+        s.w = pixel_scale
+        s.h = pixel_scale
+        s.angle = rand(4) * 90
+        s.path = HuskGame::AssetPaths::Sprites.floor_sprite(@scale.to_s, rand(6))
+      end
+    end
+
+    def validate_tiles_target
+      raise ArgumentError, "No containing sprite" if @tiles_target.containing_sprite.nil?
+    end
+
+    public
   end
 end

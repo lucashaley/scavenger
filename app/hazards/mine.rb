@@ -1,5 +1,5 @@
 module HuskGame
-  class Mine < Zif::CompoundSprite
+  class Mine < HuskSprite
     include HuskEngine::Collideable
     include HuskEngine::Deadable
     include HuskEngine::Scaleable
@@ -11,60 +11,10 @@ module HuskGame
     attr_accessor :damage, :blown
     attr_accessor :audio_idle
 
-    SPRITE_DETAILS = {
-      name: "mine",
-      layers: [
-        {
-          name: "main",
-          animations: [
-            {
-              name: "idle",
-              frames: 3,
-              hold: 10,
-              repeat: :forever
-            }
-          ],
-          blendmode_enum: :alpha,
-          z: 0
-        },
-        {
-          name: "fx",
-          blendmode_enum: :add,
-          z: 2,
-          animations: [
-            {
-              name: "blow",
-              frames: 7,
-              hold: 2,
-              repeat: :once
-            }
-          ]
-        },
-        {
-          name: "shadow",
-          blendmode_enum: BLENDMODE[:multiply],
-          z: -1
-        }
-      ],
-      scales: {
-        large: {
-          w: 64,
-          h: 64
-        },
-        medium: {
-          w: 40,
-          h: 40
-        },
-        small: {
-          w: 32,
-          h: 32
-        },
-        tiny: {
-          w: 16,
-          h: 16
-        }
-      }
-    }.freeze
+    # Load sprite details from external JSON file
+    def self.sprite_details
+      @sprite_details ||= $game.services[:sprite_data_loader].load('mine')
+    end
 
     def initialize(
       x: 0,
@@ -90,12 +40,12 @@ module HuskGame
       @blown = false
 
       # initialize_collision
-      @sound_collide = "sounds/thump.wav"
+      @sound_collide = HuskGame::AssetPaths::Audio::THUMP
 
       animation_name = "mine_main_#{scale}"
       @sprites.find { |s| s.name == animation_name }.run_animation_sequence(:idle)
 
-      @audio_idle = 'sounds/mine_idle.wav'
+      @audio_idle = HuskGame::AssetPaths::Audio::MINE_IDLE
     end
 
     def perform_tick

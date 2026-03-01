@@ -1,31 +1,10 @@
 module HuskGame
-  class Gash < Zif::CompoundSprite
+  class Gash < HuskSprite
     include HuskEngine::Scaleable
 
-    SPRITE_DETAILS = {
-      name: "gash",
-      layers: [
-        {
-          name: "main",
-          blendmode_enum: :alpha,
-          z: 0
-        }
-      ],
-      scales: {
-        large: {
-          w: 64,
-          h: 64
-        },
-        medium: {
-          w: 32,
-          h: 32
-        },
-        small: {
-          w: 16,
-          h: 16
-        }
-      }
-    }.freeze
+    def self.sprite_details
+      @sprite_details ||= $game.services[:sprite_data_loader].load('gash')
+    end
 
     def initialize(
       x: 360,

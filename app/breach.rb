@@ -1,5 +1,5 @@
 module HuskGame
-  class Breach < Zif::CompoundSprite
+  class Breach < HuskSprite
     include HuskEngine::Collideable
     include HuskEngine::Scaleable
     include HuskEngine::Bufferable
@@ -7,35 +7,9 @@ module HuskGame
 
     attr_accessor :locked
 
-    SPRITE_DETAILS = {
-      name: "breach",
-      layers: [
-        {
-          name: "base",
-          blendmode_enum: :alpha,
-          z: 0
-        },
-        {
-          name: "main",
-          blendmode_enum: :alpha,
-          z: 1
-        }
-      ],
-      scales: {
-        large: {
-          w: 64,
-          h: 64
-        },
-        medium: {
-          w: 32,
-          h: 32
-        },
-        small: {
-          w: 16,
-          h: 16
-        }
-      }
-    }.freeze
+    def self.sprite_details
+      @sprite_details ||= $game.services[:sprite_data_loader].load('breach')
+    end
 
     def initialize
       super(Zif.unique_name('Breach'))

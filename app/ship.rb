@@ -1,5 +1,5 @@
 module HuskGame
-  class Ship < Zif::CompoundSprite
+  class Ship < HuskSprite
     include HuskEngine::Faceable
     include HuskEngine::Scaleable
     include HuskEngine::Collideable
@@ -19,60 +19,10 @@ module HuskGame
     attr_accessor :data, :data_progress
     attr_reader :data_blocks, :data_block_count, :data_core
 
-    SPRITE_DETAILS = {
-      name: "ship",
-      layers: [
-        {
-          name: "main",
-          blendmode_enum: :alpha,
-          z: 0
-        },
-        {
-          name: "turret",
-          blendmode_enum: :alpha,
-          z: 1
-        },
-        {
-          name: "thrustnorth",
-          blendmode_enum: :add,
-          z: 2
-        },
-        {
-          name: "thrustsouth",
-          blendmode_enum: :add,
-          z: 3
-        },
-        {
-          name: "thrusteast",
-          blendmode_enum: :add,
-          z: 4
-        },
-        {
-          name: "thrustwest",
-          blendmode_enum: :add,
-          z: 5
-        },
-        {
-          name: "shadow",
-          blendmode_enum: BLENDMODE[:multiply],
-          z: -1
-        }
-      ],
-      scales: {
-        large: {
-          w: 64,
-          h: 64
-        },
-        medium: {
-          w: 32,
-          h: 32
-        },
-        small: {
-          w: 16,
-          h: 16
-        }
-      }
-    }.freeze
+    # Load sprite details from external JSON file
+    def self.sprite_details
+      @sprite_details ||= $game.services[:sprite_data_loader].load('ship')
+    end
 
     SCALED_THRUST = {
       small: 0.25,
@@ -91,65 +41,83 @@ module HuskGame
       angular_drag: 0.9
     )
       @tracer_service_name = :tracer
-      # mark_and_print("initialize")
       super(name)
 
+      initialize_mixins
+      initialize_movement_vectors
+      initialize_thrust_and_drag(thrust, angular_thrust, drag, angular_drag)
+      initialize_health
+      initialize_data_collection
+      initialize_control_flags
+      initialize_emp_system
+      initialize_ui_elements
+      initialize_inventory
+
+      puts self
+    end
+
+    private
+
+    def initialize_mixins
       initialize_shadowable
       register_sprites_new
-      initialize_scaleable(:large) # hardcoding this for now
+      initialize_scaleable(:large)
       center_sprites
+    end
 
-      @momentum = {
-        x: 0,
-        y: 0,
-        rotation: 0
-      }
-      @energy = {
-        x: 0,
-        y: 0
-      }
-      @effect = {
-        x: 0,
-        y: 0
-      }
+    def initialize_movement_vectors
+      @momentum = { x: 0, y: 0, rotation: 0 }
+      @energy = { x: 0, y: 0 }
+      @effect = { x: 0, y: 0 }
+    end
 
+    def initialize_thrust_and_drag(thrust, angular_thrust, drag, angular_drag)
       @thrust_default = thrust
       @thrust = thrust
       @angular_thrust = angular_thrust
       @drag = drag
       @angular_drag = angular_drag
-      @health_thrust = @health_ccw = @health_cw = 1.0
-      # Health is a float from 0.0 to 1.0
-      @health_north = @health_south = @health_east = @health_west = 1.0
+    end
 
+    def initialize_health
+      @health_thrust = @health_ccw = @health_cw = 1.0
+      @health_north = @health_south = @health_east = @health_west = 1.0
+    end
+
+    def initialize_data_collection
       @facing = :north
       @data = 0
       @data_blocks = []
       @data_block_count = 6
+    end
 
+    def initialize_control_flags
       @is_player = true
       @player_control = true
       @is_rotating = false
       @is_effectable = true
       @is_interfacing = false
       @is_dooring = false
+    end
 
-      # initialize_collision
-      # set_scale :large
-
+    def initialize_emp_system
       @emp_storage = 1
       @emp_count = 1
+    end
 
-      # UI Progress bar
-      @data_progress = ExampleApp::ProgressBar.new(:data_progress, 440, 0, :white)
-      @data_progress.x = 720 - 40 - 440 # 360 - (400 * 0.5)
+    def initialize_ui_elements
+      progress_bar_width = 440
+      @data_progress = ExampleApp::ProgressBar.new(:data_progress, progress_bar_width, 0, :white)
+      @data_progress.x = HuskGame::Constants::SCREEN_WIDTH - HuskGame::Constants::VIEWSCREEN_BORDER - progress_bar_width
       @data_progress.y = 1200
       @data_progress.view_actual_size!
-
-      @inventory = []
-
-      puts self
     end
+
+    def initialize_inventory
+      @inventory = []
+    end
+
+    public
 
     def add_thrust_x input
       health_multiplier = input < 0 ? @health_west : @health_east
@@ -169,44 +137,65 @@ module HuskGame
     def calc_rotation
       @angle += @momentum.rotation
     end
-    def calc_position_x
-      # mark_and_print("calc_position_x")
-      @momentum.x += @energy.x
-      @momentum.x += @effect.x if @is_effectable
-      @x += @momentum.x
-      @x.truncate
 
-      # Render the jets here, not a great place
-      if @energy.x < 0
-        # This is a problem now that we're switching scales
-        # @thrust_sprite_east.path = "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png"
-        # @current_sprite_hash[:thrust_east].path = \
-        #   "sprites/ship_thrust_0#{@energy.x.clamp(0, 3).truncate}.png" \
-        #   unless @current_sprite_hash[:thrust_east].nil?
-        #
-        # puts "sprites/ship_thrusteast_#{@scale}_power_0#{@energy.x.clamp(0, 3).truncate}.png" if @energy.x > 0
-        @current_sprite_hash[:thrusteast].path = \
-          "sprites/ship/ship_thrusteast_#{@scale}_power_0#{@energy.x.clamp(0, 3).truncate}.png"
-        # end
-        # if @energy.x <= 0
-      elsif @energy.x > 0
-        # @thrust_sprite_west.path = "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png"
-        # @current_sprite_hash[:thrust_west].path = \
-        #   "sprites/ship_thrust_0#{@energy.x.abs.clamp(0, 3).truncate}.png" \
-        #   unless @current_sprite_hash[:thrust_west].nil?
-        #
-        @current_sprite_hash[:thrustwest].path = \
-          "sprites/ship/ship_thrustwest_#{@scale}_power_0#{@energy.x.clamp(0, 3).truncate}.png"
+    # Shared method to calculate position along an axis
+    private def calc_position_axis(axis)
+      momentum = @momentum[axis]
+      energy = @energy[axis]
+      effect = @effect[axis]
+      position = axis == :x ? @x : @y
+
+      # Update momentum and position
+      momentum += energy
+      momentum += effect if @is_effectable
+      position += momentum
+      position.truncate
+
+      # Update instance variables
+      @momentum[axis] = momentum
+      if axis == :x
+        @x = position
       else
-        @current_sprite_hash[:thrusteast].path = "sprites/ship/ship_thrusteast_#{@scale}.png"
-        @current_sprite_hash[:thrustwest].path = "sprites/ship/ship_thrustwest_#{@scale}.png"
+        @y = position
       end
 
-      refresh_sprites
+      # Render thrust sprites
+      update_thrust_sprites(axis, energy)
 
       # Reset the movement
-      @effect.x = 0
-      @energy.x = 0
+      @effect[axis] = 0
+      @energy[axis] = 0
+    end
+
+    private def update_thrust_sprites(axis, energy)
+      if axis == :x
+        if energy < 0
+          @current_sprite_hash[:thrusteast].path = \
+            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("east", @scale, energy.clamp(0, 3).truncate)
+        elsif energy > 0
+          @current_sprite_hash[:thrustwest].path = \
+            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("west", @scale, energy.clamp(0, 3).truncate)
+        else
+          @current_sprite_hash[:thrusteast].path = HuskGame::AssetPaths::Sprites.ship_thrust_sprite("east", @scale)
+          @current_sprite_hash[:thrustwest].path = HuskGame::AssetPaths::Sprites.ship_thrust_sprite("west", @scale)
+        end
+      else # axis == :y
+        if energy < 0
+          @current_sprite_hash[:thrustnorth].path = \
+            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("north", @scale, energy.clamp(0, 3).truncate)
+        elsif energy > 0
+          @current_sprite_hash[:thrustsouth].path = \
+            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("south", @scale, energy.clamp(0, 3).truncate)
+        else
+          @current_sprite_hash[:thrustnorth].path = HuskGame::AssetPaths::Sprites.ship_thrust_sprite("north", @scale)
+          @current_sprite_hash[:thrustsouth].path = HuskGame::AssetPaths::Sprites.ship_thrust_sprite("south", @scale)
+        end
+      end
+      refresh_sprites
+    end
+
+    public def calc_position_x
+      calc_position_axis(:x)
     end
 
     def predict_position_y
@@ -217,36 +206,7 @@ module HuskGame
     end
 
     def calc_position_y
-      # mark_and_print("calc_position_y")
-      @momentum.y += @energy.y
-      @momentum.y += @effect.y if @is_effectable
-      @y += @momentum.y
-      @y.truncate
-
-      # Render the jets here, not a great place
-      if @energy.y < 0
-        # @thrust_sprite_north.path = "sprites/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png"
-        # @current_sprite_hash[:thrust_north].path = \
-        #   "sprites/ship/ship_thrust_0#{@energy.y.clamp(0, 3).truncate}.png" \
-        #   unless @current_sprite_hash[:thrust_north].nil?
-        @current_sprite_hash[:thrustnorth].path = \
-          "sprites/ship/ship_thrustnorth_#{@scale}_power_0#{@energy.x.clamp(0, 3).truncate}.png"
-      elsif @energy.y > 0
-        # @thrust_sprite_south.path = "sprites/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png"
-        # @current_sprite_hash[:thrust_south].path = \
-        #   "sprites/ship/ship_thrust_0#{@energy.y.abs.clamp(0, 3).truncate}.png" \
-        #   unless @current_sprite_hash[:thrust_south].nil?
-        @current_sprite_hash[:thrustsouth].path = \
-          "sprites/ship/ship_thrustsouth_#{@scale}_power_0#{@energy.x.clamp(0, 3).truncate}.png"
-      else
-        @current_sprite_hash[:thrustnorth].path = "sprites/ship/ship_thrustnorth_#{@scale}.png"
-        @current_sprite_hash[:thrustsouth].path = "sprites/ship/ship_thrustsouth_#{@scale}.png"
-      end
-      refresh_sprites
-
-      # Reset the movement
-      @effect.y = 0
-      @energy.y = 0
+      calc_position_axis(:y)
     end
 
     def momentum_magnitude
@@ -416,14 +376,14 @@ module HuskGame
     def change_health amount, side
       puts "change_health(#{amount}, #{side})"
 
-      play_voiceover("sounds/voice_dronedamaged.wav")
+      play_voiceover(HuskGame::AssetPaths::Audio::VOICE_DRONE_DAMAGED)
 
       case side
       when :north
         @health_north = (@health_north += amount).clamp(0, 1.0)
         puts "health_north: #{@health_north}"
       when :south
-        @health_south = (@health_south += amount).clamp(1, 1.0)
+        @health_south = (@health_south += amount).clamp(0, 1.0)
         puts "health_south: #{@health_south}"
       when :east
         @health_east = (@health_east += amount).clamp(0, 1.0)
@@ -441,6 +401,10 @@ module HuskGame
       @data_progress.progress = @data * 0.001
     end
 
+    def add_data_block_slot(amount = 1)
+      @data_block_count += amount
+    end
+
     def add_data_block(name:, size:, corrupted:)
       puts "add_data_block: #{@data_blocks.length} vs #{@data_block_count}"
       if @data_blocks.length < @data_block_count
@@ -451,58 +415,85 @@ module HuskGame
     end
 
     def add_data_core
-      if @data_core = :empty
+      if @data_core == :empty
         @data_core = :full
         # Make a good noise or something
-        play_voiceover("sounds/voice_datacorecollected.wav")
-      elsif @data_core = :full || @data_core = :overloaded
+        play_voiceover(HuskGame::AssetPaths::Audio::VOICE_DATA_CORE_COLLECTED)
+      elsif @data_core == :full || @data_core == :overloaded
         @data_core = :overloaded
         # Make a bad noise
-        play_voiceover("sounds/voice_datacoreoverloaded.wav")
+        play_voiceover(HuskGame::AssetPaths::Audio::VOICE_DATA_CORE_OVERLOADED)
       end
     end
 
     def render_data_blocks
       output = []
+      @data_block_count.times do |i|
+        output.concat(render_single_data_block(i))
+      end
+      output
+    end
+
+    private
+
+    def render_single_data_block(index)
       x_offset = 600
       y_offset = 40
-      @data_block_count.times do |i|
-        data = @data_blocks[i]
-        data_corrupted = nil
-        unless data.nil?
-          data_corrupted = data[:corrupted]
-        end
-        case data_corrupted
-        when true
-          c = 180
-        when false
-          c = 250
-        when nil
-          c = 32
-        end
-        output << {
-          x: x_offset,
-          y: (40 * i) + y_offset,
-          w: 96,
-          h: 32,
-          r: c - 16,
-          g: c,
-          b: c - 16,
-          primitive_marker: :solid
-        }
-        output << {
-          x: x_offset,
-          y: (40 * i) + y_offset,
-          w: 96,
-          h: 32,
-          r: 255,
-          g: 255,
-          b: 255,
-          primitive_marker: :border
-        }
-      end
-      return output
+      block_height = 40
+      block_width = 96
+      block_draw_height = 32
+
+      corruption_status = get_block_corruption_status(index)
+      color_value = data_block_color(corruption_status)
+
+      y_position = (block_height * index) + y_offset
+
+      [
+        create_data_block_solid(x_offset, y_position, block_width, block_draw_height, color_value),
+        create_data_block_border(x_offset, y_position, block_width, block_draw_height)
+      ]
     end
+
+    def get_block_corruption_status(index)
+      data = @data_blocks[index]
+      data&.fetch(:corrupted, nil)
+    end
+
+    def data_block_color(corrupted)
+      case corrupted
+      when true then 180    # Corrupted - dim orange
+      when false then 250   # Valid - bright green
+      else 32               # Empty - very dark
+      end
+    end
+
+    def create_data_block_solid(x, y, w, h, color_value)
+      {
+        x: x,
+        y: y,
+        w: w,
+        h: h,
+        r: color_value - 16,
+        g: color_value,
+        b: color_value - 16,
+        primitive_marker: :solid
+      }
+    end
+
+    def create_data_block_border(x, y, w, h)
+      {
+        x: x,
+        y: y,
+        w: w,
+        h: h,
+        r: 255,
+        g: 255,
+        b: 255,
+        primitive_marker: :border
+      }
+    end
+
+    public
 
     def emp_count=(c)
       puts "emp_count=#{c}"

@@ -51,3 +51,15 @@
 - [ ] Keycard or memory slot door unlock?
 - [ ] Finish scaling objects
 - [ ] create unlock terminal
+
+## Room & Tile Layout
+
+- [ ] Use SpatialGridService during entity placement in `find_empty_position` instead of linear scan through `@no_populate_buffer`
+- [x] Cache render arrays (`renders_under_player`, `renders_over_player`, `collidables`) instead of rebuilding every frame
+- [ ] Clear spatial grid on room `deactivate` (currently only rebuilt on `activate`)
+- [x] Remove duplicate `DOOR_BITS` constant (identical to `DOORS`) in room.rb
+- [ ] Fix decoration placement to respect viewscreen bounds (currently uses `rand(720)` which can place outside 40–680 area)
+- [ ] Resolve door scale vs room scale mismatch — destination door gets random scale but room uses current door's scale
+- [ ] Fix `populate_data_terminal` always running (`rand(1) == 0` is always true)
+- [x] Extract shared `populate_mines`/`populate_repulsors`/`populate_attractors` pattern into parameterized method
+- [x] Standardize hash access from `find_empty_position` (`.x`/`.y` vs `[:x]`/`[:y]`)

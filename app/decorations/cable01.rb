@@ -1,31 +1,10 @@
 module HuskGame
-class Cable01 < Zif::CompoundSprite
+class Cable01 < HuskSprite
   include HuskEngine::Scaleable
 
-  SPRITE_DETAILS = {
-    name: "cable01",
-    layers: [
-      {
-        name: "main",
-        blendmode_enum: :alpha,
-        z: 0
-      }
-    ],
-    scales: {
-      large: {
-        w: 128,
-        h: 128
-      },
-      # medium: {
-      #   w: 32,
-      #   h: 32
-      # },
-      # small: {
-      #   w: 16,
-      #   h: 16
-      # }
-    }
-  }.freeze
+  def self.sprite_details
+    @sprite_details ||= $game.services[:sprite_data_loader].load('cable01')
+  end
 
   def initialize(
     x: 360,

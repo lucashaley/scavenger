@@ -1,12 +1,11 @@
 module HuskGame
-  class Dressing < Zif::CompoundSprite
+  class Dressing < HuskSprite
     include HuskEngine::Collideable
     include HuskEngine::Bounceable
     include HuskEngine::Scaleable
     include HuskEngine::Bufferable
     include HuskEngine::Shadowable
     include HuskEngine::Tickable
-    include Zif::Traceable
 
     def initialize(
       x: 360,

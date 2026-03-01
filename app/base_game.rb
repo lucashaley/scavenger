@@ -7,41 +7,20 @@ module HuskGame
 
       @tracer_service_name = :tracer
 
-      # TODO: It would be good to not rely upon this any more
-      $SPRITE_SCALES = {
-        large: 64,
-        medium: 40,
-        small: 32,
-        tiny: 16
-      }.freeze
-
-      $LABEL_STYLE = {
-        r: 0,
-        g: 0,
-        b: 255,
-        size_px: 14
-      }.freeze
-
-      $BACKGROUND_STYLE = {
-        r: 0,
-        g: 255,
-        b: 0,
-        a: 128,
-        path: :solid
-      }.freeze
-
-      $ui_viewscreen_border = 40
-      $ui_viewscreen_dimensions = 640
-      $ui_viewscreen = {
-        top: 1280 - 80,
-        right: 720 - $ui_viewscreen_border,
-        bottom: 1280 - 80 - $ui_viewscreen_dimensions,
-        left: $ui_viewscreen_border
-      }
+      # Set up global constants for backward compatibility
+      # TODO: Refactor code to use HuskGame::Constants directly instead of globals
+      $SPRITE_SCALES = HuskGame::Constants::SPRITE_SCALES
+      $LABEL_STYLE = HuskGame::Constants::LABEL_STYLE
+      $BACKGROUND_STYLE = HuskGame::Constants::BACKGROUND_STYLE
+      $ui_viewscreen_border = HuskGame::Constants::VIEWSCREEN_BORDER
+      $ui_viewscreen_dimensions = HuskGame::Constants::VIEWSCREEN_SIZE
+      $ui_viewscreen = HuskGame::Constants::VIEWSCREEN
 
       @services.register(:effect_service, Services::EffectService.new)
       @services.register(:tick_service, Services::TickService.new)
       @services.register(:emp_service, Services::EmpService.new)
+      @services.register(:spatial_grid, Services::SpatialGridService.new(cell_size: 128))
+      @services.register(:sprite_data_loader, Services::SpriteDataLoader.new)
 
       register_scene(:menu_main, MenuMainScene)
       register_scene(:room, RoomScene)

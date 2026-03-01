@@ -1,6 +1,6 @@
 
 module HuskGame
-  class Pickup < Zif::CompoundSprite
+  class Pickup < HuskSprite
     include HuskEngine::Collideable
     include HuskEngine::Deadable
     include HuskEngine::Bounceable

@@ -1,4 +1,4 @@
-class Repulsor < Zif::CompoundSprite
+class Repulsor < HuskGame::HuskSprite
   include HuskEngine::Collideable
   include HuskEngine::Bounceable
   include HuskEngine::Deadable
@@ -13,35 +13,9 @@ class Repulsor < Zif::CompoundSprite
     small: 0.1
   }
 
-  SPRITE_DETAILS = {
-    name: "repulsor",
-    layers: [
-      # {
-      #   name: "shadow",
-      #   blendmode_enum: BLENDMODE[:multiply],
-      #   z: 0
-      # },
-      {
-        name: "main",
-        blendmode_enum: :alpha,
-        z: 1
-      }
-    ],
-    scales: {
-      large: {
-        w: 64,
-        h: 64
-      },
-      medium: {
-        w: 32,
-        h: 32
-      },
-      small: {
-        w: 16,
-        h: 16
-      }
-    }
-  }.freeze
+  def self.sprite_details
+    @sprite_details ||= $game.services[:sprite_data_loader].load('repulsor')
+  end
 
   def initialize(
     x = 0,

@@ -1,5 +1,5 @@
 module HuskGame
-  class Door < Zif::CompoundSprite
+  class Door < HuskSprite
     include HuskEngine::Collideable
     include HuskEngine::Bounceable
     include HuskEngine::Scaleable
@@ -8,87 +8,17 @@ module HuskGame
     include HuskEngine::Lockable
     include Zif::Traceable
 
-    attr_accessor :room
+    attr_writer :room
     attr_accessor :door_side, :door_buffer, :door_facing
     # attr_accessor :destination_room,
     attr_accessor :destination_door
     attr_accessor :exit_point
     attr_accessor :approached
 
-    SPRITE_DETAILS = {
-      name: "door",
-      layers: [
-        {
-          name: "main",
-          # animations: [
-          #   {
-          #     name: "open",
-          #     frames: 5,
-          #     hold: 3,
-          #     repeat: :once
-          #   },
-          #   {
-          #     name: "close",
-          #     frames: 4,
-          #     hold: 3,
-          #     repeat: :once
-          #   }
-          # ],
-          blendmode_enum: :alpha,
-          z: 3
-        },
-        {
-          name: "doors",
-          animations: [
-            {
-              name: "open",
-              frames: 4,
-              hold: 4,
-              repeat: :once
-            },
-            {
-              name: "close",
-              frames: 4,
-              hold: 4,
-              repeat: :once
-            }
-          ],
-          blendmode_enum: :alpha,
-          z: 2
-        },
-        {
-          name: "lights",
-          animations: [
-            {
-              name: "idle",
-              frames: 7,
-              hold: 4,
-              repeat: :forever
-            }
-          ],
-          blendmode_enum: :add,
-          z: 4
-        }
-      ],
-      scales: {
-        large: {
-          w: 64,
-          h: 64
-        },
-        medium: {
-          w: 40,
-          h: 40
-        },
-        small: {
-          w: 32,
-          h: 32
-        },
-        tiny: {
-          w: 16,
-          h: 16
-        }
-      }
-    }.freeze
+    # Load sprite details from external YAML file
+    def self.sprite_details
+      @sprite_details ||= $game.services[:sprite_data_loader].load('door')
+    end
 
     BOUNCE_SCALES = {
       large: 0.8,
@@ -219,27 +149,45 @@ module HuskGame
         @destination_door.locked = @locked
       else
         # If there is a destination_door
-        # then we create a new room
-        # passing itself
+        # defer room creation until the player actually enters this door
         @destination_door = destination_door
         raise ArgumentError, "No destination_door: #{@name}" if destination_door.nil?
 
-        @room = Room.new(
+        @deferred_room_params = {
           name: @destination_door.room.name + '_' + @destination_door.door_side.to_s,
           chaos: @destination_door.room.chaos + 1,
           scale: scale,
-          entrance_door: self,
           husk: @destination_door.room.husk
-        )
-        # @name = @room.name + '_door' + @door_side.to_s # can this be one line later?
+        }
+        @room = nil
       end
-      @name = @room.name + '_door' + @door_side.to_s # can this be one line later?
+      room_name = @room ? @room.name : @deferred_room_params[:name]
+      @name = room_name + '_door' + @door_side.to_s
 
 
       animation_name = "door_lights_#{scale}"
       @sprites.find { |s| s.name == animation_name }.run_animation_sequence(:idle)
 
       @approached = false
+    end
+
+    def room
+      ensure_room
+    end
+
+    def ensure_room
+      return @room if @room
+      return nil unless @deferred_room_params
+
+      @room = Room.new(
+        name: @deferred_room_params[:name],
+        chaos: @deferred_room_params[:chaos],
+        scale: @deferred_room_params[:scale],
+        entrance_door: self,
+        husk: @deferred_room_params[:husk]
+      )
+      @deferred_room_params = nil
+      @room
     end
 
     def enter_door player

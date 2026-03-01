@@ -19,7 +19,7 @@ module HuskEngine
 
       sprite_scale = self.class::SPRITE_DETAILS[:scales][@scale]
 
-      raise StandardError("Bufferable sprite scales didn't go") if sprite_scale.nil?
+      raise StandardError, "Bufferable: sprite_scale is nil for @scale=#{@scale.inspect}, class=#{self.class}, SPRITE_DETAILS=#{self.class::SPRITE_DETAILS.inspect}" if sprite_scale.nil?
       scaled_buffer = sprite_scale.transform_values { |v| v * @buffer_scale }
       @buffer = {
         x: @x - scaled_buffer.w,

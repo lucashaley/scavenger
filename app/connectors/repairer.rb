@@ -1,43 +1,9 @@
 module HuskGame
   class Repairer < Connector
-    SPRITE_DETAILS = {
-      name: "repairer",
-      layers: [
-        {
-          name: "shadow",
-          blendmode_enum: BLENDMODE[:multiply],
-          z: -1
-        },
-        {
-          name: "main",
-          blendmode_enum: :alpha,
-          z: 1
-        },
-        # {
-        #   name: "lights",
-        #   blendmode_enum: :add,
-        #   z: 2
-        # }
-      ],
-      scales: {
-        large: {
-          w: 64,
-          h: 64
-        },
-        medium: {
-          w: 40,
-          h: 40
-        },
-        small: {
-          w: 32,
-          h: 32
-        },
-        tiny: {
-          w: 16,
-          h: 16
-        }
-      }
-    }.freeze
+
+    def self.sprite_details
+      @sprite_details ||= $game.services[:sprite_data_loader].load('repairer')
+    end
 
     def initialize(
       x: 0,

@@ -1,5 +1,5 @@
 module HuskGame
-  class Connector < Zif::CompoundSprite
+  class Connector < HuskSprite
     include Zif::Traceable
     include HuskEngine::Collideable
     include HuskEngine::Bounceable

@@ -16,63 +16,62 @@ module HuskGame
     def initialize
       puts "\n\nROOM_SCENE: INIT\n\n"
       super
+      initialize_dimensions
+      initialize_collections
+      initialize_game_state
+      initialize_styles
+      initialize_audio_settings
+      initialize_gameplay_state
+    end
 
+    private
+
+    def initialize_dimensions
       @tile_dimensions = 64
       @map_dimensions = 10
+      @ui_viewscreen_border = HuskGame::Constants::VIEWSCREEN_BORDER
+      @ui_viewscreen_dimensions = HuskGame::Constants::VIEWSCREEN_SIZE
+      @ui_viewscreen = HuskGame::Constants::VIEWSCREEN
+    end
 
-      @ui_viewscreen_border = 40
-      @ui_viewscreen_dimensions = 640
-      @ui_viewscreen = {
-        top: 1280 - 80,
-        right: 720 - @ui_viewscreen_border,
-        bottom: 1280 - 80 - @ui_viewscreen_dimensions,
-        left: @ui_viewscreen_border
-      }
-
-      # @ui_cluster = UiCluster.new()
-
-      @ship
-      @player_control = true
-
+    def initialize_collections
       @basic_tiles = []
       @door_tiles = []
       @pickups = []
       @buttons = []
+    end
 
+    def initialize_game_state
+      @ship = nil
+      @player_control = true
       @emp_power = 0
+      @shutdown = nil
+      @tracer_service_name = :tracer
+    end
 
-      @label_style = {
-        r: 0,
-        g: 0,
-        b: 255,
-        size_px: 14
-      }
-      @background_style = {
-        r: 0,
-        g: 255,
-        b: 0,
-        a: 128,
-        path: :solid
-      }
+    def initialize_styles
+      @label_style = HuskGame::Constants::LABEL_STYLE
+      @background_style = HuskGame::Constants::BACKGROUND_STYLE
+    end
 
+    def initialize_audio_settings
       @bg_music_state = :intro
       @bg_music_volume = 0.3
-      @emp_sound = 'sounds/emp_blast.wav'.freeze
-      @tracer_service_name = :tracer
-      @shutdown = nil
+      @emp_sound = HuskGame::AssetPaths::Audio::EMP_BLAST
+    end
 
-      # Prep the arg states
+    def initialize_gameplay_state
       state = $gtk.args.state
       state.gameplay = {
         max_emp_power: 4.seconds,
         button_thrust: 0.8
       }
-
-      # Should these be based on rooms?
       state.agents = []
       state.hazards = []
       state.pickups = []
     end
+
+    public
 
     def switch_rooms destination_door
       fade_out(0.2.seconds) do
@@ -101,14 +100,24 @@ module HuskGame
     def prepare_scene
       puts "\n\nROOM_SCENE: PREPARE_SCENE\n\n"
       register_all_sprites
+      setup_fader
+      setup_ship
+      setup_husk
+      setup_light
+      setup_ui_sprites
+      setup_ui_health_indicators
+      setup_ui_labels
+      setup_background_music
+    end
 
-      # @ui_cluster = UiCluster.new()
+    private
 
+    def setup_fader
       @fader = Zif::Sprite.new.tap do |f|
         f.x = 0
         f.y = 0
-        f.w = 720
-        f.h = 1280
+        f.w = HuskGame::Constants::SCREEN_WIDTH
+        f.h = HuskGame::Constants::SCREEN_HEIGHT
         f.path = :solid
         f.r = 0
         f.g = 0
@@ -117,76 +126,68 @@ module HuskGame
       end
       $game.services[:action_service].register_actionable(@fader)
       $gtk.args.outputs.static_sprites << @fader
+    end
 
-      # Create the ship
-      # It's a little disappointing we need to make the ship
-      # before we make the husk
-      # because the ship scale gets set
-      # in the switch_room method
-      # I would love to use
-      # valid_position = @husk.current_room.find_empty_position
-      # But hopefully Breach will take care of things
+    def setup_ship
+      # Create the ship before the husk because ship scale gets set in switch_room
       @ship = Ship.new
-      @ship.x = 40 + (640 - 64).half
-      @ship.y = 1280 - 48 - 64 - 640.half
+      @ship.x = HuskGame::Constants::VIEWSCREEN_OFFSET_X + (HuskGame::Constants::VIEWSCREEN_SIZE - 64).half
+      @ship.y = HuskGame::Constants::SCREEN_HEIGHT - 48 - 64 - HuskGame::Constants::VIEWSCREEN_SIZE.half
       $game.services.named(:action_service).register_actionable(@ship)
       $gtk.args.state.ship = @ship
+    end
 
-      # Create a husk
+    def setup_husk
       @husk = Husk.new
       puts "husk: #{@husk}"
+    end
 
-
+    def setup_light
       @light = $services[:sprite_registry].construct(:light).tap do |s|
-        s.x = 40
-        s.y = 1280 - 700
-        s.blendmode_enum = Zif::Sprite::BLENDMODE[:multiply] # This seems redundant
+        s.x = HuskGame::Constants::VIEWSCREEN_OFFSET_X
+        s.y = HuskGame::Constants::SCREEN_HEIGHT - 700
+        s.blendmode_enum = Zif::Sprite::BLENDMODE[:multiply]
       end
       $game.services[:action_service].register_actionable(@light)
+    end
 
+    def setup_ui_sprites
       @ui = Zif::Sprite.new.tap do |s|
-        s.w = 720
-        s.h = 1280
-        s.path = 'sprites/1bit_ui.png'
+        s.w = HuskGame::Constants::SCREEN_WIDTH
+        s.h = HuskGame::Constants::SCREEN_HEIGHT
+        s.path = HuskGame::AssetPaths::Sprites::UI_MAIN
       end
+    end
 
-      @ui_ship_health = Zif::Sprite.new.tap do |s|
-        s.w = 124
-        s.h = 124
-        s.path = 'sprites/ui_ship_health.png'
+    def setup_ui_health_indicators
+      health_size = 124
+      @ui_ship_health = create_health_sprite('sprites/ui_ship_health.png', health_size)
+      @ui_ship_health_west = create_health_hash('sprites/ui_ship_health_west.png', health_size)
+      @ui_ship_health_east = create_health_sprite('sprites/ui_ship_health_east.png', health_size)
+      @ui_ship_health_north = create_health_sprite('sprites/ui_ship_health_north.png', health_size)
+      @ui_ship_health_south = create_health_sprite('sprites/ui_ship_health_south.png', health_size)
+    end
+
+    def create_health_sprite(path, size)
+      Zif::Sprite.new.tap do |s|
+        s.w = size
+        s.h = size
+        s.path = path
+        s.blendmode_enum = :add
       end
-      @ui_ship_health_west = {
-        w: 124,
-        h: 124,
-        path: 'sprites/ui_ship_health_west.png',
+    end
+
+    def create_health_hash(path, size)
+      {
+        w: size,
+        h: size,
+        path: path,
         blendmode_enum: 2,
         a: 255
       }
-      # @ui_ship_health_west = Zif::Sprite.new.tap do |s|
-      #   s.w = 124
-      #   s.h = 124
-      #   s.path = 'sprites/ui_ship_health_west.png'
-      #   s.blendmode_enum = :add
-      # end
-      @ui_ship_health_east = Zif::Sprite.new.tap do |s|
-        s.w = 124
-        s.h = 124
-        s.path = 'sprites/ui_ship_health_east.png'
-        s.blendmode_enum = :add
-      end
-      @ui_ship_health_north = Zif::Sprite.new.tap do |s|
-        s.w = 124
-        s.h = 124
-        s.path = 'sprites/ui_ship_health_north.png'
-        s.blendmode_enum = :add
-      end
-      @ui_ship_health_south = Zif::Sprite.new.tap do |s|
-        s.w = 124
-        s.h = 124
-        s.path = 'sprites/ui_ship_health_south.png'
-        s.blendmode_enum = :add
-      end
+    end
 
+    def setup_ui_labels
       @ui_label_husk = Zif::UI::Label.new(
         'husk integrity:',
         size: -1,
@@ -197,20 +198,22 @@ module HuskGame
         g: 255,
         b: 255
       ).tap do |l|
-        l.x = 40
+        l.x = HuskGame::Constants::VIEWSCREEN_OFFSET_X
         l.y = 1232
       end
       $gtk.args.outputs.static_labels << @ui_label_husk
+    end
 
-      # Start with the music off
+    def setup_background_music
       $gtk.args.state.bgmusic.playing ||= true
-      # Start audio
       $gtk.args.audio[:bg_music] ||= {
-        input: "music/Lucas_HuskGame_intro.wav",
+        input: HuskGame::AssetPaths::Audio::MUSIC_INTRO,
         looping: false,
         gain: @bg_music_volume
       }
     end
+
+    public
 
     def unload_scene
       $gtk.args.audio.clear

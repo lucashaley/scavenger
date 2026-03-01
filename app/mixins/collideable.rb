@@ -18,43 +18,26 @@ module HuskEngine
         unless self.class.instance_methods.include?(:collide_action)
     end
 
-    def collide_x_with (c)
+    # Shared collision method for both axes
+    private def collide_with_axis(collider, axis)
       return unless @collision_enabled
 
-      # puts "collide_x_with: #{c.relative_speed}"
+      # Determine which side was hit based on the axis
+      if axis == :x
+        collided_on = collider.x < @x ? :west : :east
+      else # axis == :y
+        collided_on = collider.y < @y ? :south : :north
+      end
 
-      # play_once @sound_collide unless @sound_collide.nil?
-
-      # First we need to know which side we're being hit on
-      # and then the direction the ship is facing
-      # It would be nice to limit the collision to a smaller size from center
-      # like with the door
-
-      collided_on = :west if c.x < @x
-      collided_on = :east if c.x > @x
-
-      collide_action c, collided_on
+      collide_action collider, collided_on
     end
 
-    def collide_y_with (c)
-      return unless @collision_enabled
+    public def collide_x_with(c)
+      collide_with_axis(c, :x)
+    end
 
-      # puts "collide_y_with: #{c.relative_speed}"
-
-      # This seems like a good idea
-      # But it probably isn't -- we want to have more control over when audio is played
-      # play_once @sound_collide unless @sound_collide.nil?
-
-      # puts 'We didn\'t break all the way'
-      # First we need to know which side we're being hit on
-      # and then the direction the ship is facing
-      # It would be nice to limit the collision to a smaller size from center
-      # like with the door
-
-      collided_on = :south if c.y < @y
-      collided_on = :north if c.y > @y
-
-      collide_action c, collided_on
+    def collide_y_with(c)
+      collide_with_axis(c, :y)
     end
   end
 end

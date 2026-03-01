@@ -1,5 +1,5 @@
 module HuskGame
-  class HunterBlob < Zif::CompoundSprite
+  class HunterBlob < HuskSprite
     include HuskEngine::Collideable
     include HuskEngine::Deadable
     include HuskEngine::Scaleable
@@ -10,32 +10,9 @@ module HuskGame
 
     attr_accessor :momentum
 
-    SPRITE_DETAILS = {
-      name: "hunterblob",
-      layers: [
-        name: "main",
-        blendmode_enum: :alpha,
-        z: 0
-      ],
-      scales: {
-        large: {
-          w: 64,
-          h: 64
-        },
-        medium: {
-          w: 40,
-          h: 40
-        },
-        small: {
-          w: 32,
-          h: 32
-        },
-        tiny: {
-          w: 16,
-          h: 16
-        }
-      }
-    }.freeze
+    def self.sprite_details
+      @sprite_details ||= $game.services[:sprite_data_loader].load('hunterblob')
+    end
 
     BLOWBACK_SCALES = {
       large: 6,

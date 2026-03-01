@@ -55,7 +55,9 @@ module HuskEngine
       diff_scaled.each_value(&:truncate)
 
       # shadow = @sprites.find { |s| s.name == "#{self.class.name.downcase}_shadow_#{@scale}" }
-      shadow = @sprites.find { |s| s.name == "#{@class_name}_shadow_#{@scale}" }
+      shadow = @sprites.find { |s| s.respond_to?(:name) && s.name == "#{@class_name}_shadow_#{@scale}" }
+      return unless shadow.respond_to?(:assign)
+
       shadow.assign(
         {
           x: diff_scaled[:x] - SHADOW_CENTER_OFFSETS[@scale],
