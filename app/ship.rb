@@ -53,7 +53,7 @@ module HuskGame
       initialize_ui_elements
       initialize_inventory
 
-      puts self
+      # puts self
     end
 
     private
@@ -411,6 +411,7 @@ module HuskGame
         @data_blocks << {name: name, size: size, corrupted: corrupted}
       end
       puts "data_blocks: #{@data_blocks}"
+      @data = 0
       @data_progress.progress = 0
     end
 
