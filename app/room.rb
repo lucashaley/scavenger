@@ -324,9 +324,29 @@ module HuskGame
     def populate_agents
       # mark_and_print("populate_agents")
 
-      agent = HunterBlob.new(scale: @scale)
-      agent.deactivate
-      @agents << agent
+      # No agents in low-chaos rooms
+      return if @chaos < 2
+
+      # Higher chaos increases the chance and count of agents
+      # chaos 2: 1-in-3 chance of 1 agent
+      # chaos 3: 1-in-2 chance of 1 agent
+      # chaos 4+: guaranteed 1 agent, 1-in-3 chance of a second
+      case @chaos
+      when 2
+        return unless rand(3) == 0
+        count = 1
+      when 3
+        return unless rand(2) == 0
+        count = 1
+      else
+        count = rand(3) == 0 ? 2 : 1
+      end
+
+      count.times do
+        agent = HunterBlob.new(scale: @scale)
+        agent.deactivate
+        @agents << agent
+      end
     end
 
     def populate_dressings
