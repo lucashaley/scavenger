@@ -248,7 +248,7 @@ module HuskGame
       has_key = collidee.has_item?(@keyitem)
 
       # Again, there has to be a better way
-      if (!@locked || has_key) && (((facing == :north || :south) && (@door_side == :north || :south)) ||
+      if (!@locked || has_key || room&.husk&.all_unlocked) && (((facing == :north || :south) && (@door_side == :north || :south)) ||
         ((facing == :east || :west) && (@door_side == :east || :west)))
 
         entering = case @door_side
@@ -271,7 +271,7 @@ module HuskGame
     end
 
     def perform_tick
-      return if @locked && $gtk.args.state.ship.has_item?(@keyitem) == false
+      return if @locked && !room&.husk&.all_unlocked && $gtk.args.state.ship.has_item?(@keyitem) == false
 
       dist = $gtk.args.geometry.distance self.rect, $gtk.args.state.ship.rect #$game.scene.ship.rect
       threshold = $SPRITE_SCALES[@scale] * 2

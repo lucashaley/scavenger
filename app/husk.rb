@@ -4,6 +4,7 @@ module HuskGame
 
     attr_accessor :health, :deterioration_rate, :deterioration_progress
     attr_accessor :current_room, :rooms, :room_dimensions, :data_core, :breach
+    attr_accessor :all_unlocked, :unlock_terminal
 
     DOORS = {
       north:  1,
@@ -22,6 +23,8 @@ module HuskGame
       @health = 1.0
       @deterioration_rate = 100 * DETERIORATION_SCALE
       @data_core = nil
+      @all_unlocked = false
+      @unlock_terminal = nil
 
       # @room_dimensions = room_dimensions
 

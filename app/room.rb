@@ -63,6 +63,7 @@ module HuskGame
       @husk = husk
       @chaos = chaos
       @scale = scale
+      @entrance_door = entrance_door
       pixel_scale = $SPRITE_SCALES[@scale]
       @tile_dimensions = HuskGame::Constants::VIEWSCREEN_SIZE.div(pixel_scale)
       @tiles_target = Zif::RenderTarget.new(@name, width: HuskGame::Constants::VIEWSCREEN_SIZE, height: HuskGame::Constants::VIEWSCREEN_SIZE)
@@ -86,7 +87,7 @@ module HuskGame
 
       create_tiles
 
-      if entrance_door.nil?
+      if @entrance_door.nil?
         # Presumably we're in the entrypoint?
         breach = Breach.new
         @terminals << breach
@@ -94,10 +95,10 @@ module HuskGame
         @husk.breach = breach
       end
 
-      unless entrance_door.nil?
-        @doors_hash[entrance_door.door_side] = entrance_door
-        @doors << entrance_door
-        @no_populate_buffer << entrance_door.buffer
+      unless @entrance_door.nil?
+        @doors_hash[@entrance_door.door_side] = @entrance_door
+        @doors << @entrance_door
+        @no_populate_buffer << @entrance_door.buffer
       end
 
       populate_doors
@@ -134,6 +135,20 @@ module HuskGame
         @doors << new_door
         @no_populate_buffer << new_door.buffer
       end
+
+      # Ensure entrypoint always has at least one unlocked door
+      ensure_unlocked_door if @entrance_door.nil?
+    end
+
+    def ensure_unlocked_door
+      new_doors = @doors.select { |d| d != @entrance_door }
+      return if new_doors.empty?
+      return if new_doors.any? { |d| !d.locked }
+
+      # All doors are locked — unlock one at random (and its destination pair)
+      door = new_doors.sample
+      door.locked = false
+      door.destination_door.locked = false if door.destination_door
     end
 
     def find_empty_position wh=nil, max_attempts=100
@@ -269,6 +284,7 @@ module HuskGame
       populate_data_terminal
       populate_data_core
       populate_repairer
+      populate_unlock_terminal
     end
 
     def populate_data_terminal
@@ -313,6 +329,34 @@ module HuskGame
         scale: @scale
       )
       add_terminal(repairer)
+    end
+
+    def populate_unlock_terminal
+      # Only spawn one unlock terminal per husk
+      return if @husk.nil? || @husk.unlock_terminal
+
+      # Only spawn in rooms reachable via unlocked entrance
+      # (entrypoint has nil entrance_door, so it qualifies)
+      unless @entrance_door.nil?
+        return if @entrance_door.locked
+      end
+
+      # Skip chaos 0, 50% chance at chaos 1, guaranteed at chaos 2+
+      return if @chaos == 0
+      return if @chaos == 1 && rand(2) != 0
+
+      valid_position = find_empty_position
+      return if valid_position.nil?
+
+      unlock_terminal = UnlockTerminal.new(
+        x: valid_position[:x],
+        y: valid_position[:y],
+        scale: @scale,
+        facing: [:north, :south, :east, :west].sample.to_sym,
+        husk: @husk
+      )
+      add_terminal(unlock_terminal)
+      @husk.unlock_terminal = unlock_terminal
     end
 
     def add_terminal(terminal)

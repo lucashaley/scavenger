@@ -123,12 +123,7 @@ module HuskGame
           reduce_data @data_rate
 
           if @remaining_data <= 0
-            collidee.add_data_block(name: @name, size: @data, corrupted: @corrupted)
-            audio_feedback = @corrupted ? "sounds/voice_datacorrupted.wav" : "sounds/voice_datacollected.wav"
-            play_voiceover audio_feedback
-            # turn off the audio
-            @audio_idle = nil
-            $gtk.args.audio[@name.to_sym] = nil
+            on_data_depleted(collidee)
           end
 
           @previous_data_tick = Kernel.tick_count
@@ -139,6 +134,15 @@ module HuskGame
         # play_once @sound_collide
         bounce_off(collidee, collided_on)
       end
+    end
+
+    def on_data_depleted(collidee)
+      collidee.add_data_block(name: @name, size: @data, corrupted: @corrupted)
+      audio_feedback = @corrupted ? "sounds/voice_datacorrupted.wav" : "sounds/voice_datacollected.wav"
+      play_voiceover audio_feedback
+      # turn off the audio
+      @audio_idle = nil
+      $gtk.args.audio[@name.to_sym] = nil
     end
 
     def reduce_data(data=nil)
