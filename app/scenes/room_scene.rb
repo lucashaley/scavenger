@@ -263,7 +263,7 @@ module HuskGame
       @player_control = false
 
       $gtk.args.state.run.data_blocks = @ship.data_blocks
-      puts "state: #{$gtk.args.state.run.data_blocks}"
+      # puts "state: #{$gtk.args.state.run.data_blocks}"
 
       @fader.run_action(
         @fader.new_action({a: 255}, duration: 0.5.seconds, easing: :smooth_step3) {

@@ -11,7 +11,7 @@ module HuskEngine
       @state_name = state_name
       $gtk.args.state[state_name.to_sym] ||= []
 
-      puts "state: #{$gtk.args.state[state_name.to_sym]}"
+      # puts "state: #{$gtk.args.state[state_name.to_sym]}"
       $gtk.args.state[state_name.to_sym] << self
     end
   end
