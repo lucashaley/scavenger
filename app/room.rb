@@ -481,7 +481,7 @@ module HuskGame
     end
 
     def renders_over_player
-      @cached_renders_over ||= @walls + @agents
+      @cached_renders_over ||= @walls + @agents.reject(&:is_dead?)
     end
 
     def collidables
@@ -532,6 +532,8 @@ module HuskGame
       @agents.each(&:deactivate)
       @dressings.each(&:deactivate)
       @hazards.each { |h| h.deactivate_effect if h.is_a?(HuskEngine::Effectable) }
+      spatial_grid = $game&.services&.named(:spatial_grid)
+      spatial_grid.reset_grid if spatial_grid
     end
 
     def purge_deads

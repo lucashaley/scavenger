@@ -247,9 +247,7 @@ module HuskGame
 
       has_key = collidee.has_item?(@keyitem)
 
-      # Again, there has to be a better way
-      if (!@locked || has_key || room&.husk&.all_unlocked) && (((facing == :north || :south) && (@door_side == :north || :south)) ||
-        ((facing == :east || :west) && (@door_side == :east || :west)))
+      if (!@locked || has_key || room&.husk&.all_unlocked) && facing_matches_door?(facing)
 
         entering = case @door_side
                    when :north, :south
@@ -268,6 +266,13 @@ module HuskGame
         play_once @sound_bounce
         bounce_off(collidee, facing)
       end
+    end
+
+    def facing_matches_door?(facing)
+      vertical = [:north, :south]
+      horizontal = [:east, :west]
+      (vertical.include?(facing) && vertical.include?(@door_side)) ||
+        (horizontal.include?(facing) && horizontal.include?(@door_side))
     end
 
     def perform_tick

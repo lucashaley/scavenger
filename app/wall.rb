@@ -26,15 +26,14 @@ class Wall < HuskGame::HuskSprite
 
     set_position(x, y)
 
-    # Taking this out to try rotating compound sprites
-    unless [:north, :south, :east, :west].include? facing
-      # puts "CORNER"
-      SPRITE_DETAILS.name = 'wallcorner'
-    else
-      # puts "WALL"
-      SPRITE_DETAILS.name = 'wall'
+    # Corner pieces use a different sprite directory
+    is_corner = ![:north, :south, :east, :west].include?(facing)
+    if is_corner
+      SPRITE_DETAILS[:name] = 'wallcorner'
     end
     register_sprites_new
+    # Restore to default so the shared constant isn't left mutated
+    SPRITE_DETAILS[:name] = 'wall' if is_corner
 
     initialize_scaleable(scale)
     initialize_collideable

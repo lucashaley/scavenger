@@ -16,10 +16,10 @@ module HuskGame
     def initialize(
       x: 0,
       y: 0,
-      scale: scale,
+      scale: nil,
       spawn_class: nil,
       spawn_rate: 3.seconds,
-      room: room
+      room: nil
     )
       # puts "SPAWNER: INITIALIZE: #{spawn_class}"
       super(Zif.unique_name('Spawner'))
