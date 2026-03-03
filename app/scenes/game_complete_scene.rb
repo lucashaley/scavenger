@@ -1,10 +1,9 @@
 module HuskGame
-  class GameCompleteScene < Zif::Scene
+  class GameCompleteScene < HuskEngine::UtilityScene
     BUTTON_FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
-    TITLE_FONT = 'fonts/TAYRosemary.otf'.freeze
 
     def prepare_scene
-      @next_scene = nil
+      super
       @revealed = false
       @exiting = false
 
@@ -19,20 +18,6 @@ module HuskGame
       compute_stats
       setup_scene_labels
       setup_menu_button
-
-      @fader = Zif::Sprite.new.tap do |f|
-        f.x = 0
-        f.y = 0
-        f.w = 720
-        f.h = 1280
-        f.path = :solid
-        f.r = 0
-        f.g = 0
-        f.b = 0
-        f.a = 255
-      end
-      $game.services[:action_service].register_actionable(@fader)
-      $gtk.args.outputs.static_sprites << @fader
 
       $gtk.args.audio[:game_complete_music] ||= {
         input: "music/Lucas_HuskGame_118_DnB.wav",
@@ -92,17 +77,6 @@ module HuskGame
           r: 176, g: 191, b: 170
         }
       ].flatten
-    end
-
-    def blurred_label(x, y, text, size, offset)
-      base = { text: text, size_enum: size, font: TITLE_FONT, r: 176, g: 191, b: 170 }
-      shadows = [
-        { x: x,          y: y + offset },
-        { x: x,          y: y - offset },
-        { x: x - offset, y: y },
-        { x: x + offset, y: y }
-      ].map { |pos| base.merge(pos).merge(a: 76) }
-      shadows << base.merge(x: x, y: y, a: 255)
     end
 
     def setup_menu_button

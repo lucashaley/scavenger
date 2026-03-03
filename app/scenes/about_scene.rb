@@ -1,49 +1,98 @@
 # frozen_string_literal: true
 module HuskGame
   class AboutScene < HuskEngine::UtilityScene
+    BUTTON_FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
+
     def prepare_scene
       super
       @name = "About"
 
-      @menu_about_backdrop = Zif::Sprite.new('MenuAboutBackdrop').tap do |s|
-        s.w = 720
-        s.h = 1280
-        s.a = 255
-        s.path = 'sprites/menu_about_backdrop.png'
-      end
-      puts @menu_about_backdrop
-      @render_layers << @menu_about_backdrop
+      @background = {
+        x: 0, y: 0, w: 720, h: 1280,
+        path: :solid,
+        r: 58, g: 74, b: 58, a: 255
+      }
+      $gtk.args.outputs.static_sprites << @background
 
-      @menu_about_back = Zif::UI::TwoStageButton.new('MenuAboutBack').tap do |a|
-        a.x = 720.half
-        a.y = 188
-        a.w = 228
-        a.h = 97
-        a.normal << Zif::Sprite.new('MenuAboutBackNormal').tap do |n|
-          n.w = 228
-          n.h = 97
-          n.path = 'sprites/menu_main_about.png'
-        end
-        a.pressed << Zif::Sprite.new('MenuAboutBackPressed').tap do |p|
-          p.w = 228
-          p.h = 97
-          p.path = 'sprites/menu_main_about_pressed.png'
-        end
-        a.on_mouse_up = lambda do |_sprite, _point|
-          return unless @ready
-          exit_scene :menu_main
-        end
-        a.unpress
-      end
-      $game.services[:input_service].register_clickable @menu_about_back
-      @render_layers << @menu_about_back
-
-      $gtk.args.outputs.static_labels << @info
+      setup_scene_labels
+      setup_back_button
 
       $gtk.args.audio[:splash_music] ||= {
         input: "music/Lucas_HuskGame_intro_DnB.wav",
         looping: true,
         gain: 0.4
+      }
+    end
+
+    private
+
+    def setup_scene_labels
+      @scene_labels = [
+        blurred_label(60, 1100, 'HUSK', 38, 4),
+        blurred_label(60, 920, 'CREDITS', 14, 3),
+        credit_label(60, 840, 'Game Design & Code'),
+        credit_label(100, 800, 'Lucas Haley'),
+        credit_label(60, 720, 'Music & Audio'),
+        credit_label(100, 680, 'Atomicon'),
+        credit_label(60, 600, 'UI Assets'),
+        credit_label(100, 560, 'Kenney (kenney.nl)'),
+        credit_label(100, 520, 'CC0 License'),
+        credit_label(60, 440, 'UI Modifications'),
+        credit_label(100, 400, 'Dan Healy'),
+        credit_label(60, 320, 'Built with'),
+        credit_label(100, 280, 'DragonRuby Game Toolkit'),
+        credit_label(100, 240, 'Zif Framework'),
+      ].flatten
+    end
+
+    def credit_label(x, y, text)
+      {
+        x: x, y: y,
+        text: text,
+        size_enum: 4,
+        font: TITLE_FONT,
+        r: 176, g: 191, b: 170
+      }
+    end
+
+    def setup_back_button
+      btn_size = 128
+      btn_x = 720 - btn_size - 40
+      btn_y = 40
+
+      @back_button = Zif::UI::TwoStageButton.new('AboutBackBtn').tap do |b|
+        b.x = btn_x
+        b.y = btn_y
+        b.w = btn_size
+        b.h = btn_size
+        b.normal << Zif::Sprite.new('AboutBackBtnNormal').tap do |n|
+          n.w = btn_size
+          n.h = btn_size
+          n.path = 'sprites/ui_button_large_up.png'
+        end
+        b.pressed << Zif::Sprite.new('AboutBackBtnPressed').tap do |p|
+          p.w = btn_size
+          p.h = btn_size
+          p.path = 'sprites/ui_button_large_down.png'
+        end
+        b.on_mouse_up = lambda do |_sprite, _point|
+          return unless @ready
+          exit_scene :menu_main
+        end
+        b.unpress
+      end
+      $game.services[:input_service].register_clickable @back_button
+      @render_layers << @back_button
+
+      @scene_labels << {
+        x: btn_x + btn_size.half,
+        y: btn_y + btn_size.half + 8,
+        text: 'BACK',
+        size_enum: -1,
+        font: BUTTON_FONT,
+        alignment_enum: 1,
+        vertical_alignment_enum: 1,
+        r: 255, g: 255, b: 255
       }
     end
   end

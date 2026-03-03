@@ -3,6 +3,8 @@ module HuskEngine
   class UtilityScene < Zif::Scene
     include Zif::Traceable
 
+    TITLE_FONT = 'fonts/TAYRosemary.otf'.freeze
+
     attr :render_layers, :name, :fader
 
     def initialize
@@ -15,6 +17,7 @@ module HuskEngine
 
       # @fader
       @render_layers = []
+      @scene_labels = []
     end
 
     def prepare_scene
@@ -46,12 +49,15 @@ module HuskEngine
 
     def perform_tick
       # mark_and_print "perform_tick"
-      unless @started
-        enter_scene
+      enter_scene unless @started
+
+      $gtk.args.outputs.sprites << @render_layers unless @render_layers.empty?
+
+      if @ready
+        @scene_labels.each { |l| $gtk.args.outputs.labels << l } unless @scene_labels.empty?
       end
 
-      raise StandardError "No sprites!" if @render_layers.empty?
-      $gtk.args.outputs.sprites << @render_layers
+      $gtk.args.outputs.sprites << @fader
 
       return @next_scene
     end
@@ -78,6 +84,17 @@ module HuskEngine
           @next_scene = up_next
         end
       )
+    end
+
+    def blurred_label(x, y, text, size, offset)
+      base = { text: text, size_enum: size, font: TITLE_FONT, r: 176, g: 191, b: 170 }
+      shadows = [
+        { x: x,          y: y + offset },
+        { x: x,          y: y - offset },
+        { x: x - offset, y: y },
+        { x: x + offset, y: y }
+      ].map { |pos| base.merge(pos).merge(a: 76) }
+      shadows << base.merge(x: x, y: y, a: 255)
     end
   end
 end
