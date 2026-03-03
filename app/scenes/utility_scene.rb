@@ -86,8 +86,8 @@ module HuskEngine
       )
     end
 
-    def blurred_label(x, y, text, size, offset)
-      base = { text: text, size_enum: size, font: TITLE_FONT, r: 176, g: 191, b: 170 }
+    def blurred_label(x, y, text, size, offset, alignment_enum: 0)
+      base = { text: text, size_enum: size, font: TITLE_FONT, r: 176, g: 191, b: 170, alignment_enum: alignment_enum }
       shadows = [
         { x: x,          y: y + offset },
         { x: x,          y: y - offset },

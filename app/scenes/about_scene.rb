@@ -28,8 +28,8 @@ module HuskGame
 
     def setup_scene_labels
       @scene_labels = [
-        blurred_label(60, 1100, 'HUSK', 42, 4),
-        blurred_label(60, 920, 'CREDITS', 14, 3),
+        blurred_label(60, 1100, 'HUSK', 42, 2),
+        blurred_label(60, 920, 'CREDITS', 14, 1),
         credit_label(60, 840, 'Game Design & Code'),
         credit_label(100, 800, 'Lucas Haley'),
         credit_label(60, 720, 'Music & Audio'),
