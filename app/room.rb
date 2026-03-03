@@ -341,9 +341,16 @@ module HuskGame
         return if @entrance_door.locked
       end
 
+      # Check if all non-entrance doors are locked (player would be stuck)
+      non_entrance_doors = @doors.select { |d| d != @entrance_door }
+      all_locked = !non_entrance_doors.empty? && non_entrance_doors.all?(&:locked)
+
       # Skip chaos 0, 50% chance at chaos 1, guaranteed at chaos 2+
-      return if @chaos == 0
-      return if @chaos == 1 && rand(2) != 0
+      # UNLESS all doors are locked — force-spawn to prevent softlock
+      unless all_locked
+        return if @chaos == 0
+        return if @chaos == 1 && rand(2) != 0
+      end
 
       valid_position = find_empty_position
       return if valid_position.nil?
