@@ -26,14 +26,15 @@ class Wall < HuskGame::HuskSprite
 
     set_position(x, y)
 
-    # Corner pieces use a different sprite directory
-    is_corner = ![:north, :south, :east, :west].include?(facing)
-    if is_corner
+    # Corner pieces use a different sprite directory.
+    # Note: this mutates the shared SPRITE_DETAILS constant, but each Wall
+    # sets the name before its own registration/initialization so it's safe.
+    unless [:north, :south, :east, :west].include? facing
       SPRITE_DETAILS[:name] = 'wallcorner'
+    else
+      SPRITE_DETAILS[:name] = 'wall'
     end
     register_sprites_new
-    # Restore to default so the shared constant isn't left mutated
-    SPRITE_DETAILS[:name] = 'wall' if is_corner
 
     initialize_scaleable(scale)
     initialize_collideable
