@@ -64,7 +64,7 @@ module HuskGame
       @chaos = chaos
       @scale = scale
       @entrance_door = entrance_door
-      pixel_scale = $SPRITE_SCALES[@scale]
+      pixel_scale = HuskGame::Constants::SPRITE_SCALES[@scale]
       @tile_dimensions = HuskGame::Constants::VIEWSCREEN_SIZE.div(pixel_scale)
       @tiles_target = Zif::RenderTarget.new(@name, width: HuskGame::Constants::VIEWSCREEN_SIZE, height: HuskGame::Constants::VIEWSCREEN_SIZE)
       @doors = []
@@ -153,14 +153,14 @@ module HuskGame
 
     def find_empty_position wh=nil, max_attempts=100
       wh ||= {
-        w: $SPRITE_SCALES[@scale],
-        h: $SPRITE_SCALES[@scale]
+        w: HuskGame::Constants::SPRITE_SCALES[@scale],
+        h: HuskGame::Constants::SPRITE_SCALES[@scale]
       }
-      wall_doubled = $SPRITE_SCALES[@scale] * 2
+      wall_doubled = HuskGame::Constants::SPRITE_SCALES[@scale] * 2
       playable_x = HuskGame::Constants::VIEWSCREEN_SIZE - wall_doubled - wh.w
-      playable_x_margin = HuskGame::Constants::VIEWSCREEN_OFFSET_X + $SPRITE_SCALES[@scale]
+      playable_x_margin = HuskGame::Constants::VIEWSCREEN_OFFSET_X + HuskGame::Constants::SPRITE_SCALES[@scale]
       playable_y = HuskGame::Constants::VIEWSCREEN_SIZE - wall_doubled - wh.h
-      playable_y_margin = HuskGame::Constants::VIEWSCREEN_OFFSET_Y + $SPRITE_SCALES[@scale]
+      playable_y_margin = HuskGame::Constants::VIEWSCREEN_OFFSET_Y + HuskGame::Constants::SPRITE_SCALES[@scale]
       success = false
       loops = 0
       # puts "find_empty_position initial state: #{playable_x}, #{playable_y}, #{playable_x_margin}, #{playable_y_margin}"
@@ -570,7 +570,7 @@ module HuskGame
     def create_tiles
       viewscreen_offset_x = HuskGame::Constants::VIEWSCREEN_OFFSET_X
       viewscreen_offset_y = HuskGame::Constants::VIEWSCREEN_OFFSET_Y
-      pixel_scale = $SPRITE_SCALES[@scale]
+      pixel_scale = HuskGame::Constants::SPRITE_SCALES[@scale]
 
       @walls = []
       @tile_dimensions.times do |x|

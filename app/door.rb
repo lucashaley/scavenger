@@ -57,7 +57,7 @@ module HuskGame
 
       @exit_point = { x: 0, y: 0 }
 
-      pixel_scale = $SPRITE_SCALES[scale]
+      pixel_scale = HuskGame::Constants::SPRITE_SCALES[scale]
       tile_dimensions = 640.div(pixel_scale)
       exit_offset = pixel_scale + (pixel_scale * 0.25).truncate
       # create a buffer along the edge
@@ -279,7 +279,7 @@ module HuskGame
       return if @locked && !room&.husk&.all_unlocked && $gtk.args.state.ship.has_item?(@keyitem) == false
 
       dist = $gtk.args.geometry.distance self.rect, $gtk.args.state.ship.rect #$game.scene.ship.rect
-      threshold = $SPRITE_SCALES[@scale] * 2
+      threshold = HuskGame::Constants::SPRITE_SCALES[@scale] * 2
       if dist < threshold && @approached == false
         @approached = true
         @sprites.find { |s| s.name == "door_doors_#{scale}" }.run_animation_sequence(:open)

@@ -7,15 +7,6 @@ module HuskGame
 
       @tracer_service_name = :tracer
 
-      # Set up global constants for backward compatibility
-      # TODO: Refactor code to use HuskGame::Constants directly instead of globals
-      $SPRITE_SCALES = HuskGame::Constants::SPRITE_SCALES
-      $LABEL_STYLE = HuskGame::Constants::LABEL_STYLE
-      $BACKGROUND_STYLE = HuskGame::Constants::BACKGROUND_STYLE
-      $ui_viewscreen_border = HuskGame::Constants::VIEWSCREEN_BORDER
-      $ui_viewscreen_dimensions = HuskGame::Constants::VIEWSCREEN_SIZE
-      $ui_viewscreen = HuskGame::Constants::VIEWSCREEN
-
       @services.register(:effect_service, Services::EffectService.new)
       @services.register(:tick_service, Services::TickService.new)
       @services.register(:emp_service, Services::EmpService.new)

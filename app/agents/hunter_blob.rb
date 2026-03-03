@@ -81,18 +81,19 @@ module HuskGame
 
       # This is copypasta from Ship
       # And has totally not been tested, because how can I make it go out of bounds?
-      if @x + @w > $ui_viewscreen.right
-        @x -= (@x + @w - $ui_viewscreen.right)
+      viewscreen = HuskGame::Constants::VIEWSCREEN
+      if @x + @w > viewscreen.right
+        @x -= (@x + @w - viewscreen.right)
         @momentum.x *= -1.0
-      elsif @x < $ui_viewscreen.left
-        @x += $ui_viewscreen.left - @x
+      elsif @x < viewscreen.left
+        @x += viewscreen.left - @x
         @momentum.x *= -1.0
       end
-      if @y + @h > $ui_viewscreen.top
-        @y -= (@y + @h - $ui_viewscreen.top)
+      if @y + @h > viewscreen.top
+        @y -= (@y + @h - viewscreen.top)
         @momentum.y *= -1.0
-      elsif @y < $ui_viewscreen.bottom
-        @y += $ui_viewscreen.bottom - @y
+      elsif @y < viewscreen.bottom
+        @y += viewscreen.bottom - @y
         @momentum.y *= -1.0
       end
 

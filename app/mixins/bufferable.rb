@@ -1,6 +1,6 @@
 module HuskEngine
   module Bufferable
-    $BUFFER_SCALES = {
+    BUFFER_SCALES = {
       none: 0,
       single: 1,
       double: 2,
@@ -12,10 +12,10 @@ module HuskEngine
 
     def initialize_bufferable(buffer_scale)
       # puts "#{@x}, #{@y}"
-      raise ArgumentError unless $BUFFER_SCALES.key?(buffer_scale)
+      raise ArgumentError unless BUFFER_SCALES.key?(buffer_scale)
       raise "Bufferable received a zeroed location" if @x == 0 || @y == 0
 
-      @buffer_scale = $BUFFER_SCALES[buffer_scale] # 3
+      @buffer_scale = BUFFER_SCALES[buffer_scale] # 3
 
       sprite_scale = self.class::SPRITE_DETAILS[:scales][@scale]
 

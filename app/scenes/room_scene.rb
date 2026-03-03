@@ -456,7 +456,7 @@ module HuskGame
       # Player info
       # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style
       # $gtk.args.outputs.debug.watch pretty_format(@map.layers[:ship].sprites), label_style: @label_style, background_style: @background_style
-      $gtk.args.outputs.debug.watch [@ship.emp_count, @husk.health, @husk.current_room.scale], label_style: $LABEL_STYLE, background_style: $BACKGROUND_STYLE
+      $gtk.args.outputs.debug.watch [@ship.emp_count, @husk.health, @husk.current_room.scale], label_style: @label_style, background_style: @background_style
     end
   end
 end
