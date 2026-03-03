@@ -87,6 +87,7 @@ module HuskGame
     def initialize_data_collection
       @facing = :north
       @data = 0
+      @data_source = nil
       @data_blocks = []
       @data_block_count = 6
     end
@@ -395,8 +396,12 @@ module HuskGame
     end
 
 
-    def add_data (amount)
-      # puts "Ship:add_data #{amount}"
+    def add_data(amount, source: nil)
+      if source && source != @data_source
+        @data = 0
+        @data_progress.progress = 0
+        @data_source = source
+      end
       @data += amount
       @data_progress.progress = @data * 0.001
     end
@@ -412,6 +417,7 @@ module HuskGame
       end
       puts "data_blocks: #{@data_blocks}"
       @data = 0
+      @data_source = nil
       @data_progress.progress = 0
     end
 

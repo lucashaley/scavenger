@@ -118,7 +118,7 @@ module HuskGame
           @interfacing = true
           # puts "interfacing: #{@interfacing}, data_rate: #{@data_rate}"
 
-          collidee.add_data(@data_rate)
+          collidee.add_data(@data_rate, source: self)
 
           reduce_data @data_rate
 
