@@ -28,20 +28,15 @@ module HuskGame
 
     def setup_scene_labels
       @scene_labels = [
-        blurred_label(60, 1100, 'HUSK', 38, 4),
+        blurred_label(60, 1100, 'HUSK', 42, 4),
         blurred_label(60, 920, 'CREDITS', 14, 3),
         credit_label(60, 840, 'Game Design & Code'),
         credit_label(100, 800, 'Lucas Haley'),
         credit_label(60, 720, 'Music & Audio'),
         credit_label(100, 680, 'Atomicon'),
-        credit_label(60, 600, 'UI Assets'),
-        credit_label(100, 560, 'Kenney (kenney.nl)'),
-        credit_label(100, 520, 'CC0 License'),
-        credit_label(60, 440, 'UI Modifications'),
-        credit_label(100, 400, 'Dan Healy'),
         credit_label(60, 320, 'Built with'),
         credit_label(100, 280, 'DragonRuby Game Toolkit'),
-        credit_label(100, 240, 'Zif Framework'),
+        credit_label(100, 240, 'Zif Framework (Dan Healy)'),
       ].flatten
     end
 
@@ -49,7 +44,7 @@ module HuskGame
       {
         x: x, y: y,
         text: text,
-        size_enum: 4,
+        size_enum: 5,
         font: TITLE_FONT,
         r: 176, g: 191, b: 170
       }
