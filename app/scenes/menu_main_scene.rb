@@ -8,9 +8,8 @@ module HuskGame
 
       @background = {
         x: 0, y: 0, w: 720, h: 1280,
-        path: :solid,
-        r: 58, g: 74, b: 58, a: 255
-      }
+        path: :solid, a: 255
+      }.merge(HuskGame::Constants::COLOR_DARK_GREEN)
       $gtk.args.outputs.static_sprites << @background
 
       setup_scene_labels
@@ -58,7 +57,7 @@ module HuskGame
       $game.services[:input_service].register_clickable @play_button
       @render_layers << @play_button
 
-      @scene_labels += blurred_label(680, btn_y + btn_h - 10, 'PLAY', 48, 5, alignment_enum: 2)
+      pulsing_blurred_label(680, btn_y + btn_h - 10, 'PLAY', 48, 1, 3, alignment_enum: 2)
     end
 
     def setup_about_button

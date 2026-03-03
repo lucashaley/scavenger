@@ -9,9 +9,8 @@ module HuskGame
 
       @background = {
         x: 0, y: 0, w: 720, h: 1280,
-        path: :solid,
-        r: 58, g: 74, b: 58, a: 255
-      }
+        path: :solid, a: 255
+      }.merge(HuskGame::Constants::COLOR_DARK_GREEN)
       $gtk.args.outputs.static_sprites << @background
 
       setup_scene_labels
@@ -45,9 +44,8 @@ module HuskGame
         x: x, y: y,
         text: text,
         size_enum: 5,
-        font: TITLE_FONT,
-        r: 176, g: 191, b: 170
-      }
+        font: TITLE_FONT
+      }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN)
     end
 
     def setup_back_button

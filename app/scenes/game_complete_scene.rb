@@ -9,9 +9,8 @@ module HuskGame
 
       @background = {
         x: 0, y: 0, w: 720, h: 1280,
-        path: :solid,
-        r: 58, g: 74, b: 58, a: 255
-      }
+        path: :solid, a: 255
+      }.merge(HuskGame::Constants::COLOR_DARK_GREEN)
       $gtk.args.outputs.static_sprites << @background
 
       @data_blocks = $gtk.args.state.run.data_blocks
@@ -58,24 +57,18 @@ module HuskGame
         {
           x: 60, y: 520,
           text: "#{@collected_count} datablocks collected.",
-          size_enum: 4,
-          font: TITLE_FONT,
-          r: 176, g: 191, b: 170
-        },
+          size_enum: 4, font: TITLE_FONT
+        }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN),
         {
           x: 60, y: 470,
           text: "#{@corrupted_count} corrupted blocks.",
-          size_enum: 4,
-          font: TITLE_FONT,
-          r: 176, g: 191, b: 170
-        },
+          size_enum: 4, font: TITLE_FONT
+        }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN),
         {
           x: 60, y: 420,
           text: @elapsed_text,
-          size_enum: 4,
-          font: TITLE_FONT,
-          r: 176, g: 191, b: 170
-        }
+          size_enum: 4, font: TITLE_FONT
+        }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN)
       ].flatten
     end
 

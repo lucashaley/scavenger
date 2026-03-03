@@ -18,6 +18,7 @@ module HuskEngine
       # @fader
       @render_layers = []
       @scene_labels = []
+      @pulsing_labels = []
     end
 
     def prepare_scene
@@ -55,6 +56,7 @@ module HuskEngine
 
       if @ready
         @scene_labels.each { |l| $gtk.args.outputs.labels << l } unless @scene_labels.empty?
+        render_pulsing_labels unless @pulsing_labels.empty?
       end
 
       $gtk.args.outputs.sprites << @fader
@@ -86,8 +88,25 @@ module HuskEngine
       )
     end
 
+    def pulsing_blurred_label(x, y, text, size, min_offset, max_offset, speed: 0.05, alignment_enum: 0)
+      @pulsing_labels << {
+        x: x, y: y, text: text, size: size,
+        min_offset: min_offset, max_offset: max_offset,
+        speed: speed, alignment_enum: alignment_enum
+      }
+    end
+
+    def render_pulsing_labels
+      @pulsing_labels.each do |pl|
+        wave = (Math.sin(Kernel.tick_count * pl[:speed]) + 1.0) * 0.5
+        offset = pl[:min_offset] + (pl[:max_offset] - pl[:min_offset]) * wave
+        labels = blurred_label(pl[:x], pl[:y], pl[:text], pl[:size], offset, alignment_enum: pl[:alignment_enum])
+        labels.each { |l| $gtk.args.outputs.labels << l }
+      end
+    end
+
     def blurred_label(x, y, text, size, offset, alignment_enum: 0)
-      base = { text: text, size_enum: size, font: TITLE_FONT, r: 176, g: 191, b: 170, alignment_enum: alignment_enum }
+      base = { text: text, size_enum: size, font: TITLE_FONT, alignment_enum: alignment_enum }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN)
       shadows = [
         { x: x,          y: y + offset },
         { x: x,          y: y - offset },

@@ -42,6 +42,10 @@ module HuskGame
       path: :solid
     }.freeze
 
+    # Colors
+    COLOR_DARK_GREEN = { r: 54, g: 63, b: 54 }.freeze
+    COLOR_LIGHT_GREEN = { r: 198, g: 207, b: 186 }.freeze
+
     # Blend modes
     BLENDMODE = {
       none: 0,
