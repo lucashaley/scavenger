@@ -99,6 +99,7 @@ module HuskGame
 
     def prepare_scene
       puts "\n\nROOM_SCENE: PREPARE_SCENE\n\n"
+      $gtk.args.state.run.start_tick = Kernel.tick_count
       register_all_sprites
       setup_fader
       setup_ship
@@ -271,7 +272,7 @@ module HuskGame
       @player_control = false
 
       $gtk.args.state.run.data_blocks = @ship.data_blocks
-      # puts "state: #{$gtk.args.state.run.data_blocks}"
+      $gtk.args.state.run.end_tick = Kernel.tick_count
 
       @fader.run_action(
         @fader.new_action({a: 255}, duration: 0.5.seconds, easing: :smooth_step3) {

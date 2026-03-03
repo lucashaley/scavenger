@@ -537,9 +537,13 @@ module HuskGame
     def purge_deads
       old_pickup_count = @pickups.length
       old_hazard_count = @hazards.length
+      old_agent_count = @agents.length
       @pickups.reject!(&:is_dead?)
       @hazards.reject!(&:is_dead?)
-      invalidate_caches if @pickups.length != old_pickup_count || @hazards.length != old_hazard_count
+      @agents.reject!(&:is_dead?)
+      invalidate_caches if @pickups.length != old_pickup_count ||
+                           @hazards.length != old_hazard_count ||
+                           @agents.length != old_agent_count
     end
 
     def serialize

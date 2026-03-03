@@ -1,28 +1,23 @@
 module HuskGame
   class GameCompleteScene < Zif::Scene
-    FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
+    BUTTON_FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
+    TITLE_FONT = 'fonts/TAYRosemary.otf'.freeze
 
     def prepare_scene
       @next_scene = nil
+      @revealed = false
+      @exiting = false
 
-      @black_background = {
+      @background = {
         x: 0, y: 0, w: 720, h: 1280,
         path: :solid,
-        r: 0, g: 0, b: 0, a: 255
+        r: 58, g: 74, b: 58, a: 255
       }
-      $gtk.args.outputs.static_sprites << @black_background
+      $gtk.args.outputs.static_sprites << @background
 
-      @game_complete_image = Zif::Sprite.new.tap do |i|
-        i.x = 0
-        i.y = 0
-        i.h = 1280
-        i.w = 720
-        i.a = 0
-        i.path = 'sprites/ui_game_complete.png'
-      end
-      $game.services[:action_service].register_actionable(@game_complete_image)
-      $gtk.args.outputs.static_sprites << @game_complete_image
-
+      @data_blocks = $gtk.args.state.run.data_blocks
+      compute_stats
+      setup_scene_labels
       setup_menu_button
 
       @fader = Zif::Sprite.new.tap do |f|
@@ -34,7 +29,7 @@ module HuskGame
         f.r = 0
         f.g = 0
         f.b = 0
-        f.a = 0
+        f.a = 255
       end
       $game.services[:action_service].register_actionable(@fader)
       $gtk.args.outputs.static_sprites << @fader
@@ -46,7 +41,75 @@ module HuskGame
       }
       @audio_fade = false
 
-      @data_blocks = $gtk.args.state.run.data_blocks
+    end
+
+    def compute_stats
+      blocks = @data_blocks || []
+      collected = blocks.select { |b| b }
+      @collected_count = collected.length
+      @corrupted_count = collected.select { |b| b[:corrupted] }.length
+
+      start_tick = $gtk.args.state.run.start_tick || 0
+      end_tick = $gtk.args.state.run.end_tick || 0
+      elapsed_ticks = end_tick - start_tick
+      elapsed_ticks = elapsed_ticks.to_i
+      total_seconds = elapsed_ticks.idiv(60)
+      tenths = (elapsed_ticks % 60) * 10
+      tenths = tenths.idiv(60)
+      minutes = total_seconds.idiv(60)
+      seconds = total_seconds % 60
+      @elapsed_text = if minutes > 0
+                        "Completed in #{minutes}m #{seconds}.#{tenths}s."
+                      else
+                        "Completed in #{seconds}.#{tenths} seconds."
+                      end
+    end
+
+    def setup_scene_labels
+      @scene_labels = [
+        {
+          x: 60, y: 920,
+          text: 'RUN COMPLETE',
+          size_enum: 38,
+          font: TITLE_FONT,
+          r: 176, g: 191, b: 170
+        },
+        {
+          x: 60, y: 720,
+          text: 'YOU GOT IN,',
+          size_enum: 8,
+          font: TITLE_FONT,
+          r: 176, g: 191, b: 170
+        },
+        {
+          x: 60, y: 640,
+          text: 'YOU GOT OUT.',
+          size_enum: 8,
+          font: TITLE_FONT,
+          r: 176, g: 191, b: 170
+        },
+        {
+          x: 60, y: 520,
+          text: "#{@collected_count} datablocks collected.",
+          size_enum: 4,
+          font: TITLE_FONT,
+          r: 176, g: 191, b: 170
+        },
+        {
+          x: 60, y: 470,
+          text: "#{@corrupted_count} corrupted blocks.",
+          size_enum: 4,
+          font: TITLE_FONT,
+          r: 176, g: 191, b: 170
+        },
+        {
+          x: 60, y: 420,
+          text: @elapsed_text,
+          size_enum: 4,
+          font: TITLE_FONT,
+          r: 176, g: 191, b: 170
+        }
+      ]
     end
 
     def setup_menu_button
@@ -70,6 +133,8 @@ module HuskGame
           p.path = 'sprites/ui_button_large_down.png'
         end
         b.on_mouse_up = lambda do |_sprite, _point|
+          return if @exiting
+          @exiting = true
           @fader.run_action(
             @fader.new_action({a: 255}, duration: 0.5.seconds, easing: :smooth_step3) {
               @next_scene = :menu_main
@@ -84,8 +149,8 @@ module HuskGame
         x: btn_x + btn_size.half,
         y: btn_y + btn_size.half + 8,
         text: 'MENU',
-        size: -2,
-        font: FONT,
+        size_enum: -1,
+        font: BUTTON_FONT,
         alignment_enum: 1,
         vertical_alignment_enum: 1,
         r: 255, g: 255, b: 255
@@ -93,23 +158,24 @@ module HuskGame
     end
 
     def perform_tick
-      # puts "GAME COMPLETE"
-
       handle_meta_input
       handle_input
 
-      @data_blocks = $gtk.args.state.run.data_blocks
-
       unless @started
-        @game_complete_image.run_action(
-          @game_complete_image.new_action({a: 255}, duration: 0.5.seconds, easing: :smooth_step3)
+        @fader.run_action(
+          @fader.new_action({a: 0}, duration: 0.5.seconds, easing: :smooth_step3) {
+            @revealed = true
+          }
         )
         @started = true
       end
 
-      $gtk.args.outputs.primitives << render_data_blocks
-      $gtk.args.outputs.sprites << @menu_button
-      $gtk.args.outputs.labels << @menu_label
+      if @revealed && !@exiting
+        @scene_labels.each { |l| $gtk.args.outputs.labels << l }
+        $gtk.args.outputs.primitives << render_data_blocks
+        $gtk.args.outputs.sprites << @menu_button
+        $gtk.args.outputs.labels << @menu_label
+      end
 
       return @next_scene
     end
@@ -129,14 +195,11 @@ module HuskGame
     end
 
     def render_data_blocks
-      # puts "rendering data"
       output = []
       x_offset = 100
       y_offset = 40
-      # puts "data_blocks: #{@data_blocks}"
       6.times do |i|
         data = @data_blocks[i]
-        # puts "data: #{data}"
         data_corrupted = nil
         unless data.nil?
           data_corrupted = data[:corrupted]
