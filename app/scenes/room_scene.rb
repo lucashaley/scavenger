@@ -187,6 +187,14 @@ module HuskGame
       }
     end
 
+    def blink_alpha(health)
+      return (health * 255).to_i if health >= 1.0
+
+      speed = (1.0 - health) * 0.3
+      wave = (Math.sin(Kernel.tick_count * speed) + 1.0) / 2.0
+      (health * 255 * wave).to_i
+    end
+
     def setup_ui_labels
       @ui_label_husk = Zif::UI::Label.new(
         'husk integrity:',
@@ -388,10 +396,10 @@ module HuskGame
 
       # @ui_ship_health_west.assign({a: @ship.health_west * 255})
 
-      @ui_ship_health_west.a = @ship.health_west * 255
-      @ui_ship_health_east.a = @ship.health_east * 255
-      @ui_ship_health_north.a = @ship.health_north * 255
-      @ui_ship_health_south.a = @ship.health_south * 255
+      @ui_ship_health_west.a = blink_alpha(@ship.health_west)
+      @ui_ship_health_east.a = blink_alpha(@ship.health_east)
+      @ui_ship_health_north.a = blink_alpha(@ship.health_north)
+      @ui_ship_health_south.a = blink_alpha(@ship.health_south)
 
       # puts "west: #{@ui_ship_health_west.a}"
 
