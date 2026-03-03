@@ -67,27 +67,9 @@ module HuskGame
 
     def setup_scene_labels
       @scene_labels = [
-        {
-          x: 60, y: 920,
-          text: 'RUN COMPLETE',
-          size_enum: 38,
-          font: TITLE_FONT,
-          r: 176, g: 191, b: 170
-        },
-        {
-          x: 60, y: 720,
-          text: 'YOU GOT IN,',
-          size_enum: 8,
-          font: TITLE_FONT,
-          r: 176, g: 191, b: 170
-        },
-        {
-          x: 60, y: 640,
-          text: 'YOU GOT OUT.',
-          size_enum: 8,
-          font: TITLE_FONT,
-          r: 176, g: 191, b: 170
-        },
+        blurred_label(60, 920, 'RUN COMPLETE', 38, 4),
+        blurred_label(60, 720, 'YOU GOT IN,', 8, 2),
+        blurred_label(60, 640, 'YOU GOT OUT.', 8, 2),
         {
           x: 60, y: 520,
           text: "#{@collected_count} datablocks collected.",
@@ -109,7 +91,18 @@ module HuskGame
           font: TITLE_FONT,
           r: 176, g: 191, b: 170
         }
-      ]
+      ].flatten
+    end
+
+    def blurred_label(x, y, text, size, offset)
+      base = { text: text, size_enum: size, font: TITLE_FONT, r: 176, g: 191, b: 170 }
+      shadows = [
+        { x: x,          y: y + offset },
+        { x: x,          y: y - offset },
+        { x: x - offset, y: y },
+        { x: x + offset, y: y }
+      ].map { |pos| base.merge(pos).merge(a: 76) }
+      shadows << base.merge(x: x, y: y, a: 255)
     end
 
     def setup_menu_button
