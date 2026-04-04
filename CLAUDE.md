@@ -41,9 +41,11 @@ DRGTK uses mRuby, which is a limited version of Ruby. Make sure to only use the 
 ### Key Globals
 
 - `$game` — `HuskGame::BaseGame` instance (extends `Zif::Game`)
-- `$services` — Service container (accessed via `$game.services[:name]` or `$game.services.named(:name)`)
 - `$gtk` — DragonRuby toolkit reference
-- `$SPRITE_SCALES`, `$ui_viewscreen`, etc. — Legacy globals from `HuskGame::Constants` (migration to constants module is in progress)
+
+**Service access:** Always use `$game.services[:name]`. The legacy `$services` shorthand and `.named(:name)` alias still work but should not be used in new code. All app/ code has been standardized to `$game.services[:name]`.
+
+No game-specific globals remain — `$SPRITE_SCALES` and `$ui_viewscreen` have been migrated to `HuskGame::Constants`.
 
 ### Scene Flow
 
@@ -80,20 +82,34 @@ def initialize
 end
 ```
 
-Key mixins: `Collideable` (includes Bounceable + Soundable), `Scaleable` (multi-scale sprite management), `Faceable` (NSEW directions), `Tickable`, `Bufferable` (collision buffers), `Effectable` (force fields), `Empable`, `LazySprite` (lazy-loads SPRITE_DETAILS constant).
+Key mixins: `Collideable` (includes Bounceable + Soundable), `Scaleable` (multi-scale sprite management), `Faceable` (NSEW directions + `facing_opposite?` helper), `Tickable`, `Bufferable` (collision buffers), `Effectable` (force fields with `@effect_direction` — 1=attract, -1=repulse), `Empable` (includes Soundable), `Boundable` (viewport bounds-checking), `LazySprite` (lazy-loads SPRITE_DETAILS constant).
+
+Mixin dependency chains are documented as comments at the top of `Collideable`, `Bounceable`, and `Empable`. Each comment lists: what the mixin includes, what methods the including class must define, and the expected init order.
 
 ### Sprite Data System
 
-Sprite configurations live in `app/data/sprites/<name>.rb` as Ruby hashes defining layers, blend modes, z-indices, scales, and animations. These are loaded by `SpriteDataLoader` and cached. Each entity class exposes them via `def self.sprite_details` with lazy loading through the `LazySprite` mixin's `const_missing` hook on `SPRITE_DETAILS`.
+Sprite configurations live in `app/data/sprites/<name>.rb` as Ruby hashes defining layers, blend modes, z-indices, scales, and animations. These are loaded by `SpriteDataLoader` and cached.
+
+Entity classes declare their sprite data with the `sprite_data` class macro (defined in `HuskSprite`):
+
+```ruby
+class Mine < HuskGame::HuskSprite
+  sprite_data 'mine'  # loads app/data/sprites/mine.rb, images from sprites/mine/
+  # ...
+end
+```
+
+This replaces the old manual `def self.sprite_details` pattern. The `LazySprite` mixin's `const_missing` hook on `SPRITE_DETAILS` still handles the lazy loading.
 
 Sprite image files live in `sprites/<name>/` and are auto-discovered and registered with `Zif::SpriteRegistry` during `register_sprites_new`.
 
 ### Room & World Structure
 
 - **Husk** — The world container, tracks rooms and global state
-- **Room** — A single screen. Procedurally populates doors, hazards, pickups, terminals, agents, dressings, and decorations using `find_empty_position` to avoid overlap via `no_populate_buffer`
-- **Door** — Connects rooms; entering a door generates a new room at the target scale
-- Rooms have a `scale` (`:large`, `:medium`, `:small`) that determines sprite sizes and tile counts
+- **Room** — A single screen. Entity storage, tile creation, render caching, spatial grid, activation/deactivation (~267 lines)
+- **RoomPopulator** — Handles all procedural room population (doors, hazards, pickups, terminals, agents, dressings, decorations). Uses `find_empty_position` to avoid overlap via `no_populate_buffer`. Called once during Room initialization.
+- **Door** — Connects rooms; entering a door generates a new room at the target scale. Entry logic in `can_enter_door?` checks facing, lock status, and alignment tolerance.
+- Rooms have a `scale` (`:large`, `:medium`, `:small`, `:tiny`) that determines sprite sizes and tile counts
 
 ### RoomScene Fragments
 
@@ -111,4 +127,15 @@ Entities with `Collideable` must implement `collide_action(collider, side)`. Col
 - Screen: 720×1280 (portrait)
 - Viewscreen (game area): 640×640 at offset (40, 560)
 - Sprite scales: large=64px, medium=40px, small=32px, tiny=16px
-- Constants defined in `HuskGame::Constants` (`app/constants.rb`)
+- Constants defined in `HuskGame::Constants` (`app/constants.rb`) — includes screen layout, sprite scales, bounce scales, game balance values (EMP thresholds, physics, progress bar dimensions, music volume), and blend modes
+
+### Conventions
+
+- **Attribute visibility:** Use `attr_reader` by default. Only use `attr_accessor` when the attribute is written from outside the class (document why with a comment). See Ship, Room, Husk for examples.
+- **Named constants:** Game balance values (damage, speeds, thresholds, spawn rates) should be named constants — shared ones in `HuskGame::Constants`, class-specific ones as class-level constants. Avoid magic numbers.
+- **Mixin initialization:** Call `initialize_<mixin>` methods in the constructor. Follow the dependency order documented in each mixin's header comment.
+
+## Claude Behavior
+
+- Please remind me to commit changes when I seem to be satisfied, and are moving on to something new.
+- Please call me "my good friend" every now and then, so I'm not so lonely
