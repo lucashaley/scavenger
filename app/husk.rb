@@ -2,9 +2,10 @@ module HuskGame
   class Husk
     include HuskEngine::Soundable
 
-    attr_accessor :health, :deterioration_rate, :deterioration_progress
-    attr_accessor :current_room, :rooms, :room_dimensions, :data_core, :breach
-    attr_accessor :all_unlocked, :unlock_terminal
+    attr_reader :health, :deterioration_rate, :deterioration_progress
+    attr_reader :current_room
+    attr_accessor :data_core, :breach  # written by RoomPopulator
+    attr_accessor :all_unlocked, :unlock_terminal  # written by UnlockTerminal
 
     DOORS = {
       north:  1,
@@ -14,6 +15,13 @@ module HuskGame
     }
 
     DETERIORATION_SCALE = 0.000001
+
+    HEALTH_WARNING_THRESHOLDS = {
+      first:  0.4,
+      second: 0.3,
+      third:  0.2,
+      fourth: 0.1
+    }.freeze
 
     def initialize (
       density=0.6,
@@ -33,9 +41,10 @@ module HuskGame
       switch_rooms @entrypoint
 
       # UI Progress bar
-      @deterioration_progress = ExampleApp::ProgressBar.new(:count_progress, 440, 0, :white)
-      @deterioration_progress.x = 720 - 40 - 440 # 360 - (400 * 0.5)
-      @deterioration_progress.y = 1220
+      bar_w = HuskGame::Constants::PROGRESS_BAR_WIDTH
+      @deterioration_progress = ExampleApp::ProgressBar.new(:count_progress, bar_w, 0, :white)
+      @deterioration_progress.x = HuskGame::Constants::SCREEN_WIDTH - HuskGame::Constants::VIEWSCREEN_BORDER - bar_w
+      @deterioration_progress.y = HuskGame::Constants::PROGRESS_BAR_Y_HUSK
       @deterioration_progress.view_actual_size!
       # @deterioration_progress.hide
 
@@ -68,20 +77,21 @@ module HuskGame
       @health -= @deterioration_rate
       @deterioration_progress.progress = @health
 
-      if @health < 0.4 && @warning == :none
+      thresholds = HEALTH_WARNING_THRESHOLDS
+      if @health < thresholds[:first] && @warning == :none
         puts "Warning!"
         @warning = :once
         play_voiceover(HuskGame::AssetPaths::Audio::VOICE_WARNING_HUSK_INTEGRITY)
       end
-      if @health < 0.3 && @warning == :once
+      if @health < thresholds[:second] && @warning == :once
         @warning = :twice
         play_voiceover(HuskGame::AssetPaths::Audio::VOICE_WARNING)
       end
-      if @health < 0.2 && @warning == :twice
+      if @health < thresholds[:third] && @warning == :twice
         @warning = :thrice
         play_voiceover(HuskGame::AssetPaths::Audio::VOICE_RETURN_TO_BREACH)
       end
-      if @health < 0.1 && @warning == :thrice
+      if @health < thresholds[:fourth] && @warning == :thrice
         @warning = :fourice
         play_voiceover(HuskGame::AssetPaths::Audio::VOICE_RETURN_TO_BREACH)
       end

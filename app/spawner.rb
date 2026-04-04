@@ -7,9 +7,7 @@ module HuskGame
     include HuskGame::Roomable
     include Zif::Traceable
 
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('crate')
-    end
+    sprite_data 'crate'
 
     attr_reader :spawn_class, :rate
 

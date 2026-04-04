@@ -1,24 +1,17 @@
 class Wall < HuskGame::HuskSprite
   include HuskEngine::Collideable
-  include HuskEngine::Bounceable
   include HuskEngine::Scaleable
   include HuskEngine::Faceable
 
-  BOUNCE_SCALES = {
-    large: 0.8,
-    medium: 0.4,
-    small: 0.1
-  }
+  sprite_data 'wall'
 
-  # Load sprite details from external YAML file
-  def self.sprite_details
-    @sprite_details ||= $game.services[:sprite_data_loader].load('wall')
+  def self.corner_sprite_details
+    @corner_sprite_details ||= $game.services[:sprite_data_loader].load('wallcorner')
   end
 
   def initialize (
     x: 360,
     y: 900,
-    # bounce=0.8,
     facing: :north,
     scale: :large
   )
@@ -26,21 +19,14 @@ class Wall < HuskGame::HuskSprite
 
     set_position(x, y)
 
-    # Corner pieces use a different sprite directory.
-    # Note: this mutates the shared SPRITE_DETAILS constant, but each Wall
-    # sets the name before its own registration/initialization so it's safe.
-    unless [:north, :south, :east, :west].include? facing
-      SPRITE_DETAILS[:name] = 'wallcorner'
-    else
-      SPRITE_DETAILS[:name] = 'wall'
-    end
+    @is_corner = ![:north, :south, :east, :west].include?(facing)
     register_sprites_new
 
     initialize_scaleable(scale)
     initialize_collideable
     initialize_bounceable
 
-    init_faceable(facing)
+    initialize_faceable(facing)
     # Walls have corner pieces, unlike everything else
     # So we have to special-check for them
     if [:north, :south, :east, :west].include? facing
@@ -59,6 +45,10 @@ class Wall < HuskGame::HuskSprite
     end
   end
 
+  def active_sprite_details
+    @is_corner ? self.class.corner_sprite_details : self.class::SPRITE_DETAILS
+  end
+
   def collide_action collidee, facing
     # puts "Colliding with wall!"
     # play_once @sound_bounce
@@ -66,8 +56,6 @@ class Wall < HuskGame::HuskSprite
   end
 
   def bounce
-    # puts "bounce: #{@scale}"
-    # puts "bounce: #{BOUNCE_SCALES[@scale]}"
-    BOUNCE_SCALES[@scale]
+    HuskGame::Constants::BOUNCE_SCALES[@scale]
   end
 end

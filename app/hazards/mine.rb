@@ -8,13 +8,14 @@ module HuskGame
     include HuskEngine::Tickable
     include HuskEngine::Shadowable
 
-    attr_accessor :damage, :blown
-    attr_accessor :audio_idle
+    attr_reader :damage, :blown
+    attr_reader :audio_idle
 
-    # Load sprite details from external JSON file
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('mine')
-    end
+    BLOWBACK = 6
+    SHIP_DAMAGE = -0.25
+    HUSK_DAMAGE = 60
+
+    sprite_data 'mine'
 
     def initialize(
       x: 0,
@@ -28,6 +29,7 @@ module HuskGame
 
       set_position(x,y)
 
+      initialize_deadable
       initialize_shadowable
       register_sprites_new
       initialize_scaleable(scale)
@@ -60,9 +62,9 @@ module HuskGame
 
       @sprites.find { |s| s.name == "mine_main_#{@scale}" }.hide
 
-      blowback = 6
+      blowback = BLOWBACK
 
-      collidee.change_health -0.25, facing
+      collidee.change_health SHIP_DAMAGE, facing
       case facing
       when :north
         # collidee.health_north *= @damage
@@ -79,7 +81,7 @@ module HuskGame
       end
 
       # Damage the husk
-      $game.scene.husk.damage 60
+      $game.scene.husk.damage HUSK_DAMAGE
 
       # play the animation
       animation_name = "mine_fx_#{@scale}"

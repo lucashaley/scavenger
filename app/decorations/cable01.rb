@@ -2,9 +2,7 @@ module HuskGame
 class Cable01 < HuskSprite
   include HuskEngine::Scaleable
 
-  def self.sprite_details
-    @sprite_details ||= $game.services[:sprite_data_loader].load('cable01')
-  end
+  sprite_data 'cable01'
 
   def initialize(
     x: 360,

@@ -46,6 +46,31 @@ module HuskGame
     COLOR_DARK_GREEN = { r: 54, g: 63, b: 54 }.freeze
     COLOR_LIGHT_GREEN = { r: 198, g: 207, b: 186 }.freeze
 
+    # Default bounce scales per sprite size
+    BOUNCE_SCALES = {
+      large: 0.8,
+      medium: 0.4,
+      small: 0.1,
+      tiny: 0.05
+    }.freeze
+
+    # UI layout
+    PROGRESS_BAR_WIDTH = 440
+    PROGRESS_BAR_Y_HUSK = 1220
+    PROGRESS_BAR_Y_DATA = 1200
+
+    # Physics — shared across multiple entity types
+    HAZARD_BOUNCE = 0.9
+    RELATIVE_SPEED_MULTIPLIER = 0.05
+    THRUST_MAX_POWER_LEVEL = 3
+
+    # EMP system defaults (overridden per-entity in initialize_empable)
+    EMP_DEFAULT_LOW_THRESHOLD = 120
+    EMP_DEFAULT_MEDIUM_THRESHOLD = 360
+
+    # Audio
+    DEFAULT_MUSIC_VOLUME = 0.3
+
     # Blend modes
     BLENDMODE = {
       none: 0,

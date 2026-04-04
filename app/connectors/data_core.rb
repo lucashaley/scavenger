@@ -1,15 +1,7 @@
 module HuskGame
   class DataCore < Connector
 
-    BOUNCE_SCALES = {
-      large: 0.8,
-      medium: 0.4,
-      small: 0.1
-    }.freeze
-
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('datacore')
-    end
+    sprite_data 'datacore'
 
     def indicator_layer_name
       "network"

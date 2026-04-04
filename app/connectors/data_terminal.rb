@@ -1,15 +1,7 @@
 module HuskGame
   class DataTerminal < Connector
 
-    BOUNCE_SCALES = {
-      large: 0.8,
-      medium: 0.4,
-      small: 0.1
-    }.freeze
-
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('dataterminal')
-    end
+    sprite_data 'dataterminal'
 
     def initialize(
       x: 0,

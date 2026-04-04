@@ -1,7 +1,6 @@
 module HuskGame
   class Dressing < HuskSprite
     include HuskEngine::Collideable
-    include HuskEngine::Bounceable
     include HuskEngine::Scaleable
     include HuskEngine::Bufferable
     include HuskEngine::Shadowable
@@ -36,7 +35,7 @@ module HuskGame
     end
 
     def bounce
-      0.9
+      HuskGame::Constants::HAZARD_BOUNCE
     end
 
     def perform_tick

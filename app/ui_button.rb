@@ -52,27 +52,27 @@ module HuskGame
 
       path_root ||= "playercontrols/#{direction.to_s}"
 
-      $services[:sprite_registry].register_basic_sprite(
+      $game.services[:sprite_registry].register_basic_sprite(
         "#{path_root}_up",
         width: @w,
         height: @h
       )
-      $services[:sprite_registry].alias_sprite(
+      $game.services[:sprite_registry].alias_sprite(
         "#{path_root}_up",
         "#{direction}_up"
       )
-      $services[:sprite_registry].register_basic_sprite(
+      $game.services[:sprite_registry].register_basic_sprite(
         "#{path_root}_down",
         width: @w,
         height: @h
       )
-      $services[:sprite_registry].alias_sprite(
+      $game.services[:sprite_registry].alias_sprite(
         "#{path_root}_down",
         "#{direction}_down"
       )
 
-      @normal << $services[:sprite_registry].construct("#{direction}_up")
-      @pressed << $services[:sprite_registry].construct("#{direction}_down")
+      @normal << $game.services[:sprite_registry].construct("#{direction}_up")
+      @pressed << $game.services[:sprite_registry].construct("#{direction}_down")
 
       # This is really important
       # It sets the initial @sprites array from @normal

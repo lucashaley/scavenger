@@ -1,9 +1,7 @@
 module HuskGame
   class UnlockTerminal < Connector
 
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('unlockterminal')
-    end
+    sprite_data 'unlockterminal'
 
     def initialize(x: 0, y: 0, scale: :large, facing: :south, tolerance: 4, data: 500, data_rate: 2, husk: nil)
       super(x: x, y: y, scale: scale, facing: facing, tolerance: tolerance, data: data, data_rate: data_rate)

@@ -1,7 +1,6 @@
 module HuskGame
   class Door < HuskSprite
     include HuskEngine::Collideable
-    include HuskEngine::Bounceable
     include HuskEngine::Scaleable
     include HuskEngine::Bufferable
     include HuskEngine::Tickable
@@ -9,24 +8,20 @@ module HuskGame
     include Zif::Traceable
 
     attr_writer :room
-    attr_accessor :door_side, :door_buffer, :door_facing
-    # attr_accessor :destination_room,
-    attr_accessor :destination_door
-    attr_accessor :exit_point
-    attr_accessor :approached
+    attr_reader :door_side, :door_buffer, :door_facing
+    attr_accessor :destination_door  # written by Door constructor for bidirectional links
+    attr_reader :exit_point
+    attr_reader :approached
 
-    # Load sprite details from external YAML file
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('door')
-    end
+    TOLERANCE = 8
+    ENTER_DURATION = 10
+    EXIT_DURATION = 20
+    EXIT_OFFSET_MULTIPLIER = 0.25
 
-    BOUNCE_SCALES = {
-      large: 0.8,
-      medium: 0.4,
-      small: 0.1
-    }
+    sprite_data 'door'
+
     def bounce
-      BOUNCE_SCALES[@scale]
+      HuskGame::Constants::BOUNCE_SCALES[@scale]
     end
 
     def initialize (
@@ -40,7 +35,7 @@ module HuskGame
 
       # Set variables
       @door_side = door_side
-      @door_tolerance = 8
+      @door_tolerance = TOLERANCE
 
       # @bounce = BOUNCE_SCALES[scale]
       @sound_bounce = "sounds/clank.wav"
@@ -59,7 +54,7 @@ module HuskGame
 
       pixel_scale = HuskGame::Constants::SPRITE_SCALES[scale]
       tile_dimensions = 640.div(pixel_scale)
-      exit_offset = pixel_scale + (pixel_scale * 0.25).truncate
+      exit_offset = pixel_scale + (pixel_scale * EXIT_OFFSET_MULTIPLIER).truncate
       # create a buffer along the edge
       # side_length = 640 - (pixel_scale * 5)
       side_buffer = pixel_scale * 2
@@ -138,7 +133,7 @@ module HuskGame
         scales += [:large] * 4
         scales += [:medium] * 4
         scales += [:small] * 2
-        # scales += [:tiny] # Not yet
+        scales += [:tiny] * 1
 
         @destination_door = Door.new(
           # scale: $SPRITE_SCALES.keys.sample.to_sym, # this is a random scale
@@ -211,7 +206,7 @@ module HuskGame
             x: @x,
             y: @y
           },
-          duration: 10,
+          duration: ENTER_DURATION,
           easing: :smooth_stop4
         ) { $game.scene.switch_rooms @destination_door }
       )
@@ -235,7 +230,7 @@ module HuskGame
             x: @exit_point.x,
             y: @exit_point.y
           },
-          duration: 20,
+          duration: EXIT_DURATION,
           easing: :linear
         ) { player.player_control = true }
       )
@@ -245,26 +240,23 @@ module HuskGame
       puts "Door collision: #{facing} vs #{@door_side}"
       puts "locked: #{@locked}"
 
-      has_key = collidee.has_item?(@keyitem)
-
-      if (!@locked || has_key || room&.husk&.all_unlocked) && facing_matches_door?(facing)
-
-        entering = case @door_side
-                   when :north, :south
-                     collidee.center_x.between?(center_x - @door_tolerance, center_x + @door_tolerance)
-                   when :east, :west
-                     collidee.center_y.between?(center_y - @door_tolerance, center_y + @door_tolerance)
-                   end
-
-        if entering
-          enter_door collidee
-        else
-          play_once @sound_bounce
-          bounce_off(collidee, facing)
-        end
+      if can_enter_door?(collidee, facing)
+        enter_door collidee
       else
         play_once @sound_bounce
         bounce_off(collidee, facing)
+      end
+    end
+
+    def can_enter_door?(collidee, facing)
+      return false unless facing_matches_door?(facing)
+      return false unless !@locked || collidee.has_item?(@keyitem) || room&.husk&.all_unlocked
+
+      case @door_side
+      when :north, :south
+        collidee.center_x.between?(center_x - @door_tolerance, center_x + @door_tolerance)
+      when :east, :west
+        collidee.center_y.between?(center_y - @door_tolerance, center_y + @door_tolerance)
       end
     end
 

@@ -1,6 +1,8 @@
 module HuskEngine
   module Deadable
-    @dead = false
+    def initialize_deadable
+      @dead = false
+    end
 
     def is_dead?
       @dead

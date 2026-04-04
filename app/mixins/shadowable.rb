@@ -15,24 +15,24 @@ module HuskEngine
     }
     def initialize_shadowable
       @class_name = self.class.name.split("::").last.downcase
-      $services[:sprite_registry].alias_sprite(
+      $game.services[:sprite_registry].alias_sprite(
         "shadow_large",
         "#{@class_name}_shadow_large".to_sym
       )
-      $services[:sprite_registry].alias_sprite(
+      $game.services[:sprite_registry].alias_sprite(
         "shadow_medium",
         "#{@class_name}_shadow_medium".to_sym
       )
-      $services[:sprite_registry].alias_sprite(
+      $game.services[:sprite_registry].alias_sprite(
         "shadow_small",
         "#{@class_name}_shadow_small".to_sym
       )
-      $services[:sprite_registry].alias_sprite(
+      $game.services[:sprite_registry].alias_sprite(
         "shadow_tiny",
         "#{@class_name}_shadow_tiny".to_sym
       )
 
-      raise StandardError "Shadow didn't register" unless $services[:sprite_registry].sprite_registered?("#{@class_name}_shadow_large".to_sym)
+      raise StandardError "Shadow didn't register" unless $game.services[:sprite_registry].sprite_registered?("#{@class_name}_shadow_large".to_sym)
 
       # Check to see if Tickable is already registered
       # TODO this later

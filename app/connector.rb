@@ -2,7 +2,6 @@ module HuskGame
   class Connector < HuskSprite
     include Zif::Traceable
     include HuskEngine::Collideable
-    include HuskEngine::Bounceable
     include HuskEngine::Scaleable
     include HuskEngine::Faceable
     include HuskEngine::Bufferable
@@ -13,8 +12,15 @@ module HuskGame
     include HuskEngine::Stateable
 
 
+    DATA_STAGE_TWO_THIRDS = 0.667
+    DATA_STAGE_ONE_THIRD = 0.333
+    DATA_HOLD_TICKS = 10
+    CONNECTOR_BOUNCE = 0.3
+    EMP_LOW_DATA_MULTIPLIER = 0.8
+    EMP_MEDIUM_DATA_MULTIPLIER = 0.5
+
     attr_reader :interfacing, :data, :data_rate, :tolerance
-    attr_accessor :audio_idle
+    attr_reader :audio_idle
 
     def indicator_layer_name
       "lights"
@@ -57,7 +63,7 @@ module HuskGame
       @corrupted = false
       @data_rate = data_rate
       raise(StandardError, "Connector initialization data_rate is zero!") if data_rate <= 0
-      @data_hold_time = 10
+      @data_hold_time = DATA_HOLD_TICKS
       @tolerance = tolerance
 
       # @bounce = 0.7
@@ -73,10 +79,8 @@ module HuskGame
 
       # Get the turret direction from the player
       # and compare it to the collision facing
-      if ((collidee.facing == :north && collided_on == :south && @facing == :south) ||
-        (collidee.facing == :south && collided_on == :north && @facing == :north) ||
-        (collidee.facing == :west && collided_on == :east && @facing == :east) ||
-        (collidee.facing == :east && collided_on == :west && @facing == :west)) && @remaining_data > 0
+      if HuskEngine::Faceable.facing_opposite?(collidee.facing, collided_on) &&
+        collided_on == @facing && @remaining_data > 0
 
         # This stops the overlap and bounce, and the weird y collision stuff
         # This would all be easier if we did predictive collision, instead of reactive
@@ -150,13 +154,13 @@ module HuskGame
 
       indicator = @sprites.find { |s| s.name == "#{class_name}_#{indicator_layer_name}_#{scale}" }
 
-      if @stage == :full && @remaining_data <= (@data * 0.667).truncate
+      if @stage == :full && @remaining_data <= (@data * DATA_STAGE_TWO_THIRDS).truncate
         puts "TWO THIRDS!"
         @stage = :two_thirds
         indicator&.assign(
           {path: "sprites/#{class_name}/#{class_name}_#{indicator_layer_name}_#{@scale.to_s}_2.png"}
         )
-      elsif @stage == :two_thirds && @remaining_data <= (@data * 0.333).truncate
+      elsif @stage == :two_thirds && @remaining_data <= (@data * DATA_STAGE_ONE_THIRD).truncate
         puts "ONE THIRD"
         @stage = :one_third
         indicator&.assign(
@@ -176,16 +180,16 @@ module HuskGame
     end
 
     def bounce
-      0.3
+      CONNECTOR_BOUNCE
     end
 
     def handle_emp_low emp_level
       puts "Connector: handle_emp_low"
-      @remaining_data *= 0.8
+      @remaining_data *= EMP_LOW_DATA_MULTIPLIER
     end
     def handle_emp_medium emp_level
       puts "Connector: handle_emp_medium"
-      @remaining_data *= 0.5
+      @remaining_data *= EMP_MEDIUM_DATA_MULTIPLIER
       @corrupted |= rand(3) == 0
     end
     def handle_emp_high emp_level

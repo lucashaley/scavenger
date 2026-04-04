@@ -1,9 +1,7 @@
 module HuskGame
   class Crate < Dressing
 
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('crate')
-    end
+    sprite_data 'crate'
 
     def initialize(
       x: 360,

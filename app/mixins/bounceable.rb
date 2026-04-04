@@ -1,4 +1,8 @@
 module HuskEngine
+  # Bounceable — bounce physics for collisions.
+  # Dependencies: includes Soundable (for bounce sound effects).
+  # Required methods: including class must define `bounce` (returns a float 0..1).
+  # Init order: call `initialize_bounceable` after `register_sprites_new` and `initialize_scaleable`.
   module Bounceable
     include Soundable
 

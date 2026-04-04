@@ -2,15 +2,7 @@ module HuskGame
   class BoostThrust < Pickup
     attr_reader :amount, :duration, :start_duration
 
-    BOUNCE_SCALES = {
-      large: 0.8,
-      medium: 0.4,
-      small: 0.1
-    }
-
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('boostthrust')
-    end
+    sprite_data 'boostthrust'
 
     def initialize(
       x: 0,

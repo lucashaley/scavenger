@@ -7,10 +7,22 @@ module HuskEngine
       east:     3,
     }.freeze
 
+    FACING_OPPOSITES = {
+      north: :south,
+      south: :north,
+      east:  :west,
+      west:  :east,
+    }.freeze
+
     attr_accessor :facing
 
-    def init_faceable facing
+    def initialize_faceable(facing)
       @facing = facing
+    end
+
+    # Returns true if two facings are opposite (e.g. :north and :south)
+    def self.facing_opposite?(a, b)
+      FACING_OPPOSITES[a] == b
     end
 
     # This is pretty ugly, but what the hell

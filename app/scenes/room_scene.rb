@@ -56,14 +56,14 @@ module HuskGame
 
     def initialize_audio_settings
       @bg_music_state = :intro
-      @bg_music_volume = 0.3
+      @bg_music_volume = HuskGame::Constants::DEFAULT_MUSIC_VOLUME
       @emp_sound = HuskGame::AssetPaths::Audio::EMP_BLAST
     end
 
     def initialize_gameplay_state
       state = $gtk.args.state
       state.gameplay = {
-        max_emp_power: 4.seconds,
+        max_emp_power: 3.seconds,
         button_thrust: 0.8
       }
       state.agents = []
@@ -134,7 +134,7 @@ module HuskGame
       @ship = Ship.new
       @ship.x = HuskGame::Constants::VIEWSCREEN_OFFSET_X + (HuskGame::Constants::VIEWSCREEN_SIZE - 64).half
       @ship.y = HuskGame::Constants::SCREEN_HEIGHT - 48 - 64 - HuskGame::Constants::VIEWSCREEN_SIZE.half
-      $game.services.named(:action_service).register_actionable(@ship)
+      $game.services[:action_service].register_actionable(@ship)
       $gtk.args.state.ship = @ship
     end
 
@@ -144,7 +144,7 @@ module HuskGame
     end
 
     def setup_light
-      @light = $services[:sprite_registry].construct(:light).tap do |s|
+      @light = $game.services[:sprite_registry].construct(:light).tap do |s|
         s.x = HuskGame::Constants::VIEWSCREEN_OFFSET_X
         s.y = HuskGame::Constants::SCREEN_HEIGHT - 700
         s.blendmode_enum = Zif::Sprite::BLENDMODE[:multiply]

@@ -85,6 +85,8 @@ module HuskGame
         ),
       ]
 
+      ui.emp_button ||= ui.buttons.find { |b| b.id == :emp }
+
       ui.statuses ||= {
         emp_charge: create_ui_status(
           id: :emp_charge,
@@ -203,13 +205,9 @@ module HuskGame
       emp_status_level = ((@emp_power / gameplay.max_emp_power) * 3).truncate
       ui.statuses.emp_charge.path = "sprites/playercontrols/emp_charge_0#{emp_status_level}.png"
 
-      # TODO: this is finding every tick? UGH
       # emp button
-      emp_button = ui.buttons.find do |b|
-        b.id == :emp
-      end
-      if @ship.emp_count <= 0 && emp_button
-        emp_button.path = "sprites/playercontrols/emp_none.png"
+      if @ship.emp_count <= 0 && ui.emp_button
+        ui.emp_button.path = "sprites/playercontrols/emp_none.png"
       end
     end
 

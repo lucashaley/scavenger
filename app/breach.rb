@@ -5,11 +5,9 @@ module HuskGame
     include HuskEngine::Bufferable
     include HuskEngine::Spatializeable
 
-    attr_accessor :locked
+    attr_reader :locked
 
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('breach')
-    end
+    sprite_data 'breach'
 
     def initialize
       super(Zif.unique_name('Breach'))
@@ -77,13 +75,13 @@ module HuskGame
     def lock_in player
       # puts "LOCK IN!!!!!!"
 
-      # Move the player to the center
+      # Move the player's center to the breach's center
       player.run_action(
         Zif::Actions::Action.new(
           player,
           {
-            x: @x,
-            y: @y
+            x: center_x - player.w.half,
+            y: center_y - player.h.half
           },
           duration: 10,
           easing: :smooth_stop4

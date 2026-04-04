@@ -3,31 +3,38 @@ module HuskGame
     include HuskEngine::Faceable
     include HuskEngine::Scaleable
     include HuskEngine::Collideable
+    include HuskEngine::Boundable
     include HuskEngine::Shadowable
     include HuskEngine::Soundable
     include Zif::Traceable
 
-    attr_accessor :health_thrust, :health_ccw, :health_cw
-    attr_accessor :health_east, :health_west, :health_north, :health_south
-    attr_accessor :momentum, :energy, :effect
-    attr_accessor :thrust, :angular_thrust
-    attr_accessor :drag, :angular_drag
-    attr_accessor :is_player, :player_control
-    attr_accessor :is_rotating, :is_effectable, :is_interfacing, :is_dooring
-    attr_accessor :thrust_sprite
+    attr_reader :health_thrust, :health_ccw, :health_cw
+    attr_reader :health_east, :health_west, :health_north, :health_south
+    attr_accessor :momentum  # written externally by collision/bounce systems
+    attr_reader :energy, :effect
+    attr_accessor :thrust  # written by Zif Actions in boost_thrust
+    attr_reader :angular_thrust, :drag, :angular_drag
+    attr_reader :is_player, :is_rotating, :is_effectable, :is_interfacing
+    attr_accessor :player_control, :is_dooring  # written by Door enter/exit
+    attr_reader :thrust_sprite
     attr_reader :emp_count, :emp_storage
-    attr_accessor :data, :data_progress
+    attr_reader :data, :data_progress
     attr_reader :data_blocks, :data_block_count, :data_core
 
-    # Load sprite details from external JSON file
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('ship')
-    end
+    sprite_data 'ship'
 
     SCALED_THRUST = {
+      tiny: 0.125,
       small: 0.25,
       medium: 0.5,
       large: 1.0
+    }
+
+    MAX_SPEED = {
+      tiny: 2,
+      small: 4,
+      medium: 6,
+      large: 8
     }
 
     def initialize (
@@ -65,10 +72,13 @@ module HuskGame
       center_sprites
     end
 
+    THRUST_RAMP_FRAMES = 9 # frames to reach full thrust
+
     def initialize_movement_vectors
       @momentum = { x: 0, y: 0, rotation: 0 }
       @energy = { x: 0, y: 0 }
       @effect = { x: 0, y: 0 }
+      @thrust_hold = { x: 0, y: 0 }
     end
 
     def initialize_thrust_and_drag(thrust, angular_thrust, drag, angular_drag)
@@ -107,10 +117,10 @@ module HuskGame
     end
 
     def initialize_ui_elements
-      progress_bar_width = 440
-      @data_progress = ExampleApp::ProgressBar.new(:data_progress, progress_bar_width, 0, :white)
-      @data_progress.x = HuskGame::Constants::SCREEN_WIDTH - HuskGame::Constants::VIEWSCREEN_BORDER - progress_bar_width
-      @data_progress.y = 1200
+      bar_w = HuskGame::Constants::PROGRESS_BAR_WIDTH
+      @data_progress = ExampleApp::ProgressBar.new(:data_progress, bar_w, 0, :white)
+      @data_progress.x = HuskGame::Constants::SCREEN_WIDTH - HuskGame::Constants::VIEWSCREEN_BORDER - bar_w
+      @data_progress.y = HuskGame::Constants::PROGRESS_BAR_Y_DATA
       @data_progress.view_actual_size!
     end
 
@@ -120,19 +130,40 @@ module HuskGame
 
     public
 
+    def ramp_factor(axis)
+      t = (@thrust_hold[axis].to_f / THRUST_RAMP_FRAMES).clamp(0.0, 1.0)
+      # t * t * t # cubic ease-in
+      t * t # quartic ease-in
+    end
+
+    def speed_factor(axis)
+      max = MAX_SPEED[@scale]
+      current = @momentum[axis].abs
+      (1.0 - (current.to_f / max)).clamp(0.1, 1.0)
+    end
+
+    def thrust_factor(axis, input)
+      if input != 0
+        @thrust_hold[axis] += 1
+      else
+        @thrust_hold[axis] = 0
+      end
+      ramp_factor(axis) * speed_factor(axis)
+    end
+
     def add_thrust_x input
       health_multiplier = input < 0 ? @health_west : @health_east
-      @energy.x += input * @thrust * health_multiplier * SCALED_THRUST[@scale]
+      @energy.x += input * @thrust * health_multiplier * SCALED_THRUST[@scale] * thrust_factor(:x, input)
     end
     def add_thrust_y input
       health_multiplier = input < 0 ? @health_south : @health_north
-      @energy.y += input * @thrust * health_multiplier * SCALED_THRUST[@scale]
+      @energy.y += input * @thrust * health_multiplier * SCALED_THRUST[@scale] * thrust_factor(:y, input)
     end
     def add_thrust x=0, y=0
       health_multiplier_x = x < 0 ? @health_west : @health_east
       health_multiplier_y = y < 0 ? @health_south : @health_north
-      @energy.x += x * @thrust * health_multiplier_x * SCALED_THRUST[@scale]
-      @energy.y += y * @thrust * health_multiplier_y * SCALED_THRUST[@scale]
+      @energy.x += x * @thrust * health_multiplier_x * SCALED_THRUST[@scale] * thrust_factor(:x, x)
+      @energy.y += y * @thrust * health_multiplier_y * SCALED_THRUST[@scale] * thrust_factor(:y, y)
     end
 
     def calc_rotation
@@ -172,10 +203,10 @@ module HuskGame
       if axis == :x
         if energy < 0
           @current_sprite_hash[:thrusteast].path = \
-            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("east", @scale, energy.clamp(0, 3).truncate)
+            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("east", @scale, energy.abs.clamp(0, HuskGame::Constants::THRUST_MAX_POWER_LEVEL).truncate)
         elsif energy > 0
           @current_sprite_hash[:thrustwest].path = \
-            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("west", @scale, energy.clamp(0, 3).truncate)
+            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("west", @scale, energy.clamp(0, HuskGame::Constants::THRUST_MAX_POWER_LEVEL).truncate)
         else
           @current_sprite_hash[:thrusteast].path = HuskGame::AssetPaths::Sprites.ship_thrust_sprite("east", @scale)
           @current_sprite_hash[:thrustwest].path = HuskGame::AssetPaths::Sprites.ship_thrust_sprite("west", @scale)
@@ -183,10 +214,10 @@ module HuskGame
       else # axis == :y
         if energy < 0
           @current_sprite_hash[:thrustnorth].path = \
-            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("north", @scale, energy.clamp(0, 3).truncate)
+            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("north", @scale, energy.abs.clamp(0, HuskGame::Constants::THRUST_MAX_POWER_LEVEL).truncate)
         elsif energy > 0
           @current_sprite_hash[:thrustsouth].path = \
-            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("south", @scale, energy.clamp(0, 3).truncate)
+            HuskGame::AssetPaths::Sprites.ship_thrust_sprite("south", @scale, energy.clamp(0, HuskGame::Constants::THRUST_MAX_POWER_LEVEL).truncate)
         else
           @current_sprite_hash[:thrustnorth].path = HuskGame::AssetPaths::Sprites.ship_thrust_sprite("north", @scale)
           @current_sprite_hash[:thrustsouth].path = HuskGame::AssetPaths::Sprites.ship_thrust_sprite("south", @scale)
@@ -214,7 +245,7 @@ module HuskGame
       $gtk.args.geometry.vec2_magnitude @momentum
     end
     def relative_speed
-      (momentum_magnitude * 0.05).clamp(0, 1)
+      (momentum_magnitude * HuskGame::Constants::RELATIVE_SPEED_MULTIPLIER).clamp(0, 1)
     end
 
     def rotate_ccw
@@ -284,45 +315,6 @@ module HuskGame
 
     def handle_collision
       puts 'handle_collision'
-    end
-
-    # This is expecting a rect hash, with top, bottom, left, right
-    # _Not_ a rect with x, y, w, h
-    def bounds_inside_x bounds
-      if @x + @w > bounds.right
-        @x -= (@x + @w - bounds.right)
-        @momentum.x *= -1.0
-      elsif @x < bounds.left
-        @x += bounds.left - @x
-        @momentum.x *= -1.0
-      end
-    end
-
-    def bounds_inside_y bounds
-      if @y + @h > bounds.top
-        @y -= (@y + @h - bounds.top)
-        @momentum.y *= -1.0
-      elsif @y < bounds.bottom
-        @y += bounds.bottom - @y
-        @momentum.y *= -1.0
-      end
-    end
-
-    def bounds_inside bounds
-      if @x + @w > bounds.right
-        @x -= (@x + @w - bounds.right)
-        @momentum.x *= -1.0
-      elsif @x < bounds.left
-        @x += bounds.left - @x
-        @momentum.x *= -1.0
-      end
-      if @y + @h > bounds.top
-        @y -= (@y + @h - bounds.top)
-        @momentum.y *= -1.0
-      elsif @y < bounds.bottom
-        @y += bounds.bottom - @y
-        @momentum.y *= -1.0
-      end
     end
 
     # Checking if we need this
@@ -403,7 +395,7 @@ module HuskGame
         @data_source = source
       end
       @data += amount
-      @data_progress.progress = @data * 0.001
+      @data_progress.progress = @data * 0.001 # inverse of default terminal data (1000)
     end
 
     def add_data_block_slot(amount = 1)

@@ -1,9 +1,7 @@
 module HuskGame
   class Repairer < Connector
 
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('repairer')
-    end
+    sprite_data 'repairer'
 
     def initialize(
       x: 0,

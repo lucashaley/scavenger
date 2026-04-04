@@ -30,9 +30,21 @@ module HuskGame
       # Ship sprites
       SHIP_BASE_PATH = "sprites/ship".freeze
 
+      # Toggle to use rotated (single-source) thrust sprites
+      @use_rotated_thrust = false
+
+      def self.use_rotated_thrust?
+        @use_rotated_thrust
+      end
+
+      def self.use_rotated_thrust=(val)
+        @use_rotated_thrust = val
+      end
+
       # Helper method to generate ship thrust sprite paths
       def self.ship_thrust_sprite(direction, scale, power = nil)
-        base = "#{SHIP_BASE_PATH}/ship_thrust#{direction}_#{scale}"
+        prefix = @use_rotated_thrust ? "ship_thrust_rot_" : "ship_thrust"
+        base = "#{SHIP_BASE_PATH}/#{prefix}#{direction}_#{scale}"
         power ? "#{base}_power_0#{power}.png" : "#{base}.png"
       end
 

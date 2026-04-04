@@ -3,7 +3,6 @@ module HuskGame
   class Pickup < HuskSprite
     include HuskEngine::Collideable
     include HuskEngine::Deadable
-    include HuskEngine::Bounceable
     include HuskEngine::Scaleable
     include HuskEngine::Bufferable
     include HuskEngine::Tickable
@@ -21,6 +20,7 @@ module HuskGame
 
       # collate_sprites 'boost'
       # set_scale scale
+      initialize_deadable
       initialize_shadowable
       register_sprites_new
       initialize_scaleable(scale)
@@ -39,10 +39,7 @@ module HuskGame
 
       # Get the turret direction from the player
       # and compare it to the collision facing
-      if (collidee.facing == :north && facing == :south) ||
-        (collidee.facing == :south && facing == :north) ||
-        (collidee.facing == :west && facing == :east) ||
-        (collidee.facing == :east && facing == :west)
+      if HuskEngine::Faceable.facing_opposite?(collidee.facing, facing)
         play_once @sound_pickup_success
 
         # Do the thing!
@@ -56,9 +53,7 @@ module HuskGame
     end
 
     def bounce
-      puts "pickup bounce"
-      # puts "bounce: #{BOUNCE_SCALES[@scale]}"
-      self.class::BOUNCE_SCALES[@scale]
+      HuskGame::Constants::BOUNCE_SCALES[@scale]
     end
 
     def perform_tick

@@ -2,9 +2,7 @@ module HuskGame
   class Gash < HuskSprite
     include HuskEngine::Scaleable
 
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('gash')
-    end
+    sprite_data 'gash'
 
     def initialize(
       x: 360,

@@ -2,6 +2,7 @@ module HuskGame
   class HunterBlob < HuskSprite
     include HuskEngine::Collideable
     include HuskEngine::Deadable
+    include HuskEngine::Boundable
     include HuskEngine::Scaleable
     include HuskEngine::Spatializeable
     include HuskEngine::Tickable
@@ -10,9 +11,7 @@ module HuskGame
 
     attr_accessor :momentum
 
-    def self.sprite_details
-      @sprite_details ||= $game.services[:sprite_data_loader].load('hunterblob')
-    end
+    sprite_data 'hunterblob'
 
     BLOWBACK_SCALES = {
       large: 6,
@@ -20,6 +19,14 @@ module HuskGame
       small: 3,
       tiny: 2
     }.freeze
+
+    ALERT_DISTANCE = 300
+    DEFAULT_SPEED = 18
+    MOMENTUM_DAMPING = 0.8
+    EMP_LOW = 60
+    EMP_MEDIUM = 120
+    EMP_SPEED_DIVISOR_LOW = 20
+    EMP_SPEED_DIVISOR_MEDIUM = 15
 
     def initialize(
       x: 360,
@@ -32,6 +39,7 @@ module HuskGame
       # mark_and_print("initialize")
 
       set_position(x, y)
+      initialize_deadable
       register_sprites_new
       initialize_scaleable(scale)
       center_sprites
@@ -40,14 +48,14 @@ module HuskGame
       initialize_stateable("agent") # add to data hash above
 
       initialize_empable
-      @emp_low = 100
-      @emp_medium = 240
+      @emp_low = EMP_LOW
+      @emp_medium = EMP_MEDIUM
 
-      @alert_threshold = 300
+      @alert_threshold = ALERT_DISTANCE
       @sound_collide = "sounds/thump.wav"
       @audio_idle = "sounds/hunterblob.wav"
 
-      @default_speed = @current_speed = 18
+      @default_speed = @current_speed = DEFAULT_SPEED
       @momentum = {
         x: 0,
         y: 0
@@ -58,20 +66,18 @@ module HuskGame
     def perform_tick
       return unless @active
 
-      spatialize(@name.to_sym) if @active
+      spatialize(@name.to_sym)
 
-      dist = $gtk.args.geometry.distance($gtk.args.state.ship.xy, self.xy).abs
-      return if dist > @alert_threshold
+      ship_xy = $gtk.args.state.ship.xy
+      dx = ship_xy.x - @x
+      dy = ship_xy.y - @y
+      dist_sq = dx * dx + dy * dy
+      alert_sq = @alert_threshold * @alert_threshold
+      return if dist_sq > alert_sq
 
-      diff_array = Zif.sub_positions($gtk.args.state.ship.xy, self.xy)
-      diff_normalized = $gtk.args.geometry.vec2_normalize({
-        x: diff_array[0],
-        y: diff_array[1]
-      })
-      # puts diff_normalized
-      # diff_scaled = diff_normalized.map { |k,v| k: v * (1/dist) }
-      diff_scaled = diff_normalized.merge(diff_normalized) {|k,v| v*(1/dist) }
-      # puts diff_scaled
+      dist = Math.sqrt(dist_sq)
+      diff_normalized = $gtk.args.geometry.vec2_normalize({ x: dx, y: dy })
+      diff_scaled = diff_normalized.merge(diff_normalized) { |_k, v| v * (1 / dist) }
 
       @momentum.x += diff_scaled[:x] * @current_speed
       @momentum.y += diff_scaled[:y] * @current_speed
@@ -79,26 +85,10 @@ module HuskGame
       @x += @momentum[:x]
       @y += @momentum[:y]
 
-      # This is copypasta from Ship
-      # And has totally not been tested, because how can I make it go out of bounds?
-      viewscreen = HuskGame::Constants::VIEWSCREEN
-      if @x + @w > viewscreen.right
-        @x -= (@x + @w - viewscreen.right)
-        @momentum.x *= -1.0
-      elsif @x < viewscreen.left
-        @x += viewscreen.left - @x
-        @momentum.x *= -1.0
-      end
-      if @y + @h > viewscreen.top
-        @y -= (@y + @h - viewscreen.top)
-        @momentum.y *= -1.0
-      elsif @y < viewscreen.bottom
-        @y += viewscreen.bottom - @y
-        @momentum.y *= -1.0
-      end
+      bounds_inside(HuskGame::Constants::VIEWSCREEN)
 
-      @momentum[:x] *= 0.8
-      @momentum[:y] *= 0.8
+      @momentum[:x] *= MOMENTUM_DAMPING
+      @momentum[:y] *= MOMENTUM_DAMPING
 
       current_speed = @current_speed + 1 unless @damaged
     end
@@ -130,11 +120,11 @@ module HuskGame
     end
 
     def handle_emp_low emp_level
-      self.current_speed = @current_speed - emp_level.idiv(20)
+      self.current_speed = @current_speed - emp_level.idiv(EMP_SPEED_DIVISOR_LOW)
       puts @current_speed
     end
     def handle_emp_medium emp_level
-      self.current_speed = @current_speed - emp_level.idiv(15)
+      self.current_speed = @current_speed - emp_level.idiv(EMP_SPEED_DIVISOR_MEDIUM)
       @damaged = true
       puts @current_speed
     end

@@ -5,6 +5,10 @@ module HuskEngine
     attr_accessor :scale, :sprite_scale_hash, :current_sprite_hash
     attr_accessor :scale_ratio
 
+    def active_sprite_details
+      self.class::SPRITE_DETAILS
+    end
+
     def set_scale scale=:large
       # puts "Scaleable set_scale: #{scale}"
       @scale = scale
@@ -13,10 +17,10 @@ module HuskEngine
       # @h = $SPRITE_SCALES[scale]
       # @w = $SPRITE_SCALES[scale] * @scale_ratio
 
-      # puts "Setting Scale: #{self.class::SPRITE_DETAILS[:scales][scale][:h]}, #{self.class::SPRITE_DETAILS[:scales][scale][:v]}"
+      # puts "Setting Scale: #{active_sprite_details[:scales][scale][:h]}, #{active_sprite_details[:scales][scale][:v]}"
 
-      @h = self.class::SPRITE_DETAILS[:scales][scale][:h]
-      @w = self.class::SPRITE_DETAILS[:scales][scale][:w]
+      @h = active_sprite_details[:scales][scale][:h]
+      @w = active_sprite_details[:scales][scale][:w]
 
       @current_sprite_hash = @sprite_scale_hash[@scale]
 
@@ -39,8 +43,8 @@ module HuskEngine
           # puts @sprites
           @sprites.find { |s| s.name == "#{class_name}_shadow_#{@scale}" }.assign(
             {
-              h: self.class::SPRITE_DETAILS[:scales][scale][:h],
-              w: self.class::SPRITE_DETAILS[:scales][scale][:w]
+              h: active_sprite_details[:scales][scale][:h],
+              w: active_sprite_details[:scales][scale][:w]
             }
           )
         end
@@ -56,7 +60,7 @@ module HuskEngine
       # mark_and_print("register_sprites")
       return unless self.class.const_defined?(:SPRITE_DETAILS)
 
-      sprite_base_name = self.class::SPRITE_DETAILS[:name]
+      sprite_base_name = active_sprite_details[:name]
       # sprite_base_name = class_name
       # puts sprite_base_name
       sprite_directory = $gtk.args.gtk.stat_file "sprites/#{sprite_base_name}"
@@ -73,16 +77,16 @@ module HuskEngine
 
         # puts "Registering: #{sprite_name}, #{sprite_path}"
 
-        # mark_and_print("Already registered #{sprite_path}: #{$services[:sprite_registry].sprite_registered? sprite_path}")
-        next if $services[:sprite_registry].sprite_registered? sprite_path
+        # mark_and_print("Already registered #{sprite_path}: #{$game.services[:sprite_registry].sprite_registered? sprite_path}")
+        next if $game.services[:sprite_registry].sprite_registered? sprite_path
         image_size = $gtk.args.gtk.calcspritebox("sprites/#{sprite_path}.png")
 
-        $services[:sprite_registry].register_basic_sprite(
+        $game.services[:sprite_registry].register_basic_sprite(
           sprite_path,
           width: image_size[0],
           height: image_size[1]
         )
-        $services[:sprite_registry].alias_sprite(
+        $game.services[:sprite_registry].alias_sprite(
           sprite_path,
           sprite_name.to_sym
         )
@@ -105,7 +109,7 @@ module HuskEngine
       @sprite_scale_hash ||= Hash.new
 
       # Work through the data, starting with each layer
-      details = self.class::SPRITE_DETAILS
+      details = active_sprite_details
       # puts "details: #{details}"
       new_sprite = nil
 
@@ -125,10 +129,10 @@ module HuskEngine
           new_name = "#{details[:name]}_#{layer[:name]}_#{scale_k}"
 
           # The dimensions of the sprite is defined in the ~register_sprites~ method
-          unless $services[:sprite_registry].sprite_registered? new_name.to_sym
+          unless $game.services[:sprite_registry].sprite_registered? new_name.to_sym
             raise ArgumentError, "Invalid sprite: #{new_name}"
           end
-          new_sprite = $services[:sprite_registry].construct(new_name.to_sym).tap do |s|
+          new_sprite = $game.services[:sprite_registry].construct(new_name.to_sym).tap do |s|
             s.name = new_name
             # This is where we can adjust the position of the sprite
             # so that it's relatively correct
@@ -140,7 +144,7 @@ module HuskEngine
           # Then add the animations
           unless layer[:animations].nil?
             # register the sprite
-            $game.services.named(:action_service).register_actionable(new_sprite)
+            $game.services[:action_service].register_actionable(new_sprite)
             layer[:animations].each do |animation|
               # create the suffixes
               paths = []

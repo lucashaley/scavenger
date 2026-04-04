@@ -1,4 +1,8 @@
 module HuskEngine
+  # Empable — EMP response behavior for entities.
+  # Dependencies: includes Soundable (for EMP sound effects).
+  # Required methods: including class must define `handle_emp_low`, `handle_emp_medium`, `handle_emp_high`.
+  # Init order: call `initialize_empable` after entity is fully constructed (registers with EmpService).
   module Empable
     include Soundable
 
@@ -7,17 +11,17 @@ module HuskEngine
     def initialize_empable
       $game.services[:emp_service].register_empable self
 
-      @emp_low = 120
-      @emp_medium = 360
+      @emp_low = HuskGame::Constants::EMP_DEFAULT_LOW_THRESHOLD
+      @emp_medium = HuskGame::Constants::EMP_DEFAULT_MEDIUM_THRESHOLD
 
       # this needs to be the entity's reaction to EMP, not the EMP itself
       # @emp_sound = 'sounds/emp_blast.wav'
 
       raise StandardError "#{class_name}: method ~handle_emp_low~ is not defined" \
         unless self.class.instance_methods.include?(:handle_emp_low)
-      raise StandardError "#{class_name}: method ~handle_emp_low~ is not defined" \
+      raise StandardError "#{class_name}: method ~handle_emp_medium~ is not defined" \
         unless self.class.instance_methods.include?(:handle_emp_medium)
-      raise StandardError "#{class_name}: method ~handle_emp_low~ is not defined" \
+      raise StandardError "#{class_name}: method ~handle_emp_high~ is not defined" \
         unless self.class.instance_methods.include?(:handle_emp_high)
     end
 

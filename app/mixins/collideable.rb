@@ -1,4 +1,8 @@
 module HuskEngine
+  # Collideable — collision detection and response.
+  # Dependencies: includes Bounceable (which includes Soundable), and Soundable directly.
+  # Required methods: including class must define `collide_action(collider, side)`.
+  # Init order: call `initialize_collideable` after `initialize_bounceable`.
   module Collideable
     include Bounceable
     include Soundable
