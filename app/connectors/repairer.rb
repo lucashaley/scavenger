@@ -19,7 +19,6 @@ module HuskGame
 
     def collide_action(collidee, collided_on)
       # puts "REPAIRER COLLIDE"
-      puts "Connector: collidee facing: #{collidee.facing}, collided_on: #{collided_on}, facing: #{@facing}, remaining: #{@remaining_data}"
       # puts "previous_tick: #{@previous_data_tick}"
 
       # Get the turret direction from the player
@@ -71,7 +70,6 @@ module HuskGame
 
           @previous_data_tick = Kernel.tick_count
         else
-          puts "missed!"
           bounce_off(collidee, collided_on)
         end
       else

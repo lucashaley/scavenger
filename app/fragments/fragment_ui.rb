@@ -212,7 +212,6 @@ module HuskGame
     end
 
     def boost_emp_charge(amount)
-      puts "boost emp charge: #{amount}"
       gameplay = $gtk.args.state.gameplay
       @emp_power += amount
       @emp_power = @emp_power.clamp(0, gameplay.max_emp_power)

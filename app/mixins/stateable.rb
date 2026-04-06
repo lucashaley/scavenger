@@ -6,8 +6,6 @@ module HuskEngine
     def initialize_stateable state_name
       raise ArgumentError if state_name.nil?
 
-      puts "initialize_stateable: #{state_name}"
-
       @state_name = state_name
       $gtk.args.state[state_name.to_sym] ||= []
 

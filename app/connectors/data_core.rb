@@ -16,8 +16,6 @@ module HuskGame
       data_rate: 2
     )
       super(x: x, y: y, scale: scale, tolerance: tolerance)
-      puts "INIT DATACORE\n============="
-
       rotate_sprites([:north, :south, :east, :west].sample)
     end
   end

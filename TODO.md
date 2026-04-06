@@ -84,7 +84,7 @@
 
 ## Code Quality
 
-- [ ] Remove or replace ~506 debug `puts` calls with proper logging
+- [x] Remove debug `puts` calls — removed ~172 calls across 22 files; 6 intentional puts remain (startup banner, kill log, override warning, error handler)
 - [x] Extract magic numbers to named constants — added shared constants to `HuskGame::Constants` (PROGRESS_BAR_WIDTH, HAZARD_BOUNCE, EMP thresholds, etc.) and class-level constants to Mine, HunterBlob, Connector, Door, Husk
 - [x] Migrate global variables (`$SPRITE_SCALES`, `$ui_viewscreen`, etc.) to `HuskGame::Constants` — already done, no game-specific globals remain
 - [x] Extract Door entry boolean logic to `can_enter_door?` method — early-return guard clauses replace nested if/else

@@ -7,8 +7,6 @@ module HuskEngine
       keyitem: nil,
       consuming: false
     )
-      puts "initializing lockable"
-
       @locked = locked
       @keyitem = keyitem
       @consuming = consuming

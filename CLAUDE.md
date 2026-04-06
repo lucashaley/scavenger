@@ -49,9 +49,9 @@ No game-specific globals remain — `$SPRITE_SCALES` and `$ui_viewscreen` have b
 
 ### Scene Flow
 
-`SplashScene` → `MenuMainScene` → `RoomScene` (main gameplay) → `GameOverScene` / `GameCompleteScene`
+`SplashScene` → `MenuMainScene` → `HuskSelectScene` → `RoomScene` (main gameplay) → `GameOverScene` / `GameCompleteScene`
 
-Scenes are registered in `BaseGame#initialize` and managed by `Zif::Game`.
+Scenes are registered in `BaseGame#initialize` and managed by `Zif::Game`. Menu-style scenes (MenuMainScene, AboutScene, GameCompleteScene, HuskSelectScene) extend `HuskEngine::UtilityScene`, which provides fader, `blurred_label`, `pulsing_blurred_label`, `exit_scene`, and `enter_scene` helpers.
 
 ### Entity Hierarchy
 
@@ -65,7 +65,7 @@ All game entities extend `HuskSprite` (which extends `Zif::CompoundSprite`). Ent
 | `Hazard` (via mixins) | Mine, Repulsor, Attractor | Obstacles |
 | `Dressing` | Crate, CrateBig | Non-interactive props |
 | Decorations | Gash, Cable01 | Visual-only elements |
-| Agents | HunterBlob | Enemy AI |
+| Agents | HunterBlob, StaticBlob | Enemy AI |
 
 ### Mixin System
 
@@ -110,6 +110,29 @@ Sprite image files live in `sprites/<name>/` and are auto-discovered and registe
 - **RoomPopulator** — Handles all procedural room population (doors, hazards, pickups, terminals, agents, dressings, decorations). Uses `find_empty_position` to avoid overlap via `no_populate_buffer`. Called once during Room initialization.
 - **Door** — Connects rooms; entering a door generates a new room at the target scale. Entry logic in `can_enter_door?` checks facing, lock status, and alignment tolerance.
 - Rooms have a `scale` (`:large`, `:medium`, `:small`, `:tiny`) that determines sprite sizes and tile counts
+
+### Chaos System
+
+Chaos is an integer that drives procedural room difficulty. The player selects an initial chaos level (0–3) in `HuskSelectScene`, stored in `$gtk.args.state.husk_config.initial_chaos`. Each subsequent room increments chaos by 1 (set in `Door` via `deferred_room_params`).
+
+Chaos affects `RoomPopulator` as follows:
+
+| System | Effect |
+|--------|--------|
+| **Doors** | `rand(3) + 1 > chaos` — higher chaos = fewer doors per room |
+| **Agents** | Chaos < 2: none. Chaos 2: 33% chance of 1 HunterBlob. Chaos 3: 50% chance of 1. Chaos 4+: always spawns, sometimes 2 |
+| **DataCore** | Only spawns at chaos >= 3 (one per husk — the "goal" terminal) |
+| **UnlockTerminal** | Chaos 0: never (unless softlock prevention). Chaos 1: 50%. Chaos 2+: always |
+| **BoostData pickup** | Only at chaos >= 3, 25% chance |
+
+The four husk types defined in `HuskGame::Constants::HUSK_TYPES`:
+
+| Selection | Initial Chaos | Description |
+|-----------|--------------|-------------|
+| STABLE | 0 | Gentle ramp — no enemies until room 3 |
+| WEATHERED | 1 | Some resistance from room 2 |
+| CORRUPTED | 2 | Enemies from the start |
+| VOLATILE | 3 | Max threat immediately, fewer exits |
 
 ### RoomScene Fragments
 

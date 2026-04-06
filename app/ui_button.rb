@@ -12,11 +12,8 @@ module HuskGame
       click_center: nil,
       &block
     )
-      puts "UIBUTTON INIT"
-      # super(name, &block)
       super (name)
       @on_mouse_down = ->(_sprite, point) {
-        puts "on_mouse_down"
         block&.call(point)
         toggle_pressed
       }
@@ -47,7 +44,6 @@ module HuskGame
 
       click_center ||= self.center
       @click_center = click_center
-      puts "#{name} click_center: #{click_center}"
       @click_distance = 40
 
       path_root ||= "playercontrols/#{direction.to_s}"
@@ -80,11 +76,9 @@ module HuskGame
     end
 
     def absorb_click?
-      puts "absorb click: #{name}"
       false
     end
     def clicked?(point, kind = nil)
-      puts "clicked #{name}: #{$gtk.args.geometry.distance(point, @click_center) < @click_distance}"
       self if $gtk.args.geometry.distance(point, @click_center) < @click_distance
     end
   end

@@ -14,7 +14,6 @@ module HuskGame
     BUTTONS_CENTER = {x: 280, y: 260}.freeze
 
     def initialize
-      puts "\n\nROOM_SCENE: INIT\n\n"
       super
       initialize_dimensions
       initialize_collections
@@ -98,7 +97,6 @@ module HuskGame
     end
 
     def prepare_scene
-      puts "\n\nROOM_SCENE: PREPARE_SCENE\n\n"
       $gtk.args.state.run.start_tick = Kernel.tick_count
       register_all_sprites
       setup_fader
@@ -139,8 +137,8 @@ module HuskGame
     end
 
     def setup_husk
-      @husk = Husk.new
-      puts "husk: #{@husk}"
+      initial_chaos = $gtk.args.state.husk_config&.initial_chaos || 0
+      @husk = Husk.new(initial_chaos: initial_chaos)
     end
 
     def setup_light

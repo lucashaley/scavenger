@@ -191,14 +191,8 @@ module HuskGame
       player.player_control = false
       player.momentum.y = 0.0
       player.momentum.x = 0.0
-      puts 'centering player' # we could probably use @exit_point, too.
-
-      # This is now handled in perform_tick
-      # animation_name = "door_main_#{scale}"
-      # sprites.find { |s| s.name == animation_name }.run_animation_sequence(:open)
 
       player.is_dooring = true
-      puts "Is player a ship? #{player.is_a? Ship}"
       player.run_action(
         Zif::Actions::Action.new(
           player,
@@ -213,9 +207,6 @@ module HuskGame
     end
 
     def exit_door player
-      # puts "exit_door: #{player}"
-      puts "door: #{@x}, #{@y}"
-      puts "exit_point: #{@exit_point}"
 
       # this is now handled in perform_tick
       # animation_name = "door_main_#{scale}"
@@ -237,9 +228,6 @@ module HuskGame
     end
 
     def collide_action collidee, facing
-      puts "Door collision: #{facing} vs #{@door_side}"
-      puts "locked: #{@locked}"
-
       if can_enter_door?(collidee, facing)
         enter_door collidee
       else

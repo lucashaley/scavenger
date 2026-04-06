@@ -131,8 +131,6 @@ module HuskGame
           end
 
           @previous_data_tick = Kernel.tick_count
-        else
-          puts "missed!"
         end # entering
       else
         # play_once @sound_collide
@@ -155,13 +153,11 @@ module HuskGame
       indicator = @sprites.find { |s| s.name == "#{class_name}_#{indicator_layer_name}_#{scale}" }
 
       if @stage == :full && @remaining_data <= (@data * DATA_STAGE_TWO_THIRDS).truncate
-        puts "TWO THIRDS!"
         @stage = :two_thirds
         indicator&.assign(
           {path: "sprites/#{class_name}/#{class_name}_#{indicator_layer_name}_#{@scale.to_s}_2.png"}
         )
       elsif @stage == :two_thirds && @remaining_data <= (@data * DATA_STAGE_ONE_THIRD).truncate
-        puts "ONE THIRD"
         @stage = :one_third
         indicator&.assign(
           {path: "sprites/#{class_name}/#{class_name}_#{indicator_layer_name}_#{@scale.to_s}_1.png"}
@@ -184,16 +180,13 @@ module HuskGame
     end
 
     def handle_emp_low emp_level
-      puts "Connector: handle_emp_low"
       @remaining_data *= EMP_LOW_DATA_MULTIPLIER
     end
     def handle_emp_medium emp_level
-      puts "Connector: handle_emp_medium"
       @remaining_data *= EMP_MEDIUM_DATA_MULTIPLIER
       @corrupted |= rand(3) == 0
     end
     def handle_emp_high emp_level
-      puts "Connector: handle_emp_high"
       @remaining_data = 0
       indicator = @sprites.find { |s| s.name == "#{class_name}_#{indicator_layer_name}_#{scale}" }
       indicator&.hide

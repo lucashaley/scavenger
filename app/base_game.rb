@@ -14,6 +14,7 @@ module HuskGame
       @services.register(:sprite_data_loader, Services::SpriteDataLoader.new)
 
       register_scene(:menu_main, MenuMainScene)
+      register_scene(:husk_select, HuskSelectScene)
       register_scene(:room, RoomScene)
       register_scene(:game_over, GameOverScene)
       register_scene(:game_complete, GameCompleteScene)

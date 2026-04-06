@@ -11,8 +11,6 @@ module HuskGame
       x: 240,
       y: 320
     )
-      puts "UI CLUSTER INIT"
-
       @x = x
       @y = y
 
@@ -96,7 +94,6 @@ module HuskGame
         b.click_center.y += @y
         $game.services[:input_service].register_clickable b
 
-        puts "#{b.name} click_center: #{b.click_center}"
       end
     end
 

@@ -23,10 +23,7 @@ module HuskGame
       fourth: 0.1
     }.freeze
 
-    def initialize (
-      density=0.6,
-      room_dimensions=7
-    )
+    def initialize(initial_chaos: 0)
       # Variables
       @health = 1.0
       @deterioration_rate = 100 * DETERIORATION_SCALE
@@ -34,10 +31,8 @@ module HuskGame
       @all_unlocked = false
       @unlock_terminal = nil
 
-      # @room_dimensions = room_dimensions
-
       @breach = nil
-      @entrypoint = Room.new(name: 'entrypoint', scale: :large, husk: self)
+      @entrypoint = Room.new(name: 'entrypoint', scale: :large, husk: self, chaos: initial_chaos)
       switch_rooms @entrypoint
 
       # UI Progress bar
@@ -79,7 +74,6 @@ module HuskGame
 
       thresholds = HEALTH_WARNING_THRESHOLDS
       if @health < thresholds[:first] && @warning == :none
-        puts "Warning!"
         @warning = :once
         play_voiceover(HuskGame::AssetPaths::Audio::VOICE_WARNING_HUSK_INTEGRITY)
       end
@@ -100,13 +94,10 @@ module HuskGame
     # I don't like to work with such small values
     # so I'm clamping from 0-100 and scaling here
     def damage amount
-      puts "damaging hull"
       @deterioration_rate += amount.clamp(0, 100) * DETERIORATION_SCALE
-      puts @deterioration_rate
     end
 
     def create_room
-      puts "HuskEngine: create_room"
     end
 
     def serialize

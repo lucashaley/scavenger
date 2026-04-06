@@ -56,8 +56,6 @@ module HuskGame
     end
 
     def collide_action collidee, facing
-      puts 'mine collide_action'
-
       return if @blown
 
       @sprites.find { |s| s.name == "mine_main_#{@scale}" }.hide
@@ -92,10 +90,8 @@ module HuskGame
     end
 
     def complete_animation(animation)
-      puts "complete_animation"
       case animation
       when :blow
-        puts "complete_animation: blow"
         kill
       end
     end

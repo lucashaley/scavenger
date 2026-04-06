@@ -96,8 +96,6 @@ module HuskGame
     end
 
     def perform_tick
-      puts "GAME OVER"
-
       handle_meta_input
       handle_input
 

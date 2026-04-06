@@ -51,7 +51,7 @@ module HuskGame
         s.a = 0
         s.on_mouse_up = lambda do |_sprite, _point|
           return unless @ready
-          exit_scene :room
+          exit_scene :husk_select
         end
       end
       $game.services[:input_service].register_clickable @play_button

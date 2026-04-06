@@ -21,7 +21,6 @@ module HuskGame
     end
 
     def perform_pickup collidee
-      puts "BoostThrust perform_pickup"
       collidee.boost_thrust @amount, @duration, @start_duration
     end
   end

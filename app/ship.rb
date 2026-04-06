@@ -249,7 +249,6 @@ module HuskGame
     end
 
     def rotate_ccw
-      puts 'Ship rotate_ccw'
       return if @is_rotating
 
       @is_rotating = true
@@ -274,13 +273,11 @@ module HuskGame
     end
 
     def end_rotate_ccw
-      puts 'end_rotate_ccw'
       face_turn_ccw
       @is_rotating = false
     end
 
     def rotate_cw
-      puts 'Ship rotate_cw'
       duration = (@angular_thrust / @health_cw).truncate
       run_action(
         Zif::Actions::Sequence.new(
@@ -301,7 +298,6 @@ module HuskGame
     end
 
     def end_rotate_cw
-      puts 'end_rotate_cw'
       face_turn_cw
       @is_rotating = false
     end
@@ -314,7 +310,6 @@ module HuskGame
     end
 
     def handle_collision
-      puts 'handle_collision'
     end
 
     # Checking if we need this
@@ -348,42 +343,31 @@ module HuskGame
     end
 
     def boost_thrust amount=10, duration=3.seconds, start_duration=10
-      puts 'boost_thrust'
       current_thrust = @thrust
 
       run_action(
         Zif::Actions::Sequence.new(
           [
-            new_action({thrust: current_thrust + amount}, duration: start_duration, easing: :smooth_start) do
-              puts 'finish boost'
-            end,
+            new_action({thrust: current_thrust + amount}, duration: start_duration, easing: :smooth_start) {},
 
-            new_action({thrust: current_thrust}, duration: duration, easing: :smooth_stop) do
-              puts 'returned thrust'
-            end
+            new_action({thrust: current_thrust}, duration: duration, easing: :smooth_stop) {}
           ]
         )
       )
     end
 
     def change_health amount, side
-      puts "change_health(#{amount}, #{side})"
-
       play_voiceover(HuskGame::AssetPaths::Audio::VOICE_DRONE_DAMAGED)
 
       case side
       when :north
         @health_north = (@health_north += amount).clamp(0, 1.0)
-        puts "health_north: #{@health_north}"
       when :south
         @health_south = (@health_south += amount).clamp(0, 1.0)
-        puts "health_south: #{@health_south}"
       when :east
         @health_east = (@health_east += amount).clamp(0, 1.0)
-        puts "health_east: #{@health_east}"
       when :west
         @health_west = (@health_west += amount).clamp(0, 1.0)
-        puts "health_west: #{@health_west}"
       end
     end
 
@@ -403,11 +387,9 @@ module HuskGame
     end
 
     def add_data_block(name:, size:, corrupted:)
-      puts "add_data_block: #{@data_blocks.length} vs #{@data_block_count}"
       if @data_blocks.length < @data_block_count
         @data_blocks << {name: name, size: size, corrupted: corrupted}
       end
-      puts "data_blocks: #{@data_blocks}"
       @data = 0
       @data_source = nil
       @data_progress.progress = 0
@@ -495,7 +477,6 @@ module HuskGame
     public
 
     def emp_count=(c)
-      puts "emp_count=#{c}"
       @emp_count = c.clamp(0, @emp_storage)
     end
 

@@ -71,6 +71,14 @@ module HuskGame
     # Audio
     DEFAULT_MUSIC_VOLUME = 0.3
 
+    # Husk types for selection scene
+    HUSK_TYPES = [
+      { name: 'STABLE',    chaos: 0, description: 'Minimal interference. A clean run.' },
+      { name: 'WEATHERED',  chaos: 1, description: 'Some resistance. Stay alert.' },
+      { name: 'CORRUPTED',  chaos: 2, description: 'Heavy corruption. Dangerous.' },
+      { name: 'VOLATILE',   chaos: 3, description: 'Maximum threat. Good luck.' }
+    ].freeze
+
     # Blend modes
     BLENDMODE = {
       none: 0,
