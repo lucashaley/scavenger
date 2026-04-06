@@ -82,6 +82,23 @@ module HuskGame
       { x: temp[:x], y: temp[:y] }
     end
 
+    # Returns a facing direction that doesn't point toward a wall closer than
+    # one sprite-scale width (the player needs room to stand in front).
+    def safe_facing(x, y)
+      scale_px = HuskGame::Constants::SPRITE_SCALES[@room.scale]
+      min_clearance = scale_px
+
+      vs = HuskGame::Constants::VIEWSCREEN
+      candidates = []
+      candidates << :north if (vs[:top] - y) >= min_clearance
+      candidates << :south if (y - vs[:bottom]) >= min_clearance
+      candidates << :east  if (vs[:right] - x) >= min_clearance
+      candidates << :west  if (x - vs[:left]) >= min_clearance
+
+      candidates = [:north, :south, :east, :west] if candidates.empty?
+      candidates.sample.to_sym
+    end
+
     def populate_pickups
       if rand(4) <= 3
         valid_position = find_empty_position
@@ -185,7 +202,7 @@ module HuskGame
         scale: @room.scale,
         data: rand(1000),
         data_rate: 1 + (rand(3) * 0.5),
-        facing: [:north, :south, :east, :west].sample.to_sym
+        facing: safe_facing(valid_position[:x], valid_position[:y])
       )
       add_terminal(data_terminal)
     end
@@ -235,11 +252,12 @@ module HuskGame
       valid_position = find_empty_position
       return if valid_position.nil?
 
+      facing = safe_facing(valid_position[:x], valid_position[:y])
       unlock_terminal = UnlockTerminal.new(
         x: valid_position[:x],
         y: valid_position[:y],
         scale: @room.scale,
-        facing: [:north, :south, :east, :west].sample.to_sym,
+        facing: facing,
         husk: @room.husk
       )
       add_terminal(unlock_terminal)
