@@ -23,6 +23,12 @@
       ],
       blendmode_enum: :add,
       z: 4
+    },
+    {
+      name: "unlocked",
+      blendmode_enum: :add,
+      z: 5,
+      scales: [:large]
     }
   ],
   scales: {

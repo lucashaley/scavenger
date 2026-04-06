@@ -116,12 +116,8 @@ module HuskEngine
       details[:layers].each do |layer|
         # puts "Creating #{layer[:name]}"
         details[:scales].each_key do |scale_k|
-          # puts "Create #{layer[:name]}: #{scale.to_s}"
-          # Create the scale hash if it doesn't exist already
-          # This is weird, because in our naming convention
-          # the layer comes first, but in the hash
-          # the scale comes first.
-          # puts "scales: #{scale_k}: #{scale_v}"
+          # Skip if this layer specifies which scales it applies to
+          next if layer[:scales] && !layer[:scales].include?(scale_k)
 
           @sprite_scale_hash[scale_k] ||= Hash.new
 

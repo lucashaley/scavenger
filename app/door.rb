@@ -160,8 +160,14 @@ module HuskGame
       @name = room_name + '_door' + @door_side.to_s
 
 
-      animation_name = "door_lights_#{scale}"
-      @sprites.find { |s| s.name == animation_name }.run_animation_sequence(:idle)
+      @lights_sprite = @sprites.find { |s| s.name == "door_lights_#{scale}" }
+      if @locked
+        @lights_sprite.a = 0
+      else
+        @lights_sprite.run_animation_sequence(:idle)
+      end
+
+      update_unlocked_indicator
 
       @approached = false
     end
@@ -256,6 +262,7 @@ module HuskGame
     end
 
     def perform_tick
+      update_unlocked_indicator
       return if @locked && !room&.husk&.all_unlocked && $gtk.args.state.ship.has_item?(@keyitem) == false
 
       dist = $gtk.args.geometry.distance self.rect, $gtk.args.state.ship.rect #$game.scene.ship.rect
@@ -269,6 +276,22 @@ module HuskGame
         @sprites.find { |s| s.name == "door_doors_#{scale}" }.run_animation_sequence(:close)
         # @sprites.find { |s| s.name == "door_lights_#{scale}" }.show
         # sprites.find { |s| s.name == "door_lights_#{scale}" }.run_animation_sequence(:idle)
+      end
+    end
+
+    def update_unlocked_indicator
+      should_show = !@locked || (room&.husk&.all_unlocked)
+
+      unlocked_sprite = @current_sprite_hash[:unlocked]
+      unlocked_sprite.a = should_show ? 255 : 0 if unlocked_sprite
+
+      if @lights_sprite
+        if should_show && @lights_sprite.a == 0
+          @lights_sprite.a = 255
+          @lights_sprite.run_animation_sequence(:idle)
+        elsif !should_show
+          @lights_sprite.a = 0
+        end
       end
     end
 
