@@ -94,8 +94,6 @@ module HuskGame
     end
 
     def collide_action collidee, facing
-      mark_and_print ("Collide with HunterBlob!")
-      puts "facing: #{facing}"
       collidee.add_data_block(name: 'hunterblob', size: 1, corrupted: true)
 
       blowback = BLOWBACK_SCALES[@scale]
@@ -115,18 +113,15 @@ module HuskGame
     end
 
     def current_speed=(speed)
-      puts "assigning speed: #{speed}"
       @current_speed = speed.clamp(0, @default_speed)
     end
 
     def handle_emp_low emp_level
       self.current_speed = @current_speed - emp_level.idiv(EMP_SPEED_DIVISOR_LOW)
-      puts @current_speed
     end
     def handle_emp_medium emp_level
       self.current_speed = @current_speed - emp_level.idiv(EMP_SPEED_DIVISOR_MEDIUM)
       @damaged = true
-      puts @current_speed
     end
     def handle_emp_high emp_level
       kill
