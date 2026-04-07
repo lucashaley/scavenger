@@ -5,9 +5,7 @@ require 'app/scenes/utility_scene'
 require 'app/scenes/about_scene'
 require 'app/scenes/husk_select_scene'
 
-require 'app/fragments/fragment_ship'
-require 'app/fragments/fragment_input'
-require 'app/fragments/fragment_ui'
+require 'app/touch_controls'
 
 require 'app/ui_button'
 require 'app/ui_cluster'

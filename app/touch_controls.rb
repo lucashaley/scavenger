@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 module HuskGame
-  module FragmentUi
+  module TouchControls
     def handle_ui
       $gtk.args.state.ui ||= {}
       ui = $gtk.args.state.ui
@@ -100,13 +100,10 @@ module HuskGame
       # reset button down states
 
       if mouse.held || mouse.down
-        # puts "ui.click: #{ui.click}"
-
         # which button are we pressing?
         ui.current_button = ui.buttons.find do |b|
           mouse.inside_circle? b.click_center, b.click_radius
         end
-        # puts "current button: #{ui.current_button}"
 
         # The player can hold down and move around directionally
         if ui.current_button&.type == :directional && ui.last_button.type == :directional
@@ -144,7 +141,6 @@ module HuskGame
           when :emp
             if @ship.emp_count > 0
               ui.current_button.path = ui.current_button.path_down
-              # @emp_power += 1
               boost_emp_charge(1)
             end
           else
@@ -169,9 +165,6 @@ module HuskGame
           ui.current_button = nil
           ui.click = :up
         end
-
-        # # Prepare to check for separate clicks
-        # ui.click = :down
       end
 
       if mouse.up && ui.current_button

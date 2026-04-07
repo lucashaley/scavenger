@@ -6,6 +6,7 @@ module HuskGame
     attr_reader :current_room
     attr_accessor :data_core, :breach  # written by RoomPopulator
     attr_accessor :all_unlocked, :unlock_terminal  # written by UnlockTerminal
+    attr_accessor :has_locked_doors  # set by RoomPopulator when locked doors are created
 
     DOORS = {
       north:  1,
@@ -23,16 +24,17 @@ module HuskGame
       fourth: 0.1
     }.freeze
 
-    def initialize(initial_chaos: 0)
+    def initialize(initial_chaos: 0, initial_threat: 0)
       # Variables
       @health = 1.0
       @deterioration_rate = 100 * DETERIORATION_SCALE
       @data_core = nil
       @all_unlocked = false
       @unlock_terminal = nil
+      @has_locked_doors = false
 
       @breach = nil
-      @entrypoint = Room.new(name: 'entrypoint', scale: :large, husk: self, chaos: initial_chaos)
+      @entrypoint = Room.new(name: 'entrypoint', scale: :large, husk: self, chaos: initial_chaos, threat: initial_threat)
       switch_rooms @entrypoint
 
       # UI Progress bar

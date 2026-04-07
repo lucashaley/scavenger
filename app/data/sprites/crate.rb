@@ -2,6 +2,7 @@
 {
   name: "crate",
   layers: [
+    { name: "shadow", blendmode_enum: HuskGame::Constants::BLENDMODE[:multiply], z: -1 },
     { name: "main", blendmode_enum: :alpha, z: 0 }
   ],
   scales: {

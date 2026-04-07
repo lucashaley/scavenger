@@ -27,7 +27,7 @@ module HuskGame
 
     def populate_doors
       @room.doors_hash.each do |key, value|
-        next unless value.nil? && rand(3) + 1 > @room.chaos
+        next unless value.nil? && rand(4) + 2 > @room.chaos
 
         new_door = Door.new(
           scale: @room.scale,
@@ -40,6 +40,11 @@ module HuskGame
       end
 
       ensure_unlocked_door if @room.entrance_door.nil?
+
+      # Track whether the husk has any locked doors
+      if @room.husk && @room.doors.any?(&:locked)
+        @room.husk.has_locked_doors = true
+      end
     end
 
     def ensure_unlocked_door
@@ -127,7 +132,7 @@ module HuskGame
       @room.pickups << boost_emp
       @room.no_populate_buffer << boost_emp.buffer
 
-      if @room.chaos >= 3 && rand(4) == 0
+      if @room.threat >= 3 && rand(4) == 0
         valid_position = find_empty_position
         unless valid_position.nil?
           boost_data = BoostData.new(x: valid_position[:x], y: valid_position[:y], scale: @room.scale)
@@ -208,7 +213,7 @@ module HuskGame
     end
 
     def populate_data_core
-      return unless @room.chaos >= 3 && @room.husk.data_core.nil?
+      return unless @room.threat >= 3 && @room.husk.data_core.nil?
 
       valid_position = find_empty_position({ w: 128, h: 128 })
       return if valid_position.nil?
@@ -242,11 +247,13 @@ module HuskGame
       end
 
       non_entrance_doors = @room.doors.select { |d| d != @room.entrance_door }
-      all_locked = !non_entrance_doors.empty? && non_entrance_doors.all?(&:locked)
+      unlocked_exits = non_entrance_doors.select { |d| !d.locked }
+      dead_end = unlocked_exits.empty?
 
-      unless all_locked
-        return if @room.chaos == 0
-        return if @room.chaos == 1 && rand(2) != 0
+      # Force spawn at dead ends if husk has locked doors — player needs this to progress
+      unless dead_end && @room.husk.has_locked_doors
+        return if @room.threat == 0
+        return if @room.threat == 1 && rand(2) != 0
       end
 
       valid_position = find_empty_position
@@ -271,9 +278,9 @@ module HuskGame
     end
 
     def populate_agents
-      return if @room.chaos < 2
+      return if @room.threat < 2
 
-      case @room.chaos
+      case @room.threat
       when 2
         return unless rand(3) == 0
         count = 1

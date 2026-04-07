@@ -102,7 +102,7 @@
 ## Architecture
 
 - [x] Extract Room population logic into `RoomPopulator` class — Room reduced from 649 to 267 lines
-- [ ] Refactor RoomScene fragments — FragmentUi is 270 lines, FragmentShip is 17; unclear responsibilities and overlapping concerns
+- [x] Refactor RoomScene fragments — deleted dead FragmentShip, folded FragmentInput into RoomScene, renamed FragmentUi to TouchControls at app/touch_controls.rb, removed fragments/ directory
 - [x] Standardize constructor signatures — Attractor/Repulsor converted from positional to keyword args
 - [x] Rename `init_faceable` to `initialize_faceable` — updated mixin and Wall caller
 - [x] Standardize state access patterns — converted all `$services[key]` to `$game.services[key]` and `.named(key)` to `[key]` across 7 files

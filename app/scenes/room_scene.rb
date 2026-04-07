@@ -3,9 +3,7 @@ module HuskGame
     include SpriteRegisters
     include Zif::Traceable
     include HuskEngine::Soundable
-    include HuskGame::FragmentUi
-    include HuskGame::FragmentInput
-    include HuskGame::FragmentShip
+    include HuskGame::TouchControls
 
     attr_accessor :ship, :husk
     attr_accessor :player_controls
@@ -137,8 +135,10 @@ module HuskGame
     end
 
     def setup_husk
-      initial_chaos = $gtk.args.state.husk_config&.initial_chaos || 0
-      @husk = Husk.new(initial_chaos: initial_chaos)
+      config = $gtk.args.state.husk_config
+      initial_chaos = config&.initial_chaos || 0
+      initial_threat = config&.initial_threat || 0
+      @husk = Husk.new(initial_chaos: initial_chaos, initial_threat: initial_threat)
     end
 
     def setup_light
@@ -358,6 +358,50 @@ module HuskGame
       # Update light with ship coords
       @light.x = @ship.center_x - @light.w.half
       @light.y = @ship.center_y - @light.h.half
+    end
+
+    def handle_meta_input
+      $gtk.args.gtk.request_quit if $gtk.args.inputs.keyboard.q
+
+      if $gtk.args.inputs.keyboard.key_down.space
+        $gtk.args.outputs.screenshots << { x: 0, y: 0, w: 720, h: 1280, path: "sn-at-#{Kernel.tick_count}.png" }
+      end
+
+      if $gtk.args.inputs.keyboard.key_down.m
+        raise StandardError "no bg_music" if $gtk.args.audio[:bg_music].nil?
+        $gtk.args.audio[:bg_music].gain = 0.0
+        @bg_music_volume = 0.0
+        $gtk.args.state.bgmusic.playing = false
+      end
+    end
+
+    def handle_player_input
+      @ship.add_thrust $gtk.args.inputs.left_right, $gtk.args.inputs.up_down
+
+      $game.services[:effect_service].run_all_effects
+
+      # Collisions: check X axis first, then Y
+      @ship.calc_position_x
+
+      collision_doors_x = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.doors
+      collision_doors_x.collide_x_with @ship if collision_doors_x
+
+      collision_pickups_x = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.collidables
+      collision_pickups_x.collide_x_with @ship if collision_pickups_x
+
+      @ship.bounds_inside_x @ui_viewscreen
+
+      @ship.calc_position_y
+
+      collision_doors_y = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.doors
+      collision_doors_y.collide_y_with @ship if collision_doors_y
+
+      collision_pickups_y = $gtk.args.geometry.find_intersect_rect @ship, @husk.current_room.collidables
+      collision_pickups_y.collide_y_with @ship if collision_pickups_y
+
+      @ship.bounds_inside_y @ui_viewscreen
+
+      @ship.apply_drag
     end
 
     def handle_ticks

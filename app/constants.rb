@@ -72,11 +72,13 @@ module HuskGame
     DEFAULT_MUSIC_VOLUME = 0.3
 
     # Husk types for selection scene
+    # chaos: controls door generation (lower = more doors = bigger husk)
+    # threat: controls entity danger (higher = more agents/hazards)
     HUSK_TYPES = [
-      { name: 'STABLE',    chaos: 0, description: 'Minimal interference. A clean run.' },
-      { name: 'WEATHERED',  chaos: 1, description: 'Some resistance. Stay alert.' },
-      { name: 'CORRUPTED',  chaos: 2, description: 'Heavy corruption. Dangerous.' },
-      { name: 'VOLATILE',   chaos: 3, description: 'Maximum threat. Good luck.' }
+      { name: 'STABLE',    chaos: 3, threat: 0, description: 'Minimal interference. A clean run.' },
+      { name: 'WEATHERED', chaos: 2, threat: 1, description: 'Some resistance. Stay alert.' },
+      { name: 'CORRUPTED', chaos: 1, threat: 2, description: 'Heavy corruption. Dangerous.' },
+      { name: 'VOLATILE',  chaos: 0, threat: 3, description: 'Maximum threat. Good luck.' }
     ].freeze
 
     # Blend modes

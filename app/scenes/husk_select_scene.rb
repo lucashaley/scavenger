@@ -38,6 +38,7 @@ module HuskGame
       HuskGame::Constants::HUSK_TYPES.each_with_index do |husk_type, i|
         btn_y = start_y - (i * (btn_h + 20))
         chaos = husk_type[:chaos]
+        threat = husk_type[:threat]
 
         button = Zif::Sprite.new.tap do |s|
           s.x = btn_x
@@ -48,7 +49,7 @@ module HuskGame
           s.a = 0
           s.on_mouse_up = lambda do |_sprite, _point|
             return unless @ready
-            select_husk(chaos)
+            select_husk(chaos, threat)
           end
         end
         $game.services[:input_service].register_clickable button
@@ -69,7 +70,7 @@ module HuskGame
 
         # Chaos indicator blocks
         4.times do |c|
-          filled = c < husk_type[:chaos]
+          filled = c < husk_type[:threat]
           block_x = btn_x + btn_w - 40 - (4 - c) * 28
           block_y = btn_y + btn_h.half - 8
 
@@ -82,9 +83,10 @@ module HuskGame
       end
     end
 
-    def select_husk(chaos)
+    def select_husk(chaos, threat)
       $gtk.args.state.husk_config ||= {}
       $gtk.args.state.husk_config.initial_chaos = chaos
+      $gtk.args.state.husk_config.initial_threat = threat
       exit_scene :room
     end
   end

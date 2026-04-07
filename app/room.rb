@@ -8,6 +8,7 @@ module HuskGame
     attr_reader :name,
                 :husk,
                 :chaos,
+                :threat,
                 :entrance_door,
                 :tiles_target,
                 :tile_dimensions,
@@ -38,6 +39,7 @@ module HuskGame
       name: 'entrance',
       husk: nil,
       chaos: 0,
+      threat: 0,
       scale: :large,
       entrance_door: nil
     )
@@ -48,6 +50,7 @@ module HuskGame
       @name = name
       @husk = husk
       @chaos = chaos
+      @threat = threat
       @scale = scale
       @entrance_door = entrance_door
       pixel_scale = HuskGame::Constants::SPRITE_SCALES[@scale]

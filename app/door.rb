@@ -151,6 +151,7 @@ module HuskGame
         @deferred_room_params = {
           name: @destination_door.room.name + '_' + @destination_door.door_side.to_s,
           chaos: @destination_door.room.chaos + 1,
+          threat: @destination_door.room.threat + 1,
           scale: scale,
           husk: @destination_door.room.husk
         }
@@ -183,6 +184,7 @@ module HuskGame
       @room = Room.new(
         name: @deferred_room_params[:name],
         chaos: @deferred_room_params[:chaos],
+        threat: @deferred_room_params[:threat],
         scale: @deferred_room_params[:scale],
         entrance_door: self,
         husk: @deferred_room_params[:husk]

@@ -111,35 +111,42 @@ Sprite image files live in `sprites/<name>/` and are auto-discovered and registe
 - **Door** — Connects rooms; entering a door generates a new room at the target scale. Entry logic in `can_enter_door?` checks facing, lock status, and alignment tolerance.
 - Rooms have a `scale` (`:large`, `:medium`, `:small`, `:tiny`) that determines sprite sizes and tile counts
 
-### Chaos System
+### Chaos & Threat System
 
-Chaos is an integer that drives procedural room difficulty. The player selects an initial chaos level (0–3) in `HuskSelectScene`, stored in `$gtk.args.state.husk_config.initial_chaos`. Each subsequent room increments chaos by 1 (set in `Door` via `deferred_room_params`).
+Room difficulty is driven by two independent values, both stored on `Room` and incremented by 1 per room transition (in `Door` via `deferred_room_params`):
 
-Chaos affects `RoomPopulator` as follows:
+- **`chaos`** — Controls room structure (door generation). Higher chaos = fewer doors = smaller husk. Used only in `populate_doors`.
+- **`threat`** — Controls entity danger (agents, hazards, terminals). Higher threat = more enemies and loot. Used in all entity population methods.
+
+The player selects initial values in `HuskSelectScene`, stored in `$gtk.args.state.husk_config`. Harder husks have *lower* chaos (more doors, bigger husk) and *higher* threat (more enemies).
+
+**Chaos** affects `RoomPopulator`:
 
 | System | Effect |
 |--------|--------|
 | **Doors** | `rand(3) + 1 > chaos` — higher chaos = fewer doors per room |
-| **Agents** | Chaos < 2: none. Chaos 2: 33% chance of 1 HunterBlob. Chaos 3: 50% chance of 1. Chaos 4+: always spawns, sometimes 2 |
-| **DataCore** | Only spawns at chaos >= 3 (one per husk — the "goal" terminal) |
-| **UnlockTerminal** | Chaos 0: never (unless softlock prevention). Chaos 1: 50%. Chaos 2+: always |
-| **BoostData pickup** | Only at chaos >= 3, 25% chance |
+
+**Threat** affects `RoomPopulator`:
+
+| System | Effect |
+|--------|--------|
+| **Agents** | Threat < 2: none. Threat 2: 33% chance of 1 HunterBlob. Threat 3: 50% chance of 1. Threat 4+: always spawns, sometimes 2 |
+| **DataCore** | Only spawns at threat >= 3 (one per husk — the "goal" terminal) |
+| **UnlockTerminal** | Threat 0: never (unless softlock prevention). Threat 1: 50%. Threat 2+: always |
+| **BoostData pickup** | Only at threat >= 3, 25% chance |
 
 The four husk types defined in `HuskGame::Constants::HUSK_TYPES`:
 
-| Selection | Initial Chaos | Description |
-|-----------|--------------|-------------|
-| STABLE | 0 | Gentle ramp — no enemies until room 3 |
-| WEATHERED | 1 | Some resistance from room 2 |
-| CORRUPTED | 2 | Enemies from the start |
-| VOLATILE | 3 | Max threat immediately, fewer exits |
+| Selection | Chaos | Threat | Description |
+|-----------|-------|--------|-------------|
+| STABLE | 3 | 0 | Small husk, no enemies |
+| WEATHERED | 2 | 1 | Medium husk, light resistance |
+| CORRUPTED | 1 | 2 | Large husk, dangerous |
+| VOLATILE | 0 | 3 | Huge husk, maximum enemies |
 
-### RoomScene Fragments
+### RoomScene Structure
 
-`RoomScene` delegates to fragment modules in `app/fragments/`:
-- `FragmentShip` — Ship control and physics
-- `FragmentInput` — Input handling
-- `FragmentUi` — HUD and UI elements
+`RoomScene` handles gameplay input (keyboard movement, collisions, physics) and rendering directly. Touch/mouse UI controls are separated into the `HuskGame::TouchControls` mixin (`app/touch_controls.rb`), which manages the on-screen directional, rotational, and EMP buttons.
 
 ### Collision System
 
