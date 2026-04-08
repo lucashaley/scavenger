@@ -4,11 +4,15 @@ module HuskGame
 
     FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
 
+    TITLE_FONT = 'fonts/TAYRosemary.otf'.freeze
+
     def prepare_scene
       @tracer_service_name = :tracer
       @current_scene_tick = 0
       @started = false
       @next_scene = nil
+
+      compute_stats
 
       @black_background = {
         x: 0, y: 0, w: 720, h: 1280,
@@ -53,46 +57,29 @@ module HuskGame
     end
 
     def setup_menu_button
-      btn_size = 128
-      btn_x = 720 - btn_size - 40
+      btn_w = 500
+      btn_h = 120
+      btn_x = 720 - btn_w - 40
       btn_y = 40
 
-      @menu_button = Zif::UI::TwoStageButton.new('GameOverMenuBtn').tap do |b|
-        b.x = btn_x
-        b.y = btn_y
-        b.w = btn_size
-        b.h = btn_size
-        b.normal << Zif::Sprite.new('GameOverMenuBtnNormal').tap do |n|
-          n.w = btn_size
-          n.h = btn_size
-          n.path = 'sprites/ui_button_large_up.png'
-        end
-        b.pressed << Zif::Sprite.new('GameOverMenuBtnPressed').tap do |p|
-          p.w = btn_size
-          p.h = btn_size
-          p.path = 'sprites/ui_button_large_down.png'
-        end
-        b.on_mouse_up = lambda do |_sprite, _point|
+      @menu_button = Zif::Sprite.new.tap do |s|
+        s.x = btn_x
+        s.y = btn_y
+        s.w = btn_w
+        s.h = btn_h
+        s.path = :solid
+        s.a = 0
+        s.on_mouse_up = lambda do |_sprite, _point|
           @fader.run_action(
             @fader.new_action({a: 255}, duration: 0.5.seconds, easing: :smooth_step3) {
               @next_scene = :menu_main
             }
           )
         end
-        b.unpress
       end
       $game.services[:input_service].register_clickable @menu_button
 
-      @menu_label = {
-        x: btn_x + btn_size.half,
-        y: btn_y + btn_size.half + 8,
-        text: 'MENU',
-        size: -2,
-        font: FONT,
-        alignment_enum: 1,
-        vertical_alignment_enum: 1,
-        r: 255, g: 255, b: 255
-      }
+      @menu_labels = blurred_label(680, btn_y + btn_h - 6, 'MENU', 32, 4)
     end
 
     def perform_tick
@@ -107,7 +94,8 @@ module HuskGame
       end
 
       $gtk.args.outputs.sprites << @menu_button
-      $gtk.args.outputs.labels << @menu_label
+      @menu_labels.each { |l| $gtk.args.outputs.labels << l }
+      $gtk.args.outputs.labels << @stats_label
 
       return @next_scene
     end
@@ -123,7 +111,29 @@ module HuskGame
     end
 
     def handle_input
+    end
 
+    def blurred_label(x, y, text, size, offset, alignment_enum: 0)
+      base = { text: text, size_enum: size, font: TITLE_FONT, alignment_enum: alignment_enum }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN)
+      shadows = [
+        { x: x,          y: y + offset },
+        { x: x,          y: y - offset },
+        { x: x - offset, y: y },
+        { x: x + offset, y: y }
+      ].map { |pos| base.merge(pos).merge(a: 76) }
+      shadows << base.merge(x: x, y: y, a: 255)
+    end
+
+    def compute_stats
+      rooms_explored = $gtk.args.state.run.rooms_explored || 0
+      rooms_known = $gtk.args.state.run.rooms_known || 0
+      pct = rooms_known > 0 ? (rooms_explored * 100).idiv(rooms_known) : 0
+
+      @stats_label = {
+        x: 60, y: 200,
+        text: "#{pct}% explored (#{rooms_explored}/#{rooms_known} rooms).",
+        size_enum: 4, font: TITLE_FONT
+      }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN)
     end
   end
 end

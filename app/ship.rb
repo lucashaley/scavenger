@@ -395,6 +395,13 @@ module HuskGame
       @data_progress.progress = 0
     end
 
+    def purge_data_blocks
+      @data_blocks.clear
+      @data = 0
+      @data_source = nil
+      @data_progress.progress = 0
+    end
+
     def add_data_core
       if @data_core == :empty
         @data_core = :full

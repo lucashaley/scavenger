@@ -296,6 +296,13 @@ module HuskGame
         agent.deactivate
         @room.agents << agent
       end
+
+      # Sweepers appear at threat 3+
+      if @room.threat >= 3 && rand(2) == 0
+        sweeper = Sweeper.new(scale: @room.scale, room: @room)
+        sweeper.deactivate
+        @room.agents << sweeper
+      end
     end
 
     def populate_dressings

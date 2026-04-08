@@ -1,0 +1,162 @@
+module HuskGame
+  class Sweeper < HuskSprite
+    include HuskEngine::Collideable
+    include HuskEngine::Deadable
+    include HuskEngine::Scaleable
+    include HuskEngine::Bufferable
+    include HuskEngine::Spatializeable
+    include HuskEngine::Tickable
+    include HuskEngine::Empable
+    include HuskEngine::Stateable
+    include HuskGame::Roomable
+
+    sprite_data 'hunterblob'  # temporary until sweeper sprites exist
+
+    SPEED = 1
+    SHIFT_AMOUNT = {
+      large:  4,
+      medium: 3,
+      small:  2,
+      tiny:   1
+    }.freeze
+    SHIP_DAMAGE = -0.15
+    STOP_MIN_TICKS = 60   # 1 second
+    STOP_MAX_TICKS = 180  # 3 seconds
+    EMP_LOW = 60
+    EMP_MEDIUM = 120
+
+    def initialize(x: 360, y: 960, scale: :large, room: nil)
+      @tracer_service_name = :tracer
+      super(Zif.unique_name("Sweeper"))
+      set_position(x, y)
+      initialize_deadable
+      register_sprites_new
+      initialize_scaleable(scale)
+      center_sprites
+      initialize_collideable
+      initialize_bufferable(:single)
+      initialize_tickable
+      initialize_stateable("agent")
+      initialize_empable
+      initialize_roomable(room) if room
+      @emp_low = EMP_LOW
+      @emp_medium = EMP_MEDIUM
+      @sound_collide = "sounds/thump.wav"
+
+      # Movement state
+      @primary_axis = [:horizontal, :vertical].sample
+      @primary_direction = [-1, 1].sample
+      @perp_direction = [-1, 1].sample
+      @speed = SPEED
+      @stopped = false
+      @stop_timer = 0
+      @permanently_stopped = false
+    end
+
+    def perform_tick
+      return unless @active
+      spatialize(@name.to_sym)
+
+      return if @permanently_stopped
+
+      if @stopped
+        @stop_timer -= 1
+        @stopped = false if @stop_timer <= 0
+        return
+      end
+
+      move
+    end
+
+    def move
+      scale_px = HuskGame::Constants::SPRITE_SCALES[@scale]
+      vs = HuskGame::Constants::VIEWSCREEN
+
+      if @primary_axis == :horizontal
+        next_x = @x + (@speed * @primary_direction)
+        if next_x < vs[:left] + scale_px || next_x + scale_px > vs[:right] - scale_px || obstacle_at?(next_x, @y)
+          shift_perpendicular
+          @primary_direction *= -1
+        else
+          @x = next_x
+        end
+      else
+        next_y = @y + (@speed * @primary_direction)
+        if next_y < vs[:bottom] + scale_px || next_y + scale_px > vs[:top] - scale_px || obstacle_at?(@x, next_y)
+          shift_perpendicular
+          @primary_direction *= -1
+        else
+          @y = next_y
+        end
+      end
+    end
+
+    def shift_perpendicular
+      scale_px = HuskGame::Constants::SPRITE_SCALES[@scale]
+      vs = HuskGame::Constants::VIEWSCREEN
+      shift = SHIFT_AMOUNT[@scale]
+
+      if @primary_axis == :horizontal
+        next_y = @y + (shift * @perp_direction)
+        if blocked_y?(next_y, scale_px, vs)
+          @perp_direction *= -1
+          next_y = @y + (shift * @perp_direction)
+          return if blocked_y?(next_y, scale_px, vs)
+        end
+        @y = next_y
+      else
+        next_x = @x + (shift * @perp_direction)
+        if blocked_x?(next_x, scale_px, vs)
+          @perp_direction *= -1
+          next_x = @x + (shift * @perp_direction)
+          return if blocked_x?(next_x, scale_px, vs)
+        end
+        @x = next_x
+      end
+    end
+
+    def blocked_x?(test_x, scale_px, vs)
+      test_x < vs[:left] + scale_px || test_x + scale_px > vs[:right] - scale_px || obstacle_at?(test_x, @y)
+    end
+
+    def blocked_y?(test_y, scale_px, vs)
+      test_y < vs[:bottom] + scale_px || test_y + scale_px > vs[:top] - scale_px || obstacle_at?(@x, test_y)
+    end
+
+    def obstacle_at?(test_x, test_y)
+      return false unless @room
+
+      scale_px = HuskGame::Constants::SPRITE_SCALES[@scale]
+      test_rect = { x: test_x, y: test_y, w: scale_px, h: scale_px }
+      obstacles = @room.dressings + @room.terminals
+      $gtk.args.geometry.find_intersect_rect(test_rect, obstacles) != nil
+    end
+
+    def collide_action(collidee, facing)
+      collidee.change_health(SHIP_DAMAGE, facing)
+      play_once @sound_collide
+      stop_temporarily
+    end
+
+    def stop_temporarily
+      @stopped = true
+      @stop_timer = STOP_MIN_TICKS + rand(STOP_MAX_TICKS - STOP_MIN_TICKS)
+    end
+
+    def bounce
+      HuskGame::Constants::HAZARD_BOUNCE
+    end
+
+    def handle_emp_low(_emp_level)
+      # not affected by low EMP
+    end
+
+    def handle_emp_medium(_emp_level)
+      @permanently_stopped = true
+    end
+
+    def handle_emp_high(_emp_level)
+      @permanently_stopped = true
+    end
+  end
+end

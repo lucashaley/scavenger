@@ -3,7 +3,7 @@ devid=lucashaley
 devtitle=Animatology Studios
 gameid=husk
 gametitle=Husk
-version=0.1.19
+version=0.1.20
 # icon=metadata/icon.png
 
 # === Flags available at all licensing tiers ===
@@ -28,7 +28,7 @@ scale_quality=0
 #       - libs
 #         - saves <---- This directory will be ignored
 # ignore_directories=saves
-ignore_directories=_source, _assets, _archive
+ignore_directories=_source, _assets, _archive, .nova, .git, .idea, .claude
 
 
 # === Flags available in DragonRuby Game Toolkit Pro ====
@@ -37,7 +37,7 @@ ignore_directories=_source, _assets, _archive
 # compile_ruby=false
 
 # Uncomment the entry below to specify the package name for your APK
-# packageid=org.dev.gamename
+packageid=com.animatology.husk
 
 # Setting this property to true will enable High DPI rendering (try in combination with scale_quality to see what looks best)
 # highdpi=false

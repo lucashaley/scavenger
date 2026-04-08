@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 module HuskGame
   module TouchControls
+    PURGE_HOLD_TICKS = 120  # 2 seconds at 60fps
+    PURGE_BTN_X = 600
+    PURGE_BTN_Y = 300
+    PURGE_BTN_W = 96
+    PURGE_BTN_H = 32
+    PURGE_FONT = 'fonts/TAYRosemary.otf'.freeze
+
     def handle_ui
       $gtk.args.state.ui ||= {}
       ui = $gtk.args.state.ui
@@ -9,6 +16,7 @@ module HuskGame
       gameplay = $gtk.args.state.gameplay
 
       ui.click ||= :up
+      ui.purge_hold_ticks ||= 0
 
       # assemble the statics
       ui.statics ||= {
@@ -189,6 +197,7 @@ module HuskGame
       end
 
       handle_statuses
+      handle_purge_button(mouse, ship)
     end
 
     def handle_statuses
@@ -208,6 +217,71 @@ module HuskGame
       gameplay = $gtk.args.state.gameplay
       @emp_power += amount
       @emp_power = @emp_power.clamp(0, gameplay.max_emp_power)
+    end
+
+    def handle_purge_button(mouse, ship)
+      ui = $gtk.args.state.ui
+      purge_rect = { x: PURGE_BTN_X, y: PURGE_BTN_Y, w: PURGE_BTN_W, h: PURGE_BTN_H }
+
+      mouse_point = { x: mouse.x, y: mouse.y }
+      inside = mouse.x && $gtk.args.geometry.inside_rect?(mouse_point, purge_rect)
+
+      if inside && (mouse.held || mouse.down) && ship.data_blocks.length > 0
+        ui.purge_hold_ticks += 1
+        if ui.purge_hold_ticks >= PURGE_HOLD_TICKS
+          ship.purge_data_blocks
+          ui.purge_hold_ticks = 0
+        end
+      else
+        ui.purge_hold_ticks = 0
+      end
+    end
+
+    def render_purge_button
+      ui = $gtk.args.state.ui
+      ship = $gtk.args.state.ship
+      progress = (ui.purge_hold_ticks || 0).fdiv(PURGE_HOLD_TICKS).clamp(0, 1)
+      has_data = ship && ship.data_blocks.length > 0
+
+      base_alpha = has_data ? 180 : 60
+
+      output = []
+
+      # Background
+      output << {
+        x: PURGE_BTN_X, y: PURGE_BTN_Y, w: PURGE_BTN_W, h: PURGE_BTN_H,
+        r: 40, g: 10, b: 10, a: base_alpha,
+        primitive_marker: :solid
+      }
+
+      # Progress fill
+      if progress > 0
+        output << {
+          x: PURGE_BTN_X, y: PURGE_BTN_Y,
+          w: (PURGE_BTN_W * progress).truncate, h: PURGE_BTN_H,
+          r: 200, g: 40, b: 40, a: 200,
+          primitive_marker: :solid
+        }
+      end
+
+      # Border
+      output << {
+        x: PURGE_BTN_X, y: PURGE_BTN_Y, w: PURGE_BTN_W, h: PURGE_BTN_H,
+        r: 200, g: 60, b: 60, a: base_alpha,
+        primitive_marker: :border
+      }
+
+      # Label
+      output << {
+        x: PURGE_BTN_X + PURGE_BTN_W.half,
+        y: PURGE_BTN_Y + PURGE_BTN_H - 4,
+        text: 'PURGE',
+        size_enum: -2, font: PURGE_FONT,
+        alignment_enum: 1,
+        r: 255, g: 80, b: 80, a: has_data ? 255 : 100
+      }
+
+      output
     end
 
     def create_ui_button(

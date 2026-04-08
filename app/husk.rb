@@ -3,7 +3,7 @@ module HuskGame
     include HuskEngine::Soundable
 
     attr_reader :health, :deterioration_rate, :deterioration_progress
-    attr_reader :current_room
+    attr_reader :current_room, :visited_rooms
     attr_accessor :data_core, :breach  # written by RoomPopulator
     attr_accessor :all_unlocked, :unlock_terminal  # written by UnlockTerminal
     attr_accessor :has_locked_doors  # set by RoomPopulator when locked doors are created
@@ -32,6 +32,7 @@ module HuskGame
       @all_unlocked = false
       @unlock_terminal = nil
       @has_locked_doors = false
+      @visited_rooms = []
 
       @breach = nil
       @entrypoint = Room.new(name: 'entrypoint', scale: :large, husk: self, chaos: initial_chaos, threat: initial_threat)
@@ -49,10 +50,10 @@ module HuskGame
     end
 
     def switch_rooms room, door=nil
-      # puts "husk switch_rooms: #{room}, #{door}"
       @current_room.deactivate unless @current_room.nil?
       @current_room = room
       @current_room.activate
+      @visited_rooms << room unless @visited_rooms.include?(room)
 
       if $game.scene.is_a? RoomScene
         $game.scene.fade_in(0.2.seconds)
@@ -99,7 +100,22 @@ module HuskGame
       @deterioration_rate += amount.clamp(0, 100) * DETERIORATION_SCALE
     end
 
-    def create_room
+    def rooms_explored
+      @visited_rooms.length
+    end
+
+    def rooms_known
+      unexplored = 0
+      @visited_rooms.each do |room|
+        room.doors.each do |door|
+          next if door == room.entrance_door
+          # Only count doors the player can actually reach
+          next if door.locked && !@all_unlocked
+          dest = door.destination_door
+          unexplored += 1 if dest && dest.deferred_room_params
+        end
+      end
+      rooms_explored + unexplored
     end
 
     def serialize

@@ -271,6 +271,8 @@ module HuskGame
 
       $gtk.args.state.run.data_blocks = @ship.data_blocks
       $gtk.args.state.run.end_tick = Kernel.tick_count
+      $gtk.args.state.run.rooms_explored = @husk.rooms_explored
+      $gtk.args.state.run.rooms_known = @husk.rooms_known
 
       @fader.run_action(
         @fader.new_action({a: 255}, duration: 0.5.seconds, easing: :smooth_step3) {
@@ -476,6 +478,7 @@ module HuskGame
 
       # This renders out the data boxes, maybe use sprites later on
       $gtk.args.outputs.primitives << @ship.render_data_blocks
+      $gtk.args.outputs.primitives << render_purge_button
 
       # # debug for button centers
       # $gtk.args.outputs.debug << $gtk.args.state.ui.buttons.map do |b|

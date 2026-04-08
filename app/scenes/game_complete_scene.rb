@@ -1,6 +1,5 @@
 module HuskGame
   class GameCompleteScene < HuskEngine::UtilityScene
-    BUTTON_FONT = 'sprites/kenney-uipack-space/Fonts/kenvector_future.ttf'.freeze
 
     def prepare_scene
       super
@@ -32,6 +31,10 @@ module HuskGame
       collected = blocks.select { |b| b }
       @collected_count = collected.length
       @corrupted_count = collected.select { |b| b[:corrupted] }.length
+
+      @rooms_explored = $gtk.args.state.run.rooms_explored || 0
+      @rooms_known = $gtk.args.state.run.rooms_known || 0
+      @exploration_pct = @rooms_known > 0 ? (@rooms_explored * 100).idiv(@rooms_known) : 0
 
       start_tick = $gtk.args.state.run.start_tick || 0
       end_tick = $gtk.args.state.run.end_tick || 0
@@ -68,31 +71,29 @@ module HuskGame
           x: 60, y: 420,
           text: @elapsed_text,
           size_enum: 4, font: TITLE_FONT
+        }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN),
+        {
+          x: 60, y: 370,
+          text: "#{@exploration_pct}% explored (#{@rooms_explored}/#{@rooms_known} rooms).",
+          size_enum: 4, font: TITLE_FONT
         }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN)
       ].flatten
     end
 
     def setup_menu_button
-      btn_size = 128
-      btn_x = 720 - btn_size - 40
+      btn_w = 500
+      btn_h = 120
+      btn_x = 720 - btn_w - 40
       btn_y = 40
 
-      @menu_button = Zif::UI::TwoStageButton.new('GameCompleteMenuBtn').tap do |b|
-        b.x = btn_x
-        b.y = btn_y
-        b.w = btn_size
-        b.h = btn_size
-        b.normal << Zif::Sprite.new('GameCompleteMenuBtnNormal').tap do |n|
-          n.w = btn_size
-          n.h = btn_size
-          n.path = 'sprites/ui_button_large_up.png'
-        end
-        b.pressed << Zif::Sprite.new('GameCompleteMenuBtnPressed').tap do |p|
-          p.w = btn_size
-          p.h = btn_size
-          p.path = 'sprites/ui_button_large_down.png'
-        end
-        b.on_mouse_up = lambda do |_sprite, _point|
+      @menu_button = Zif::Sprite.new.tap do |s|
+        s.x = btn_x
+        s.y = btn_y
+        s.w = btn_w
+        s.h = btn_h
+        s.path = :solid
+        s.a = 0
+        s.on_mouse_up = lambda do |_sprite, _point|
           return if @exiting
           @exiting = true
           @fader.run_action(
@@ -101,20 +102,10 @@ module HuskGame
             }
           )
         end
-        b.unpress
       end
       $game.services[:input_service].register_clickable @menu_button
 
-      @menu_label = {
-        x: btn_x + btn_size.half,
-        y: btn_y + btn_size.half + 8,
-        text: 'MENU',
-        size_enum: -1,
-        font: BUTTON_FONT,
-        alignment_enum: 1,
-        vertical_alignment_enum: 1,
-        r: 255, g: 255, b: 255
-      }
+      @menu_labels = blurred_label(680, btn_y + btn_h - 6, 'MENU', 32, 4, alignment_enum: 2)
     end
 
     def perform_tick
@@ -134,7 +125,7 @@ module HuskGame
         @scene_labels.each { |l| $gtk.args.outputs.labels << l }
         $gtk.args.outputs.primitives << render_data_blocks
         $gtk.args.outputs.sprites << @menu_button
-        $gtk.args.outputs.labels << @menu_label
+        @menu_labels.each { |l| $gtk.args.outputs.labels << l }
       end
 
       return @next_scene

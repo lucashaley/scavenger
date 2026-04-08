@@ -12,6 +12,7 @@ module HuskGame
     attr_accessor :destination_door  # written by Door constructor for bidirectional links
     attr_reader :exit_point
     attr_reader :approached
+    attr_reader :deferred_room_params
 
     TOLERANCE = 8
     ENTER_DURATION = 10
