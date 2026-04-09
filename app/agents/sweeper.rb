@@ -10,7 +10,13 @@ module HuskGame
     include HuskEngine::Stateable
     include HuskGame::Roomable
 
-    sprite_data 'hunterblob'  # temporary until sweeper sprites exist
+    sprite_data 'sweeper'
+
+    state_machine(
+      sweeping: [:stopped, :disabled],
+      stopped:  [:sweeping, :disabled],
+      disabled: []
+    )
 
     SPEED = 1
     SHIFT_AMOUNT = {
@@ -36,7 +42,8 @@ module HuskGame
       initialize_collideable
       initialize_bufferable(:single)
       initialize_tickable
-      initialize_stateable("agent")
+      initialize_stateable("agent", initial_state: :sweeping)
+      build_state_transitions
       initialize_empable
       initialize_roomable(room) if room
       @emp_low = EMP_LOW
@@ -48,20 +55,22 @@ module HuskGame
       @primary_direction = [-1, 1].sample
       @perp_direction = [-1, 1].sample
       @speed = SPEED
-      @stopped = false
       @stop_timer = 0
-      @permanently_stopped = false
+
+      # initialize animation
+      animation_name = "sweeper_base_#{scale}"
+      @sprites.find { |s| s.name == animation_name }.run_animation_sequence(:idle)
     end
 
     def perform_tick
       return unless @active
       spatialize(@name.to_sym)
 
-      return if @permanently_stopped
+      return if @state == :disabled
 
-      if @stopped
+      if @state == :stopped
         @stop_timer -= 1
-        @stopped = false if @stop_timer <= 0
+        change_state(:sweeping) if @stop_timer <= 0
         return
       end
 
@@ -139,7 +148,7 @@ module HuskGame
     end
 
     def stop_temporarily
-      @stopped = true
+      change_state(:stopped)
       @stop_timer = STOP_MIN_TICKS + rand(STOP_MAX_TICKS - STOP_MIN_TICKS)
     end
 
@@ -152,11 +161,11 @@ module HuskGame
     end
 
     def handle_emp_medium(_emp_level)
-      @permanently_stopped = true
+      change_state(:disabled)
     end
 
     def handle_emp_high(_emp_level)
-      @permanently_stopped = true
+      change_state(:disabled)
     end
   end
 end

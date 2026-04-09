@@ -13,6 +13,13 @@ module HuskGame
 
     sprite_data 'hunterblob'
 
+    state_machine(
+      idle:     [:hunting],
+      hunting:  [:idle, :damaged, :dead],
+      damaged:  [:idle, :hunting, :dead],
+      dead:     []
+    )
+
     BLOWBACK_SCALES = {
       large: 6,
       medium: 4,
@@ -45,7 +52,8 @@ module HuskGame
       center_sprites
       initialize_collideable
       initialize_tickable
-      initialize_stateable("agent") # add to data hash above
+      initialize_stateable("agent")
+      build_state_transitions
 
       initialize_empable
       @emp_low = EMP_LOW
@@ -60,7 +68,6 @@ module HuskGame
         x: 0,
         y: 0
       }
-      @damaged = false
     end
 
     def perform_tick
@@ -73,7 +80,13 @@ module HuskGame
       dy = ship_xy.y - @y
       dist_sq = dx * dx + dy * dy
       alert_sq = @alert_threshold * @alert_threshold
-      return if dist_sq > alert_sq
+
+      if dist_sq > alert_sq
+        change_state(:idle)
+        return
+      end
+
+      change_state(:hunting) if @state == :idle
 
       dist = Math.sqrt(dist_sq)
       diff_normalized = $gtk.args.geometry.vec2_normalize({ x: dx, y: dy })
@@ -90,7 +103,7 @@ module HuskGame
       @momentum[:x] *= MOMENTUM_DAMPING
       @momentum[:y] *= MOMENTUM_DAMPING
 
-      current_speed = @current_speed + 1 unless @damaged
+      current_speed = @current_speed + 1 unless @state == :damaged
     end
 
     def collide_action collidee, facing
@@ -109,21 +122,27 @@ module HuskGame
         collidee.momentum.x += -blowback
       end
 
-      kill
+      change_state(:dead)
     end
 
     def current_speed=(speed)
       @current_speed = speed.clamp(0, @default_speed)
     end
 
-    def handle_emp_low emp_level
+    def handle_emp_low(emp_level)
       self.current_speed = @current_speed - emp_level.idiv(EMP_SPEED_DIVISOR_LOW)
     end
-    def handle_emp_medium emp_level
+
+    def handle_emp_medium(emp_level)
       self.current_speed = @current_speed - emp_level.idiv(EMP_SPEED_DIVISOR_MEDIUM)
-      @damaged = true
+      change_state(:damaged)
     end
-    def handle_emp_high emp_level
+
+    def handle_emp_high(_emp_level)
+      change_state(:dead)
+    end
+
+    def on_dead
       kill
     end
   end
