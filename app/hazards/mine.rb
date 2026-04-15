@@ -44,9 +44,11 @@ module HuskGame
       # initialize_collision
       @sound_collide = HuskGame::AssetPaths::Audio::THUMP
 
+      # initialize animation
       animation_name = "mine_main_#{scale}"
       @sprites.find { |s| s.name == animation_name }.run_animation_sequence(:idle)
 
+      # initialize audio
       @audio_idle = HuskGame::AssetPaths::Audio::MINE_IDLE
     end
 

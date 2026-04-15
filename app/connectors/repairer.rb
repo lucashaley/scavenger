@@ -14,7 +14,7 @@ module HuskGame
     )
       super(x: x, y: y, scale: scale, facing: facing, tolerance: tolerance, data: data, data_rate: data_rate)
 
-      @audio_idle = 'sounds/repairer_idle.wav'
+      @audio_idle = HuskGame::AssetPaths::Audio::REPAIRER_IDLE
     end
 
     def collide_action(collidee, collided_on)

@@ -14,7 +14,7 @@ module HuskGame
       @tracer_service_name = :tracer
       super(Zif.unique_name(class_name))
 
-      @sound_collide = "sounds/thump.wav"
+      @sound_collide = HuskGame::AssetPaths::Audio::THUMP
 
       set_position(x, y)
 

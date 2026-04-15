@@ -27,7 +27,7 @@ class Repulsor < HuskGame::HuskSprite
     initialize_bounceable
     initialize_bufferable(:single)
 
-    @sound_collide = "sounds/thump.wav"
+    @sound_collide = HuskGame::AssetPaths::Audio::THUMP
 
     @effect_strength = effect_strength
     @effect_direction = -1 # repulse

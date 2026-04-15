@@ -18,7 +18,7 @@ module HuskGame
       setup_menu_button
 
       $gtk.args.audio[:game_complete_music] ||= {
-        input: "music/Lucas_HuskGame_118_DnB.wav",
+        input: HuskGame::AssetPaths::Audio::MUSIC_118_DNB,
         looping: true,
         gain: 0.5
       }

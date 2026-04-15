@@ -49,6 +49,7 @@ module HuskGame
       initialize_roomable(room) if room
       @emp_low = EMP_LOW
       @emp_medium = EMP_MEDIUM
+      @sound_collide = HuskGame::AssetPaths::Audio::THUMP
 
       # Movement state
       @primary_axis = [:horizontal, :vertical].sample

@@ -31,7 +31,7 @@ class Attractor < HuskGame::HuskSprite
     initialize_bufferable(:single)
     initialize_tickable
 
-    @sound_collide = "sounds/thump.wav"
+    @sound_collide = HuskGame::AssetPaths::Audio::THUMP
 
     @effect_strength = effect_strength
     @effect_direction = 1 # attract

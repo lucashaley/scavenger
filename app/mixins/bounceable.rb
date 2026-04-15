@@ -11,7 +11,7 @@ module HuskEngine
 
     def initialize_bounceable(
       # bounce: 0.7,
-      sound_bounce: 'sounds/clank.wav'
+      sound_bounce: HuskGame::AssetPaths::Audio::CLANK
     )
 
       # @bounce = bounce

@@ -26,12 +26,12 @@ module HuskGame
       initialize_scaleable(scale)
       center_sprites
       rotate_sprites([:north, :south, :east, :west].sample)
-      initialize_collideable(sound_collide: 'sounds/pickup.wav')
-      initialize_bounceable(sound_bounce: 'sounds/thump.wav')
+      initialize_collideable(sound_collide: HuskGame::AssetPaths::Audio::PICKUP)
+      initialize_bounceable(sound_bounce: HuskGame::AssetPaths::Audio::THUMP)
       initialize_bufferable(:single)
       initialize_tickable
 
-      @sound_pickup_success = "sounds/pickup.wav"
+      @sound_pickup_success = HuskGame::AssetPaths::Audio::PICKUP
     end
 
     def collide_action collidee, facing

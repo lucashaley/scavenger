@@ -4,6 +4,7 @@ module HuskGame
     module Audio
       # Music
       MUSIC_INTRO = "music/Lucas_HuskGame_intro.wav".freeze
+      MUSIC_INTRO_DNB = "music/Lucas_HuskGame_intro_DnB.wav".freeze
       MUSIC_108 = "music/Lucas_HuskGame_108.wav".freeze
       MUSIC_108_DNB = "music/Lucas_HuskGame_108_DnB.wav".freeze
       MUSIC_118 = "music/Lucas_HuskGame_118.wav".freeze
@@ -11,18 +12,38 @@ module HuskGame
       MUSIC_128 = "music/Lucas_HuskGame_128.wav".freeze
       MUSIC_128_DNB = "music/Lucas_HuskGame_128_DnB.wav".freeze
 
+      # Music lookup — used by RoomScene dynamic music selection
+      MUSIC_BY_KEY = {
+        "108"     => MUSIC_108,
+        "108_DnB" => MUSIC_108_DNB,
+        "118"     => MUSIC_118,
+        "118_DnB" => MUSIC_118_DNB,
+        "128"     => MUSIC_128,
+        "128_DnB" => MUSIC_128_DNB
+      }.freeze
+
       # Sound effects
       EMP_BLAST = "sounds/emp_blast.wav".freeze
       THUMP = "sounds/thump.wav".freeze
+      CLANK = "sounds/clank.wav".freeze
+      PICKUP = "sounds/pickup.wav".freeze
       MINE_IDLE = "sounds/mine_idle.wav".freeze
+      REPAIRER_IDLE = "sounds/repairer_idle.wav".freeze
+      DATA_TERMINAL_IDLE = "sounds/dataterminal_idle.wav".freeze
+      HUNTER_BLOB_IDLE = "sounds/hunterblob.wav".freeze
 
       # Voice overs
       VOICE_DRONE_DAMAGED = "sounds/voice_dronedamaged.wav".freeze
+      VOICE_DRONE_REPAIRED = "sounds/voice_dronerepaired.wav".freeze
+      VOICE_DATA_COLLECTED = "sounds/voice_datacollected.wav".freeze
+      VOICE_DATA_CORRUPTED = "sounds/voice_datacorrupted.wav".freeze
       VOICE_DATA_CORE_COLLECTED = "sounds/voice_datacorecollected.wav".freeze
       VOICE_DATA_CORE_OVERLOADED = "sounds/voice_datacoreoverloaded.wav".freeze
       VOICE_WARNING = "sounds/voice_warning.wav".freeze
-      VOICE_WARNING_HUSK_INTEGRITY = "sounds/voice_warninghuskstructuralintegrityisfailing.wav".freeze
+      VOICE_WARNING_HUSK_INTEGRITY = "sounds/voice_warninghuskstructuralintegrity.wav".freeze
       VOICE_RETURN_TO_BREACH = "sounds/voice_returntobreach.wav".freeze
+      VOICE_DATA_SLOTS_PURGING = "sounds/voice_dataslotspurging.wav".freeze
+      VOICE_DOORS_UNLOCKED = "sounds/voice_doorsunlocked.wav".freeze
     end
 
     # Sprite paths

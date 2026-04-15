@@ -306,7 +306,7 @@ module HuskGame
                   ["128", "128_DnB"].sample
                 end
         $gtk.args.audio[:bg_music] = {
-          input: "music/Lucas_HuskGame_#{input}.wav",
+          input: HuskGame::AssetPaths::Audio::MUSIC_BY_KEY[input],
           looping: false,
           gain: @bg_music_volume
         }

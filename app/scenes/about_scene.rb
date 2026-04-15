@@ -17,7 +17,7 @@ module HuskGame
       setup_back_button
 
       $gtk.args.audio[:splash_music] ||= {
-        input: "music/Lucas_HuskGame_intro_DnB.wav",
+        input: HuskGame::AssetPaths::Audio::MUSIC_INTRO_DNB,
         looping: true,
         gain: 0.4
       }

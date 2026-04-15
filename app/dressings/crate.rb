@@ -10,7 +10,7 @@ module HuskGame
     )
       super(x: x, y: y, scale: scale)
 
-      @sound_collide = "sounds/thump.wav"
+      @sound_collide = HuskGame::AssetPaths::Audio::THUMP
 
       self
     end

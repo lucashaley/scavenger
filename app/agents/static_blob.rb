@@ -36,8 +36,8 @@ module HuskGame
       @emp_low = EMP_LOW
       @emp_medium = EMP_MEDIUM
 
-      @sound_collide = "sounds/thump.wav"
-      @audio_idle = "sounds/hunterblob.wav"
+      @sound_collide = HuskGame::AssetPaths::Audio::THUMP
+      @audio_idle = HuskGame::AssetPaths::Audio::HUNTER_BLOB_IDLE
     end
 
     def perform_tick

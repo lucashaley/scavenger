@@ -46,7 +46,7 @@ module HuskGame
       register_sprites_new
       initialize_scaleable(scale)
       initialize_collideable
-      initialize_bounceable(sound_bounce: 'sounds/thump.wav')
+      initialize_bounceable(sound_bounce: HuskGame::AssetPaths::Audio::THUMP)
       initialize_bufferable(:double)
       initialize_tickable
       initialize_empable
@@ -67,10 +67,10 @@ module HuskGame
       @tolerance = tolerance
 
       # @bounce = 0.7
-      @sound_collide = "sounds/thump.wav"
+      @sound_collide = HuskGame::AssetPaths::Audio::THUMP
 
-      @sound_pickup_success = "sounds/pickup.wav"
-      @audio_idle = 'sounds/dataterminal_idle.wav'
+      @sound_pickup_success = HuskGame::AssetPaths::Audio::PICKUP
+      @audio_idle = HuskGame::AssetPaths::Audio::DATA_TERMINAL_IDLE
     end
 
     def collide_action(collidee, collided_on)
@@ -140,7 +140,7 @@ module HuskGame
 
     def on_data_depleted(collidee)
       collidee.add_data_block(name: @name, size: @data, corrupted: @corrupted)
-      audio_feedback = @corrupted ? "sounds/voice_datacorrupted.wav" : "sounds/voice_datacollected.wav"
+      audio_feedback = @corrupted ? HuskGame::AssetPaths::Audio::VOICE_DATA_CORRUPTED : HuskGame::AssetPaths::Audio::VOICE_DATA_COLLECTED
       play_voiceover audio_feedback
       # turn off the audio
       @audio_idle = nil
