@@ -15,7 +15,6 @@ module HuskEngine
       @started = false
       @ready = false
 
-      # @fader
       @render_layers = []
       @scene_labels = []
       @pulsing_labels = []
