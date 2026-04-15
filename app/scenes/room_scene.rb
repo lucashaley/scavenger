@@ -61,7 +61,7 @@ module HuskGame
       state = $gtk.args.state
       state.gameplay = {
         max_emp_power: 3.seconds,
-        button_thrust: 0.8
+        button_thrust: 1.0
       }
       state.agents = []
       state.hazards = []
@@ -244,12 +244,13 @@ module HuskGame
       @husk.current_room.purge_deads
       @husk.calc_health
 
+      # UI buttons add to energy, must run before calc_position consumes it
+      handle_ui
+
       # Do all the inputs, unless we've taken over player control
       handle_player_input if @ship.player_control
 
       handle_light
-
-      handle_ui
 
       handle_render
 
@@ -273,8 +274,8 @@ module HuskGame
 
       $gtk.args.state.run.data_blocks = @ship.data_blocks
       $gtk.args.state.run.end_tick = Kernel.tick_count
-      $gtk.args.state.run.rooms_explored = @husk.rooms_explored
-      $gtk.args.state.run.rooms_known = @husk.rooms_known
+      $gtk.args.state.run.rooms_visited = @husk.rooms_visited
+      $gtk.args.state.run.rooms_discovered = @husk.rooms_discovered
 
       @fader.run_action(
         @fader.new_action({a: 255}, duration: 0.5.seconds, easing: :smooth_step3) {
@@ -501,7 +502,7 @@ module HuskGame
       # end
 
       $gtk.args.outputs.sprites << $gtk.args.state.ui.buttons
-      $gtk.args.outputs.sprites << $gtk.args.state.ui.statuses.values
+      $gtk.args.outputs.sprites << render_power_indicators
 
       # Player info
       # $gtk.args.outputs.debug.watch pretty_format([@ship.energy, @ship.momentum, @ship.effect]), label_style: @label_style, background_style: @background_style

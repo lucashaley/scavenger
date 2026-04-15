@@ -32,9 +32,9 @@ module HuskGame
       @collected_count = collected.length
       @corrupted_count = collected.select { |b| b[:corrupted] }.length
 
-      @rooms_explored = $gtk.args.state.run.rooms_explored || 0
-      @rooms_known = $gtk.args.state.run.rooms_known || 0
-      @exploration_pct = @rooms_known > 0 ? (@rooms_explored * 100).idiv(@rooms_known) : 0
+      @rooms_visited = $gtk.args.state.run.rooms_visited || 0
+      @rooms_discovered = $gtk.args.state.run.rooms_discovered || 0
+      @mapped_pct = @rooms_discovered > 0 ? (@rooms_visited * 100).idiv(@rooms_discovered) : 0
 
       start_tick = $gtk.args.state.run.start_tick || 0
       end_tick = $gtk.args.state.run.end_tick || 0
@@ -74,7 +74,7 @@ module HuskGame
         }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN),
         {
           x: 60, y: 370,
-          text: "#{@exploration_pct}% explored (#{@rooms_explored}/#{@rooms_known} rooms).",
+          text: "#{@mapped_pct}% mapped (#{@rooms_visited}/#{@rooms_discovered} rooms).",
           size_enum: 4, font: TITLE_FONT
         }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN)
       ].flatten
