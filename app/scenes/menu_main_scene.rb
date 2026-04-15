@@ -32,7 +32,7 @@ module HuskGame
 
     def setup_scene_labels
       @scene_labels = [
-        blurred_label(360, 1100, 'HUSK', 100, 4, alignment_enum: 1),
+        blurred_label(360, 1100, 'H.U.S.C.', 100, 4, alignment_enum: 1),
       ].flatten
     end
 
@@ -57,7 +57,7 @@ module HuskGame
       $game.services[:input_service].register_clickable @play_button
       @render_layers << @play_button
 
-      pulsing_blurred_label(680, btn_y + btn_h - 10, 'PLAY', 48, 1, 3, alignment_enum: 2)
+      pulsing_blurred_label(680, btn_y + btn_h - 10, 'PLAY', 48, 3, 5, alignment_enum: 2)
     end
 
     def setup_about_button
