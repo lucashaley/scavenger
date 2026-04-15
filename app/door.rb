@@ -7,12 +7,11 @@ module HuskGame
     include HuskEngine::Lockable
     include Zif::Traceable
 
-    attr_writer :room
+    attr_accessor :room
     attr_reader :door_side, :door_buffer, :door_facing
-    attr_accessor :destination_door  # written by Door constructor for bidirectional links
+    attr_reader :destination_node_id
     attr_reader :exit_point
     attr_reader :approached
-    attr_reader :deferred_room_params
 
     TOLERANCE = 8
     ENTER_DURATION = 10
@@ -25,142 +24,80 @@ module HuskGame
       HuskGame::Constants::BOUNCE_SCALES[@scale]
     end
 
-    def initialize (
+    def initialize(
       scale: :large,
       door_side: :south,
-      destination_door: nil, # there should either be a door
-      room: nil # or a room, but not both
+      room: nil,
+      destination_node_id: nil,
+      husk: nil,
+      locked: false
     )
       super(Zif.unique_name("Door#{door_side}"))
       @tracer_service_name = :tracer
 
-      # Set variables
       @door_side = door_side
       @door_tolerance = TOLERANCE
+      @room = room
+      @destination_node_id = destination_node_id
+      @husk = husk
 
-      # @bounce = BOUNCE_SCALES[scale]
-      @sound_bounce = "sounds/clank.wav"
+      @sound_bounce = HuskGame::AssetPaths::Audio::CLANK
 
-      # collate_sprites "door"
-      # set_scale scale
       register_sprites_new
       initialize_scaleable(scale)
       center_sprites
       initialize_collideable
       initialize_bounceable
       initialize_tickable
-      initialize_lockable(locked: [true, false].sample, keyitem: :doorkey)
+      initialize_lockable(locked: locked, keyitem: :doorkey)
 
       @exit_point = { x: 0, y: 0 }
 
       pixel_scale = HuskGame::Constants::SPRITE_SCALES[scale]
       tile_dimensions = 640.div(pixel_scale)
       exit_offset = pixel_scale + (pixel_scale * EXIT_OFFSET_MULTIPLIER).truncate
-      # create a buffer along the edge
-      # side_length = 640 - (pixel_scale * 5)
       side_buffer = pixel_scale * 2
       side_logical = tile_dimensions - 4
 
-      destination_side = nil
-
-      # We need to set the rotation,
-      # exit point where the player exits,
-      # and the random position along the edge
-      # Could this be in relative units, rendered to a render_target?
+      angle_delta = nil
 
       case @door_side
       when :north
         angle_delta = 0
-        @x = (rand(side_logical)*pixel_scale) + side_buffer + 40
+        @x = (rand(side_logical) * pixel_scale) + side_buffer + 40
         @y = 1280 - 80 - pixel_scale
         @exit_point.x = @x
         @exit_point.y = @y - exit_offset
-        destination_side = :south
       when :south
         angle_delta = 180
-        @x = (rand(side_logical)*pixel_scale) + side_buffer + 40
+        @x = (rand(side_logical) * pixel_scale) + side_buffer + 40
         @y = 1280 - 80 - 640
         @exit_point.x = @x
         @exit_point.y = @y + exit_offset
-        destination_side = :north
       when :east
         angle_delta = 270
         @x = 720 - 40 - pixel_scale
-        @y = (rand(side_logical)*pixel_scale) + (1280 - 80 - 640) + side_buffer
+        @y = (rand(side_logical) * pixel_scale) + (1280 - 80 - 640) + side_buffer
         @exit_point.x = @x - exit_offset
         @exit_point.y = @y
-        destination_side = :west
       when :west
         angle_delta = 90
         @x = 40
-        @y = (rand(side_logical)*pixel_scale) + (1280 - 80 - 640) + side_buffer
+        @y = (rand(side_logical) * pixel_scale) + (1280 - 80 - 640) + side_buffer
         @exit_point.x = @x + exit_offset
         @exit_point.y = @y
-        destination_side = :east
       end
-      # Now that x and y are set, we can buffer
-      # puts "Door.new: #{@x}, #{@y}"
+
       initialize_bufferable(:triple)
 
-      # Rotate the sprites
-      # it might be easier to have pre-rotated sprites
-      # TODO: This can be from the Sprite.rotate_sprites method instead
-      @sprite_scale_hash.each_value do |scale|
-        # puts "sc: #{scale}"
-        scale.each_value do |layer|
-          # puts "layer: #{layer}, #{layer.angle}, #{angle_delta}"
+      @sprite_scale_hash.each_value do |sc|
+        sc.each_value do |layer|
           layer.angle += angle_delta unless angle_delta.nil?
-          # ss.y += y_delta unless y_delta.nil?
         end
       end
 
-      # Creating a new door, this will only receive either
-      # a room or a door.
-      # If it's a room, that means we're creating a brand new door
-      # in this room, and that door will create a new destination room.
-      # If it's a door,
-      if destination_door.nil?
-        # If there isn't a destination_door
-        # then we create it
-        # and that door will create a new room
-        # mark_and_print room
-        raise ArgumentError, "No destination room: #{@name}" if room.nil?
-        # begin
-        @room = room
-        # @name = @room.name + '_door' + @door_side.to_s # can this be one line later?
-        # mark_and_print("creating new door, no destination")
-
-        scales = []
-        scales += [:large] * 4
-        scales += [:medium] * 4
-        scales += [:small] * 2
-        scales += [:tiny] * 1
-
-        @destination_door = Door.new(
-          # scale: $SPRITE_SCALES.keys.sample.to_sym, # this is a random scale
-          scale: scales.sample,
-          door_side: destination_side,
-          destination_door: self
-        )
-        @destination_door.locked = @locked
-      else
-        # If there is a destination_door
-        # defer room creation until the player actually enters this door
-        @destination_door = destination_door
-        raise ArgumentError, "No destination_door: #{@name}" if destination_door.nil?
-
-        @deferred_room_params = {
-          name: @destination_door.room.name + '_' + @destination_door.door_side.to_s,
-          chaos: @destination_door.room.chaos + 1,
-          threat: @destination_door.room.threat + 1,
-          scale: scale,
-          husk: @destination_door.room.husk
-        }
-        @room = nil
-      end
-      room_name = @room ? @room.name : @deferred_room_params[:name]
-      @name = room_name + '_door' + @door_side.to_s
-
+      room_name = @room ? @room.name : "node_#{@destination_node_id}"
+      @name = room_name + '_door_' + @door_side.to_s
 
       @lights_sprite = @sprites.find { |s| s.name == "door_lights_#{scale}" }
       if @locked
@@ -174,29 +111,20 @@ module HuskGame
       @approached = false
     end
 
-    def room
-      ensure_room
+    def destination_room
+      return nil unless @husk && @destination_node_id
+      entrance = HuskLayout::OPPOSITE_SIDE[@door_side]
+      @husk.room_for_node(@destination_node_id, entrance_side: entrance)
     end
 
-    def ensure_room
-      return @room if @room
-      return nil unless @deferred_room_params
-
-      @room = Room.new(
-        name: @deferred_room_params[:name],
-        chaos: @deferred_room_params[:chaos],
-        threat: @deferred_room_params[:threat],
-        scale: @deferred_room_params[:scale],
-        entrance_door: self,
-        husk: @deferred_room_params[:husk]
-      )
-      @deferred_room_params = nil
-      @room
+    def destination_door
+      dest = destination_room
+      return nil unless dest
+      opposite = HuskLayout::OPPOSITE_SIDE[@door_side]
+      dest.doors_hash[opposite]
     end
 
-    def enter_door player
-      # puts "enter_door: #{player}"
-      # this is where we can animate entering the door
+    def enter_door(player)
       player.player_control = false
       player.momentum.y = 0.0
       player.momentum.x = 0.0
@@ -211,16 +139,14 @@ module HuskGame
           },
           duration: ENTER_DURATION,
           easing: :smooth_stop4
-        ) { $game.scene.switch_rooms @destination_door }
+        ) {
+          dest_door = destination_door
+          $game.scene.switch_rooms dest_door
+        }
       )
     end
 
-    def exit_door player
-
-      # this is now handled in perform_tick
-      # animation_name = "door_main_#{scale}"
-      # sprites.find { |s| s.name == animation_name }.run_animation_sequence(:close)
-
+    def exit_door(player)
       player.x = @x
       player.y = @y
       player.run_action(
@@ -236,7 +162,7 @@ module HuskGame
       )
     end
 
-    def collide_action collidee, facing
+    def collide_action(collidee, facing)
       if can_enter_door?(collidee, facing)
         enter_door collidee
       else
@@ -247,14 +173,9 @@ module HuskGame
 
     def can_enter_door?(collidee, facing)
       return false unless facing_matches_door?(facing)
-      return false unless !@locked || collidee.has_item?(@keyitem) || room&.husk&.all_unlocked
+      return false unless !@locked || collidee.has_item?(@keyitem) || @husk&.all_unlocked
 
-      case @door_side
-      when :north, :south
-        collidee.center_x.between?(center_x - @door_tolerance, center_x + @door_tolerance)
-      when :east, :west
-        collidee.center_y.between?(center_y - @door_tolerance, center_y + @door_tolerance)
-      end
+      aligned_with?(collidee, @door_side, @door_tolerance)
     end
 
     def facing_matches_door?(facing)
@@ -266,24 +187,21 @@ module HuskGame
 
     def perform_tick
       update_unlocked_indicator
-      return if @locked && !room&.husk&.all_unlocked && $gtk.args.state.ship.has_item?(@keyitem) == false
+      return if @locked && !@husk&.all_unlocked && $gtk.args.state.ship.has_item?(@keyitem) == false
 
-      dist = $gtk.args.geometry.distance self.rect, $gtk.args.state.ship.rect #$game.scene.ship.rect
+      dist = $gtk.args.geometry.distance self.rect, $gtk.args.state.ship.rect
       threshold = HuskGame::Constants::SPRITE_SCALES[@scale] * 2
       if dist < threshold && @approached == false
         @approached = true
         @sprites.find { |s| s.name == "door_doors_#{scale}" }.run_animation_sequence(:open)
-        # @sprites.find { |s| s.name == "door_lights_#{scale}" }.hide
       elsif dist > threshold && @approached == true
         @approached = false
         @sprites.find { |s| s.name == "door_doors_#{scale}" }.run_animation_sequence(:close)
-        # @sprites.find { |s| s.name == "door_lights_#{scale}" }.show
-        # sprites.find { |s| s.name == "door_lights_#{scale}" }.run_animation_sequence(:idle)
       end
     end
 
     def update_unlocked_indicator
-      should_show = !@locked || (room&.husk&.all_unlocked)
+      should_show = !@locked || @husk&.all_unlocked
 
       unlocked_sprite = @current_sprite_hash[:unlocked]
       unlocked_sprite.a = should_show ? 255 : 0 if unlocked_sprite
@@ -302,13 +220,7 @@ module HuskGame
       {
         name: @name,
         door_side: @door_side,
-        # destination_door: @destination_door,
         exit_point: @exit_point
-        # room_dimensions: @tile_dimensions,
-        # doors: @doors,
-        # chaos: @chaos
-        # tiles: @tiles,
-        # pickups: @pickups
       }
     end
 

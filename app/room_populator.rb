@@ -26,35 +26,31 @@ module HuskGame
     private
 
     def populate_doors
-      @room.doors_hash.each do |key, value|
-        next unless value.nil? && rand(4) + 2 > @room.chaos
+      node = @room.node
+      return unless node
 
+      node[:connections].each do |side, conn|
+        next if conn.nil?
+        next if @room.doors_hash[side] # already has door (entrance)
+
+        dest_node = @room.husk.layout.node(conn[:node_id])
         new_door = Door.new(
-          scale: @room.scale,
-          door_side: key.to_sym,
-          room: @room
+          scale:               @room.scale,
+          door_side:           side,
+          room:                @room,
+          destination_node_id: conn[:node_id],
+          husk:                @room.husk,
+          locked:              conn[:locked]
         )
-        @room.doors_hash[key] = new_door
+        @room.doors_hash[side] = new_door
         @room.doors << new_door
         @room.no_populate_buffer << new_door.buffer
       end
-
-      ensure_unlocked_door if @room.entrance_door.nil?
 
       # Track whether the husk has any locked doors
       if @room.husk && @room.doors.any?(&:locked)
         @room.husk.has_locked_doors = true
       end
-    end
-
-    def ensure_unlocked_door
-      new_doors = @room.doors.select { |d| d != @room.entrance_door }
-      return if new_doors.empty?
-      return if new_doors.any? { |d| !d.locked }
-
-      door = new_doors.sample
-      door.locked = false
-      door.destination_door.locked = false if door.destination_door
     end
 
     def find_empty_position(wh = nil, max_attempts = 100)
@@ -88,17 +84,27 @@ module HuskGame
     end
 
     # Returns a facing direction that doesn't point toward a wall closer than
-    # one sprite-scale width (the player needs room to stand in front).
-    def safe_facing(x, y)
+    # needed for the player to stand in front of the terminal.
+    # Accounts for wall thickness (one scale_px), terminal size, and player size.
+    def safe_facing(x, y, w = nil, h = nil)
       scale_px = HuskGame::Constants::SPRITE_SCALES[@room.scale]
-      min_clearance = scale_px
+      w ||= scale_px
+      h ||= scale_px
+      wall = scale_px
 
       vs = HuskGame::Constants::VIEWSCREEN
+      # Inner edges past the walls
+      inner_top    = vs[:top]    - wall
+      inner_bottom = vs[:bottom] + wall
+      inner_right  = vs[:right]  - wall
+      inner_left   = vs[:left]   + wall
+
+      # Clearance between terminal edge and inner wall must fit the player
       candidates = []
-      candidates << :north if (vs[:top] - y) >= min_clearance
-      candidates << :south if (y - vs[:bottom]) >= min_clearance
-      candidates << :east  if (vs[:right] - x) >= min_clearance
-      candidates << :west  if (x - vs[:left]) >= min_clearance
+      candidates << :north if (inner_top    - y - h) >= scale_px
+      candidates << :south if (y            - inner_bottom) >= scale_px
+      candidates << :east  if (inner_right  - x - w) >= scale_px
+      candidates << :west  if (x            - inner_left) >= scale_px
 
       candidates = [:north, :south, :east, :west] if candidates.empty?
       candidates.sample.to_sym
@@ -213,7 +219,7 @@ module HuskGame
     end
 
     def populate_data_core
-      return unless @room.threat >= 3 && @room.husk.data_core.nil?
+      return unless @room.node && @room.node[:is_data_core] && @room.husk.data_core.nil?
 
       valid_position = find_empty_position({ w: 128, h: 128 })
       return if valid_position.nil?
@@ -240,21 +246,8 @@ module HuskGame
     end
 
     def populate_unlock_terminal
+      return unless @room.node && @room.node[:is_unlock_terminal]
       return if @room.husk.nil? || @room.husk.unlock_terminal
-
-      unless @room.entrance_door.nil?
-        return if @room.entrance_door.locked
-      end
-
-      non_entrance_doors = @room.doors.select { |d| d != @room.entrance_door }
-      unlocked_exits = non_entrance_doors.select { |d| !d.locked }
-      dead_end = unlocked_exits.empty?
-
-      # Force spawn at dead ends if husk has locked doors — player needs this to progress
-      unless dead_end && @room.husk.has_locked_doors
-        return if @room.threat == 0
-        return if @room.threat == 1 && rand(2) != 0
-      end
 
       valid_position = find_empty_position
       return if valid_position.nil?
@@ -292,16 +285,24 @@ module HuskGame
       end
 
       count.times do
-        agent = HunterBlob.new(scale: @room.scale)
+        valid_position = find_empty_position
+        next if valid_position.nil?
+
+        agent = HunterBlob.new(x: valid_position[:x], y: valid_position[:y], scale: @room.scale)
         agent.deactivate
         @room.agents << agent
+        @room.no_populate_buffer << agent.buffer
       end
 
       # Sweepers appear at threat 3+
       if @room.threat >= 3 && rand(2) == 0
-        sweeper = Sweeper.new(scale: @room.scale, room: @room)
-        sweeper.deactivate
-        @room.agents << sweeper
+        valid_position = find_empty_position
+        unless valid_position.nil?
+          sweeper = Sweeper.new(x: valid_position[:x], y: valid_position[:y], scale: @room.scale, room: @room)
+          sweeper.deactivate
+          @room.agents << sweeper
+          @room.no_populate_buffer << sweeper.buffer
+        end
       end
     end
 

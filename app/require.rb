@@ -15,6 +15,8 @@ require 'app/services/tick_service.rb'
 require 'app/services/emp_service'
 require 'app/services/spatial_grid_service.rb'
 require 'app/services/sprite_data_loader.rb'
+require 'app/services/particle_service.rb'
+require 'app/particle_emitter'
 
 # Example app specific files:
 require 'app/ui/focus_check.rb'
@@ -52,6 +54,7 @@ require 'app/mixins/lazy_sprite.rb'
 require 'app/husk_sprite.rb'
 require 'app/spawner'
 
+require 'app/husk_layout'
 require 'app/room_populator'
 require 'app/room'
 require 'app/husk.rb'

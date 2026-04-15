@@ -76,7 +76,9 @@
 - [x] Remove duplicate `DOOR_BITS` constant (identical to `DOORS`) in room.rb
 - [ ] Fix decoration placement to respect viewscreen bounds (currently uses `rand(720)` which can place outside 40–680 area)
 - [ ] Resolve door scale vs room scale mismatch — destination door gets random scale but room uses current door's scale
-- [ ] Fix `populate_data_terminal` always running (`rand(1) == 0` is always true)
+- [ ] Fix `populate_data_terminal` always running (`rand(1) == 0` is always true) — should be `rand(2) == 0` for 50%
+- [ ] Fix `populate_pickups` BoostThrust always spawning (`rand(4) <= 3` is always true) — should be `rand(5) <= 3` or remove check
+- [x] Agents (HunterBlob, Sweeper) spawn at fixed position (360, 960) instead of using `find_empty_position` — can overlap walls, doors, terminals
 - [x] Extract shared `populate_mines`/`populate_repulsors`/`populate_attractors` pattern into parameterized method
 - [x] Standardize hash access from `find_empty_position` (`.x`/`.y` vs `[:x]`/`[:y]`)
 - [x] Ensure starting room has at least 1 unlocked door
@@ -89,6 +91,11 @@
 - [x] Migrate global variables (`$SPRITE_SCALES`, `$ui_viewscreen`, etc.) to `HuskGame::Constants` — already done, no game-specific globals remain
 - [x] Extract Door entry boolean logic to `can_enter_door?` method — early-return guard clauses replace nested if/else
 - [x] Standardize attribute visibility — converted `attr_accessor` to `attr_reader` across Ship, Door, Room, Husk, Mine, Connector, Breach; removed unused `rooms`/`room_dimensions` from Husk
+- [ ] Redundant nil check in `Room#initialize` — `if @entrance_door.nil?` / `unless @entrance_door.nil?` should be if/else (`room.rb:79-91`)
+- [ ] `renders` method appears unused — room scene uses `renders_under_player`/`renders_over_player` instead (`room.rb:103-105`)
+- [ ] Spawners skipped in `Room#deactivate` but included in `activate` (`room.rb:155-165`)
+- [ ] `populate_spawners` is empty but still called (`room_populator.rb:187-189`)
+- [ ] Door names grow unbounded with depth — e.g. `entrypoint_south_north_east_door_north` (`door.rb:153`)
 
 ## Duplication
 
@@ -114,6 +121,7 @@
 - [ ] Use SpatialGridService in `find_empty_position` instead of brute-force random placement — low priority: only runs once per room transition, buffer list is small (~20-40 items), and `find_intersect_rect` is a fast DRGTK built-in. The real bottleneck in dense rooms is the random retry loop failing to find open space, which a spatial grid doesn't help with.
 - [x] HunterBlob calculates distance to ship every tick even when out of range — use squared distance for early-out check
 - [x] Fragment UI searches buttons every tick — cached emp button reference in `ui.emp_button`
+- [ ] Improve room creation pipeline. Are we able to create the whole husk at start?
 
 ## Incomplete Features
 
@@ -130,3 +138,6 @@
 - [ ] Consider more agent variety or scaling beyond 2 per room
 - [ ] EMP mechanic underused — 1 storage max, unclear recharge
 - [ ] Room scale doesn't affect entity density proportionally
+- [ ] Hazards ignore threat — mine/repulsor/attractor spawn odds use only scale, not threat (`room_populator.rb:145-158`)
+- [ ] Door locks don't scale with threat — flat 50% regardless of difficulty (`door.rb:52`)
+- [ ] Reduce the chance of small and tiny rooms

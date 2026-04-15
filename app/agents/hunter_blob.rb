@@ -4,6 +4,7 @@ module HuskGame
     include HuskEngine::Deadable
     include HuskEngine::Boundable
     include HuskEngine::Scaleable
+    include HuskEngine::Bufferable
     include HuskEngine::Spatializeable
     include HuskEngine::Tickable
     include HuskEngine::Empable
@@ -51,6 +52,7 @@ module HuskGame
       initialize_scaleable(scale)
       center_sprites
       initialize_collideable
+      initialize_bufferable(:single)
       initialize_tickable
       initialize_stateable("agent")
       build_state_transitions
@@ -60,8 +62,8 @@ module HuskGame
       @emp_medium = EMP_MEDIUM
 
       @alert_threshold = ALERT_DISTANCE
-      @sound_collide = "sounds/thump.wav"
-      @audio_idle = "sounds/hunterblob.wav"
+      @sound_collide = HuskGame::AssetPaths::Audio::THUMP
+      @audio_idle = HuskGame::AssetPaths::Audio::HUNTER_BLOB_IDLE
 
       @default_speed = @current_speed = DEFAULT_SPEED
       @momentum = {

@@ -49,7 +49,7 @@ module HuskGame
       $gtk.args.outputs.static_sprites << @fader
 
       $gtk.args.audio[:game_over_music] ||= {
-        input: "music/Lucas_HuskGame_intro_DnB.wav",
+        input: HuskGame::AssetPaths::Audio::MUSIC_INTRO_DNB,
         looping: true,
         gain: 0.5
       }
@@ -79,7 +79,7 @@ module HuskGame
       end
       $game.services[:input_service].register_clickable @menu_button
 
-      @menu_labels = blurred_label(680, btn_y + btn_h - 6, 'MENU', 32, 4)
+      @menu_labels = blurred_label(720 - 40, btn_y + btn_h - 6, 'MENU', 32, 4, alignment_enum: 2)
     end
 
     def perform_tick
@@ -125,13 +125,13 @@ module HuskGame
     end
 
     def compute_stats
-      rooms_explored = $gtk.args.state.run.rooms_explored || 0
-      rooms_known = $gtk.args.state.run.rooms_known || 0
-      pct = rooms_known > 0 ? (rooms_explored * 100).idiv(rooms_known) : 0
+      rooms_visited = $gtk.args.state.run.rooms_visited || 0
+      rooms_discovered = $gtk.args.state.run.rooms_discovered || 0
+      pct = rooms_discovered > 0 ? (rooms_visited * 100).idiv(rooms_discovered) : 0
 
       @stats_label = {
         x: 60, y: 200,
-        text: "#{pct}% explored (#{rooms_explored}/#{rooms_known} rooms).",
+        text: "#{pct}% mapped (#{rooms_visited}/#{rooms_discovered} rooms).",
         size_enum: 4, font: TITLE_FONT
       }.merge(HuskGame::Constants::COLOR_LIGHT_GREEN)
     end

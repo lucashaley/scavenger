@@ -107,7 +107,7 @@ Sprite image files live in `sprites/<name>/` and are auto-discovered and registe
 
 - **Husk** — The world container, tracks rooms and global state
 - **Room** — A single screen. Entity storage, tile creation, render caching, spatial grid, activation/deactivation (~267 lines)
-- **RoomPopulator** — Handles all procedural room population (doors, hazards, pickups, terminals, agents, dressings, decorations). Uses `find_empty_position` to avoid overlap via `no_populate_buffer`. Called once during Room initialization.
+- **RoomPopulator** — Handles all procedural room population (doors, hazards, pickups, terminals, agents, dressings, decorations). Uses `find_empty_position` to avoid overlap via `no_populate_buffer` (note: agents currently bypass this — see todo.md). Called once during Room initialization.
 - **Door** — Connects rooms; entering a door generates a new room at the target scale. Entry logic in `can_enter_door?` checks facing, lock status, and alignment tolerance.
 - Rooms have a `scale` (`:large`, `:medium`, `:small`, `:tiny`) that determines sprite sizes and tile counts
 
@@ -124,7 +124,7 @@ The player selects initial values in `HuskSelectScene`, stored in `$gtk.args.sta
 
 | System | Effect |
 |--------|--------|
-| **Doors** | `rand(3) + 1 > chaos` — higher chaos = fewer doors per room |
+| **Doors** | `rand(4) + 2 > chaos` — higher chaos = fewer doors per room |
 
 **Threat** affects `RoomPopulator`:
 
@@ -169,3 +169,6 @@ Entities with `Collideable` must implement `collide_action(collider, side)`. Col
 
 - Please remind me to commit changes when I seem to be satisfied, and are moving on to something new.
 - Please call me "my good friend" every now and then, so I'm not so lonely
+
+## Notes
+- voice by Narakeet <https://www.narakeet.com/app/text-to-audio/>

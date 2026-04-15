@@ -3,17 +3,10 @@ module HuskGame
     include HuskEngine::Soundable
 
     attr_reader :health, :deterioration_rate, :deterioration_progress
-    attr_reader :current_room, :visited_rooms
+    attr_reader :current_room, :visited_rooms, :layout
     attr_accessor :data_core, :breach  # written by RoomPopulator
     attr_accessor :all_unlocked, :unlock_terminal  # written by UnlockTerminal
     attr_accessor :has_locked_doors  # set by RoomPopulator when locked doors are created
-
-    DOORS = {
-      north:  1,
-      east:   2,
-      south:  4,
-      west:   8
-    }
 
     DETERIORATION_SCALE = 0.000001
 
@@ -25,7 +18,6 @@ module HuskGame
     }.freeze
 
     def initialize(initial_chaos: 0, initial_threat: 0)
-      # Variables
       @health = 1.0
       @deterioration_rate = 100 * DETERIORATION_SCALE
       @data_core = nil
@@ -34,8 +26,13 @@ module HuskGame
       @has_locked_doors = false
       @visited_rooms = []
 
+      # Phase 1: Generate the full husk layout (graph only, no Room objects)
+      @layout = HuskLayout.new(initial_chaos: initial_chaos, initial_threat: initial_threat)
+      @rooms = {}  # node_id => Room (lazily populated)
+
+      # Phase 2: Build the breach room from the layout
       @breach = nil
-      @entrypoint = Room.new(name: 'entrypoint', scale: :large, husk: self, chaos: initial_chaos, threat: initial_threat)
+      @entrypoint = build_room_from_node(@layout.breach_node_id)
       switch_rooms @entrypoint
 
       # UI Progress bar
@@ -44,12 +41,17 @@ module HuskGame
       @deterioration_progress.x = HuskGame::Constants::SCREEN_WIDTH - HuskGame::Constants::VIEWSCREEN_BORDER - bar_w
       @deterioration_progress.y = HuskGame::Constants::PROGRESS_BAR_Y_HUSK
       @deterioration_progress.view_actual_size!
-      # @deterioration_progress.hide
 
       @warning = :none
     end
 
-    def switch_rooms room, door=nil
+    # Lazily create a Room from a layout node. Returns existing Room if already built.
+    def room_for_node(node_id, entrance_side: nil)
+      return @rooms[node_id] if @rooms[node_id]
+      build_room_from_node(node_id, entrance_side: entrance_side)
+    end
+
+    def switch_rooms(room, door = nil)
       @current_room.deactivate unless @current_room.nil?
       @current_room = room
       @current_room.activate
@@ -59,14 +61,6 @@ module HuskGame
         $game.scene.fade_in(0.2.seconds)
       end
 
-      # gotta be a better way
-      # Look into create a scaleable service
-      # puts "setting scale from husk: #{room.scale}"
-      # This also causes some headache with having to create the ship
-      # before we can create the husk and room
-      # $game.scene.ship.set_scale room.scale
-      # door.exit_door $game.scene.ship unless door.nil?
-      # $gtk.args.state.ship.set_scale room.scale
       $gtk.args.state.ship.switch_rooms room.scale
       door.exit_door $gtk.args.state.ship unless door.nil?
     end
@@ -94,39 +88,22 @@ module HuskGame
       end
     end
 
-    # I don't like to work with such small values
-    # so I'm clamping from 0-100 and scaling here
-    def damage amount
+    def damage(amount)
       @deterioration_rate += amount.clamp(0, 100) * DETERIORATION_SCALE
     end
 
-    def rooms_explored
+    def rooms_visited
       @visited_rooms.length
     end
 
-    def rooms_known
-      unexplored = 0
-      @visited_rooms.each do |room|
-        room.doors.each do |door|
-          next if door == room.entrance_door
-          # Only count doors the player can actually reach
-          next if door.locked && !@all_unlocked
-          dest = door.destination_door
-          unexplored += 1 if dest && dest.deferred_room_params
-        end
-      end
-      rooms_explored + unexplored
+    def rooms_discovered
+      @layout.total_rooms
     end
 
     def serialize
       {
         health: @health,
         current_room: @current_room,
-        # room_dimensions: @tile_dimensions,
-        # doors: @doors,
-        # chaos: @chaos
-        # tiles: @tiles,
-        # pickups: @pickups
       }
     end
 
@@ -136,6 +113,25 @@ module HuskGame
 
     def to_s
       serialize.to_s
+    end
+
+    private
+
+    def build_room_from_node(node_id, entrance_side: nil)
+      node = @layout.node(node_id)
+      return nil unless node
+
+      room = Room.new(
+        name:          node[:name],
+        scale:         node[:scale],
+        husk:          self,
+        chaos:         node[:chaos],
+        threat:        node[:threat],
+        node:          node,
+        entrance_side: entrance_side
+      )
+      @rooms[node_id] = room
+      room
     end
   end
 end

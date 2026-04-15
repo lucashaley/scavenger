@@ -9,10 +9,11 @@ module HuskGame
                 :husk,
                 :chaos,
                 :threat,
-                :entrance_door,
+                :entrance_side,
                 :tiles_target,
                 :tile_dimensions,
-                :scale
+                :scale,
+                :node
     # Collection arrays — RoomPopulator appends to these via << but never reassigns them
     attr_reader :doors,
                 :doors_bits,
@@ -41,18 +42,18 @@ module HuskGame
       chaos: 0,
       threat: 0,
       scale: :large,
-      entrance_door: nil
+      node: nil,
+      entrance_side: nil
     )
       @tracer_service_name = :tracer
-      # mark_and_print("initialize")
 
-      # Set variables
       @name = name
       @husk = husk
       @chaos = chaos
       @threat = threat
       @scale = scale
-      @entrance_door = entrance_door
+      @node = node
+      @entrance_side = entrance_side
       pixel_scale = HuskGame::Constants::SPRITE_SCALES[@scale]
       @tile_dimensions = HuskGame::Constants::VIEWSCREEN_SIZE.div(pixel_scale)
       @tiles_target = Zif::RenderTarget.new(@name, width: HuskGame::Constants::VIEWSCREEN_SIZE, height: HuskGame::Constants::VIEWSCREEN_SIZE)
@@ -76,27 +77,14 @@ module HuskGame
 
       create_tiles
 
-      if @entrance_door.nil?
-        # Presumably we're in the entrypoint?
+      if @node && @node[:is_breach]
         breach = Breach.new
         @terminals << breach
         @no_populate_buffer << breach.buffer
         @husk.breach = breach
       end
 
-      unless @entrance_door.nil?
-        @doors_hash[@entrance_door.door_side] = @entrance_door
-        @doors << @entrance_door
-        @no_populate_buffer << @entrance_door.buffer
-      end
-
       RoomPopulator.new(self).populate
-
-      # This is dumping to args for Palantir
-      # $gtk.args.state.rooms[@name] = { doors: @doors }
-
-      # puts "\n\nnew room doors: #{@doors}\n\n"
-      # initialize_stateable(:rooms)
     end
     # rubocop:enable Metrics/MethodLength
 
