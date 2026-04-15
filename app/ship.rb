@@ -61,6 +61,7 @@ module HuskGame
       initialize_inventory
 
       # puts self
+      initialize_thrust_particles
     end
 
     private
@@ -126,6 +127,84 @@ module HuskGame
 
     def initialize_inventory
       @inventory = []
+    end
+
+    THRUST_PARTICLE_COLOR_HEALTHY = { r: 206, g: 86, b: 0 }.freeze
+    THRUST_PARTICLE_COLOR_DAMAGED = { r: 80, g: 80, b: 80 }.freeze
+
+    # Thruster nozzle offsets along each side, per scale
+    THRUST_OFFSETS = {
+      large:  [14, 50],
+      medium: [7, 30],
+      small:  [6, 24],
+      tiny:   [3, 12]
+    }.freeze
+
+    def initialize_thrust_particles
+      @thrust_emitters = {}
+      [:north, :south, :east, :west].each do |side|
+        @thrust_emitters[side] = [
+          create_thrust_emitter,
+          create_thrust_emitter
+        ]
+      end
+    end
+
+    def create_thrust_emitter
+      emitter = HuskEngine::ParticleEmitter.new(
+        rate: 0,
+        lifetime: 10,
+        speed_min: 0, speed_max: 0,
+        size_start: 10, size_end: 1,
+        color_start: THRUST_PARTICLE_COLOR_HEALTHY,
+        alpha_start: 64, alpha_end: 0,
+        behavior: :static,
+        spread: 40,
+        blendmode_enum: :add
+      )
+      $game.services[:particle_service].register(emitter)
+      emitter
+    end
+
+    def update_thrust_particles
+      scale_px = HuskGame::Constants::SPRITE_SCALES[@scale]
+      offsets = THRUST_OFFSETS[@scale]
+
+      # North/south sides: nozzles offset along x axis
+      update_side_emitters(:north, @x + offsets[0], @x + offsets[1], @y, @y, 270, @momentum[:y], @health_north)
+      update_side_emitters(:south, @x + offsets[0], @x + offsets[1], @y + scale_px, @y + scale_px, 90, -@momentum[:y], @health_south)
+
+      # East/west sides: nozzles offset along y axis
+      update_side_emitters(:east, @x, @x, @y + offsets[0], @y + offsets[1], 180, @momentum[:x], @health_east)
+      update_side_emitters(:west, @x + scale_px, @x + scale_px, @y + offsets[0], @y + offsets[1], 0, -@momentum[:x], @health_west)
+    end
+
+    def update_side_emitters(side, x1, x2, y1, y2, direction, momentum_val, health)
+      pair = @thrust_emitters[side]
+      update_single_thrust_emitter(pair[0], x1, y1, direction, momentum_val, health)
+      update_single_thrust_emitter(pair[1], x2, y2, direction, momentum_val, health)
+    end
+
+    def update_single_thrust_emitter(emitter, ex, ey, direction, momentum_val, health)
+      emitter.x = ex
+      emitter.y = ey
+      emitter.direction = direction
+
+      if momentum_val > 0
+        emitter.rate = (momentum_val.abs).clamp(0, 3).truncate
+        t = (1.0 - health).clamp(0, 1)
+        emitter.instance_variable_set(:@color_start, {
+          r: lerp_i(THRUST_PARTICLE_COLOR_HEALTHY[:r], THRUST_PARTICLE_COLOR_DAMAGED[:r], t),
+          g: lerp_i(THRUST_PARTICLE_COLOR_HEALTHY[:g], THRUST_PARTICLE_COLOR_DAMAGED[:g], t),
+          b: lerp_i(THRUST_PARTICLE_COLOR_HEALTHY[:b], THRUST_PARTICLE_COLOR_DAMAGED[:b], t)
+        })
+      else
+        emitter.rate = 0
+      end
+    end
+
+    def lerp_i(a, b, t)
+      (a + (b - a) * t).truncate
     end
 
     public

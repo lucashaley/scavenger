@@ -72,6 +72,7 @@ module HuskGame
 
     def switch_rooms destination_door
       fade_out(0.2.seconds) do
+        $game.services[:particle_service].emitters.each { |e| e.particles.clear }
         @husk.switch_rooms destination_door.room, destination_door
       end
     end
@@ -228,6 +229,7 @@ module HuskGame
       $gtk.args.outputs.static_labels.clear
       $gtk.args.outputs[:viewport_mask].clear
       $gtk.args.outputs[:viewport].clear
+      $game.services[:particle_service].clear
     end
 
     def perform_tick
@@ -408,6 +410,8 @@ module HuskGame
 
     def handle_ticks
       $game.services[:tick_service].run_all_ticks
+      @ship.update_thrust_particles
+      $game.services[:particle_service].perform_tick
     end
 
     def handle_render
@@ -452,6 +456,7 @@ module HuskGame
       $gtk.args.outputs.sprites << [
         @husk.current_room.tiles_target.containing_sprite.assign({ x: 40, y: 560 }),
         @husk.current_room.renders_under_player,
+        $game.services[:particle_service].render,
         @ship,
         @light,
         @husk.current_room.renders_over_player,

@@ -12,6 +12,7 @@ module HuskGame
       @services.register(:emp_service, Services::EmpService.new)
       @services.register(:spatial_grid, Services::SpatialGridService.new(cell_size: 128))
       @services.register(:sprite_data_loader, Services::SpriteDataLoader.new)
+      @services.register(:particle_service, Services::ParticleService.new)
 
       register_scene(:menu_main, MenuMainScene)
       register_scene(:husk_select, HuskSelectScene)
