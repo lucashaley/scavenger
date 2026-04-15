@@ -40,6 +40,7 @@ module HuskGame
       initialize_scaleable(scale)
       center_sprites
       initialize_collideable
+      initialize_bounceable
       initialize_bufferable(:single)
       initialize_tickable
       initialize_stateable("agent", initial_state: :sweeping)
@@ -48,7 +49,6 @@ module HuskGame
       initialize_roomable(room) if room
       @emp_low = EMP_LOW
       @emp_medium = EMP_MEDIUM
-      @sound_collide = "sounds/thump.wav"
 
       # Movement state
       @primary_axis = [:horizontal, :vertical].sample
@@ -98,6 +98,21 @@ module HuskGame
           @y = next_y
         end
       end
+
+      check_ship_collision
+    end
+
+    def check_ship_collision
+      ship = $gtk.args.state.ship
+      return unless ship
+      return unless $gtk.args.geometry.intersect_rect?(self, ship)
+
+      # Determine which side of the ship we hit
+      dx = ship.x - @x
+      dy = ship.y - @y
+      facing = dx.abs > dy.abs ? (dx > 0 ? :west : :east) : (dy > 0 ? :south : :north)
+
+      collide_action(ship, facing)
     end
 
     def shift_perpendicular
@@ -142,6 +157,7 @@ module HuskGame
     end
 
     def collide_action(collidee, facing)
+      bounce_off(collidee, facing)
       collidee.change_health(SHIP_DAMAGE, facing)
       play_once @sound_collide
       stop_temporarily
