@@ -99,17 +99,7 @@ module HuskGame
           collidee.momentum.x = 0.0
         end
 
-        # This is ripped from the door
-        # Possible chance of optimization/refactor
-        # puts "tolerance: #{@tolerance}"
-        entering = case @facing
-                   when :north, :south
-                     collidee.center_x.between?(center_x - @tolerance, center_x + @tolerance)
-                   when :east, :west
-                     collidee.center_y.between?(center_y - @tolerance, center_y + @tolerance)
-                   end
-        # puts "entering: #{entering}"
-        if entering
+        if aligned_with?(collidee, @facing, @tolerance)
           @previous_data_tick ||= Kernel.tick_count
 
           # If the data isn't collected all in one go, there is a chance the data gets corrupted.

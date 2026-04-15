@@ -23,7 +23,7 @@ module HuskGame
 
       # Get the turret direction from the player
       # and compare it to the collision facing
-      if @remaining_data > 0
+      # if @remaining_data > 0 # we're not using data
 
         # puts "WERE IN"
 
@@ -44,38 +44,16 @@ module HuskGame
           collidee.momentum.x = 0.0
         end
 
-        # This is ripped from the door
-        # Possible chance of optimization/refactor
-        # puts "tolerance: #{@tolerance}"
-        entering = case collided_on
-                   when :north, :south
-                     collidee.center_x.between?(center_x - @tolerance, center_x + @tolerance)
-                   when :east, :west
-                     collidee.center_y.between?(center_y - @tolerance, center_y + @tolerance)
-                   end
-        # puts "entering: #{entering}"
-        if entering
+        if aligned_with?(collidee, collided_on, @tolerance)
           @interfacing = true
-
           collidee.change_health @data_rate, collided_on
-
-          # reduce_data @data_rate
-          # TODO Add this back in again once we have light sprites for repairer
-
-          # if @remaining_data <= 0
-          #
-          #   # audio_feedback = @corrupted ? "sounds/data_corrupted.wav" : "sounds/data_collected.wav"
-          #   # play_once audio_feedback
-          # end
-
-          @previous_data_tick = Kernel.tick_count
         else
           bounce_off(collidee, collided_on)
         end
-      else
-        # play_once @sound_collide
-        bounce_off(collidee, collided_on)
-      end
+      # else
+      #   # play_once @sound_collide
+      #   bounce_off(collidee, collided_on)
+      # end
     end
 
     def bounce

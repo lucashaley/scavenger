@@ -59,8 +59,6 @@ module HuskGame
       initialize_emp_system
       initialize_ui_elements
       initialize_inventory
-
-      # puts self
       initialize_thrust_particles
     end
 
@@ -212,7 +210,8 @@ module HuskGame
     def ramp_factor(axis)
       t = (@thrust_hold[axis].to_f / THRUST_RAMP_FRAMES).clamp(0.0, 1.0)
       # t * t * t # cubic ease-in
-      t * t # quartic ease-in
+      # t * t # quartic ease-in
+      t * t * t * t
     end
 
     def speed_factor(axis)
@@ -222,11 +221,7 @@ module HuskGame
     end
 
     def thrust_factor(axis, input)
-      if input != 0
-        @thrust_hold[axis] += 1
-      else
-        @thrust_hold[axis] = 0
-      end
+      @thrust_hold[axis] += 1
       ramp_factor(axis) * speed_factor(axis)
     end
 
@@ -239,10 +234,14 @@ module HuskGame
       @energy.y += input * @thrust * health_multiplier * SCALED_THRUST[@scale] * thrust_factor(:y, input)
     end
     def add_thrust x=0, y=0
-      health_multiplier_x = x < 0 ? @health_west : @health_east
-      health_multiplier_y = y < 0 ? @health_south : @health_north
-      @energy.x += x * @thrust * health_multiplier_x * SCALED_THRUST[@scale] * thrust_factor(:x, x)
-      @energy.y += y * @thrust * health_multiplier_y * SCALED_THRUST[@scale] * thrust_factor(:y, y)
+      if x != 0
+        health_multiplier_x = x < 0 ? @health_west : @health_east
+        @energy.x += x * @thrust * health_multiplier_x * SCALED_THRUST[@scale] * thrust_factor(:x, x)
+      end
+      if y != 0
+        health_multiplier_y = y < 0 ? @health_south : @health_north
+        @energy.y += y * @thrust * health_multiplier_y * SCALED_THRUST[@scale] * thrust_factor(:y, y)
+      end
     end
 
     def calc_rotation
@@ -272,6 +271,9 @@ module HuskGame
 
       # Render thrust sprites
       update_thrust_sprites(axis, energy)
+
+      # Reset ramp if no thrust was applied this frame
+      @thrust_hold[axis] = 0 if energy == 0
 
       # Reset the movement
       @effect[axis] = 0
@@ -436,17 +438,22 @@ module HuskGame
     end
 
     def change_health amount, side
-      play_voiceover(HuskGame::AssetPaths::Audio::VOICE_DRONE_DAMAGED)
+      ivar = case side
+             when :north then :@health_north
+             when :south then :@health_south
+             when :east  then :@health_east
+             when :west  then :@health_west
+             end
+      return unless ivar
 
-      case side
-      when :north
-        @health_north = (@health_north += amount).clamp(0, 1.0)
-      when :south
-        @health_south = (@health_south += amount).clamp(0, 1.0)
-      when :east
-        @health_east = (@health_east += amount).clamp(0, 1.0)
-      when :west
-        @health_west = (@health_west += amount).clamp(0, 1.0)
+      old = instance_variable_get(ivar)
+      new_val = (old + amount).clamp(0, 1.0)
+      instance_variable_set(ivar, new_val)
+
+      if amount < 0
+        play_voiceover(HuskGame::AssetPaths::Audio::VOICE_DRONE_DAMAGED)
+      elsif amount > 0 && old < 1.0 && new_val >= 1.0
+        play_voiceover(HuskGame::AssetPaths::Audio::VOICE_DRONE_REPAIRED)
       end
     end
 
