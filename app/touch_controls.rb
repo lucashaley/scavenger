@@ -2,11 +2,55 @@
 module HuskGame
   module TouchControls
     PURGE_HOLD_TICKS = 120  # 2 seconds at 60fps
-    PURGE_BTN_X = 600
-    PURGE_BTN_Y = 300
-    PURGE_BTN_W = 96
-    PURGE_BTN_H = 32
-    PURGE_FONT = 'fonts/TAYRosemary.otf'.freeze
+
+    # 3x3 grid of 120px buttons, centered at GRID_CENTER
+    GRID_CENTER_X = 360
+    GRID_CENTER_Y = 300
+    CELL_SIZE = 120
+
+    # Grid origin (bottom-left corner of the 3x3 grid)
+    GRID_X = GRID_CENTER_X - (CELL_SIZE * 3).half
+    GRID_Y = GRID_CENTER_Y - (CELL_SIZE * 3).half
+
+    # Sprite name mapping (button id → image filename part)
+    SPRITE_NAMES = {
+      north: 'up',
+      south: 'down',
+      east:  'right',
+      west:  'left',
+      ccw:   'ccw',
+      cw:    'cw',
+      emp:   'emp',
+      purge: 'purge'
+    }.freeze
+
+    # Grid positions: [col, row] where row 0 = bottom, col 0 = left
+    GRID_POSITIONS = {
+      ccw:   [0, 2],
+      north: [1, 2],
+      west:  [0, 1],
+      emp:   [1, 1],
+      east:  [2, 1],
+      purge: [0, 0],
+      south: [1, 0],
+      cw:    [2, 0]
+    }.freeze
+
+    BUTTON_TYPES = {
+      north: :directional,
+      south: :directional,
+      east:  :directional,
+      west:  :directional,
+      ccw:   :rotational,
+      cw:    :rotational,
+      emp:   :functional,
+      purge: :hold
+    }.freeze
+
+    POWER_SPRITE_W = 120
+    POWER_SPRITE_H = 40
+    POWER_TICKS_PER_BAR = 60  # 1 second at 60fps
+    POWER_BAR_COUNT = 3
 
     def handle_ui
       $gtk.args.state.ui ||= {}
@@ -18,198 +62,93 @@ module HuskGame
       ui.click ||= :up
       ui.purge_hold_ticks ||= 0
 
-      # assemble the statics
-      ui.statics ||= {
-        buttons_offset: { x: 240, y: 320 },
-        directional_padding: 118,
-        rotational_padding: 110
+      ui.background ||= {
+        x: GRID_X, y: GRID_Y,
+        w: CELL_SIZE * 3, h: CELL_SIZE * 3,
+        path: 'sprites/ui_controls/background.png'
       }
 
-      ui.buttons ||= [
-        create_ui_button(
-          id: :north,
-          x: 0 + ui.statics.buttons_offset.x,
-          y: ui.statics.buttons_offset.y + ui.statics.directional_padding,
-          w: 184,
-          h: 113,
-          click_radius: 40,
-          type: :directional
-        ),
-        create_ui_button(
-          id: :south,
-          x: 0 + ui.statics.buttons_offset.x,
-          y: ui.statics.buttons_offset.y - ui.statics.directional_padding,
-          w: 184,
-          h: 113,
-          click_radius: 40,
-          type: :directional
-        ),
-        create_ui_button(
-          id: :east,
-          x: ui.statics.buttons_offset.x + ui.statics.directional_padding,
-          y: ui.statics.buttons_offset.y,
-          w: 113,
-          h: 184,
-          click_radius: 40,
-          type: :directional
-        ),
-        create_ui_button(
-          id: :west,
-          x: ui.statics.buttons_offset.x - ui.statics.directional_padding,
-          y: ui.statics.buttons_offset.y,
-          w: 113,
-          h: 184,
-          click_radius: 40,
-          type: :directional
-        ),
-        create_ui_button(
-          id: :ccw,
-          x: ui.statics.buttons_offset.x - ui.statics.rotational_padding,
-          y: ui.statics.buttons_offset.y + ui.statics.rotational_padding,
-          w: 166,
-          h: 166,
-          click_center: [-30, 30],
-          click_radius: 40,
-          type: :rotational
-        ),
-        create_ui_button(
-          id: :cw,
-          x: ui.statics.buttons_offset.x + ui.statics.rotational_padding,
-          y: ui.statics.buttons_offset.y - ui.statics.rotational_padding,
-          w: 166,
-          h: 166,
-          click_center: [30, -30],
-          click_radius: 40,
-          type: :rotational
-        ),
-        create_ui_button(
-          id: :emp,
-          x: ui.statics.buttons_offset.x,
-          y: ui.statics.buttons_offset.y,
-          w: 110,
-          h: 110,
-          click_radius: 40,
-          type: :functional
-        ),
-      ]
+      ui.buttons ||= GRID_POSITIONS.map do |id, pos|
+        create_ui_button(id, pos[0], pos[1])
+      end
 
       ui.emp_button ||= ui.buttons.find { |b| b.id == :emp }
 
-      ui.statuses ||= {
-        emp_charge: create_ui_status(
-          id: :emp_charge,
-          x: ui.statics.buttons_offset.x + ui.statics.rotational_padding,
-          y: ui.statics.buttons_offset.y + ui.statics.rotational_padding,
-          h: 166,
-          w: 166
-        )
-      }
-
-      # reset button down states
-
       if mouse.held || mouse.down
-        # which button are we pressing?
+        mouse_rect = { x: mouse.x, y: mouse.y, w: 1, h: 1 }
         ui.current_button = ui.buttons.find do |b|
-          mouse.inside_circle? b.click_center, b.click_radius
+          $gtk.args.geometry.intersect_rect?(mouse_rect, b)
         end
 
-        # The player can hold down and move around directionally
-        if ui.current_button&.type == :directional && ui.last_button.type == :directional
-          ui.current_button.path = ui.current_button.path_down
+        # Directional: apply thrust every frame while held
+        if ui.current_button&.type == :directional
+          ui.current_button.a = 180
           case ui.current_button.id
-          when :north
-            ship.add_thrust_y(gameplay.button_thrust)
-          when :south
-            ship.add_thrust_y(-gameplay.button_thrust)
-          when :east
-            ship.add_thrust_x(gameplay.button_thrust)
-          when :west
-            ship.add_thrust_x(-gameplay.button_thrust)
-          else
-            raise StandardError "Directional button pressed is not recognized"
+          when :north then ship.add_thrust_y(gameplay.button_thrust)
+          when :south then ship.add_thrust_y(-gameplay.button_thrust)
+          when :east  then ship.add_thrust_x(gameplay.button_thrust)
+          when :west  then ship.add_thrust_x(-gameplay.button_thrust)
           end
         end
 
-        # the rotation buttons need to be clicked separately
+        # Rotational: single click
         if ui.current_button&.type == :rotational && ui.click == :up
-          ui.current_button.path = ui.current_button.path_down
+          ui.current_button.a = 180
           case ui.current_button.id
-          when :cw
-            ship.rotate_cw
-          when :ccw
-            ship.rotate_ccw
-          else
-            raise StandardError "Rotational button not recognized"
+          when :cw  then ship.rotate_cw
+          when :ccw then ship.rotate_ccw
           end
         end
 
-        # Handle emp charging
+        # EMP: hold to charge
         if ui.current_button&.type == :functional && (ui.click == :up || ui.last_button&.id == ui.current_button.id)
-          case ui.current_button.id
-          when :emp
-            if @ship.emp_count > 0
-              ui.current_button.path = ui.current_button.path_down
-              boost_emp_charge(1)
-            end
-          else
-            raise StandardError "Functional button not recognized"
+          if ui.current_button.id == :emp && @ship.emp_count > 0
+            ui.current_button.a = 180
+            boost_emp_charge(1)
           end
         end
 
-        # Prepare to check for separate clicks
+        # Purge: hold for 2 seconds
+        if ui.current_button&.type == :hold && ui.current_button.id == :purge
+          ui.current_button.a = 180
+          if ship.data_blocks.length > 0
+            play_voiceover(HuskGame::AssetPaths::Audio::VOICE_DATA_SLOTS_PURGING) if ui.click == :up
+            ui.purge_hold_ticks += 1
+            if ui.purge_hold_ticks >= PURGE_HOLD_TICKS
+              ship.purge_data_blocks
+              ui.purge_hold_ticks = 0
+            end
+          end
+        else
+          ui.purge_hold_ticks = 0
+        end
+
         ui.click = :down
 
-        # TODO: Something off here
-        # Probably should move the ui.click = :down above here
-        # And set ui.click = :up if moved away
-        # The issue is that you can mouse down *not* on a button
-        # Then move onto a button
-        # check if click has moved too far away
         if ui.current_button
           ui.last_button = ui.current_button
         else
-          # mouse has moved too far from the button
-          ui.last_button.path = ui.last_button.path_up unless ui.last_button.nil?
+          ui.last_button.a = 255 unless ui.last_button.nil?
           ui.current_button = nil
           ui.click = :up
         end
       end
 
       if mouse.up && ui.current_button
+        mouse_rect = { x: mouse.x, y: mouse.y, w: 1, h: 1 }
         released_button = ui.buttons.find do |b|
-          mouse.inside_circle? b.click_center, b.click_radius
+          $gtk.args.geometry.intersect_rect?(mouse_rect, b)
         end
 
-        if released_button
-          released_button.path = released_button.path_up
+        released_button.a = 255 if released_button
+
+        if released_button&.type == :functional && released_button.id == :emp
+          handle_emp
         end
 
-        if released_button&.type == :functional
-          # handle the function
-          case released_button.id
-          when :emp
-            handle_emp
-          end
-        end
-
+        ui.purge_hold_ticks = 0
         ui.current_button = nil
         ui.click = :up
-      end
-
-      handle_statuses
-      handle_purge_button(mouse, ship)
-    end
-
-    def handle_statuses
-      # emp charge
-      ui = $gtk.args.state.ui
-      gameplay = $gtk.args.state.gameplay
-      emp_status_level = ((@emp_power / gameplay.max_emp_power) * 3).truncate
-      ui.statuses.emp_charge.path = "sprites/playercontrols/emp_charge_0#{emp_status_level}.png"
-
-      # emp button
-      if @ship.emp_count <= 0 && ui.emp_button
-        ui.emp_button.path = "sprites/playercontrols/emp_none.png"
       end
     end
 
@@ -219,114 +158,75 @@ module HuskGame
       @emp_power = @emp_power.clamp(0, gameplay.max_emp_power)
     end
 
-    def handle_purge_button(mouse, ship)
-      ui = $gtk.args.state.ui
-      purge_rect = { x: PURGE_BTN_X, y: PURGE_BTN_Y, w: PURGE_BTN_W, h: PURGE_BTN_H }
-
-      mouse_point = { x: mouse.x, y: mouse.y }
-      inside = mouse.x && $gtk.args.geometry.inside_rect?(mouse_point, purge_rect)
-
-      if inside && (mouse.held || mouse.down) && ship.data_blocks.length > 0
-        ui.purge_hold_ticks += 1
-        if ui.purge_hold_ticks >= PURGE_HOLD_TICKS
-          ship.purge_data_blocks
-          ui.purge_hold_ticks = 0
-        end
-      else
-        ui.purge_hold_ticks = 0
-      end
-    end
-
     def render_purge_button
       ui = $gtk.args.state.ui
       ship = $gtk.args.state.ship
       progress = (ui.purge_hold_ticks || 0).fdiv(PURGE_HOLD_TICKS).clamp(0, 1)
-      has_data = ship && ship.data_blocks.length > 0
 
-      base_alpha = has_data ? 180 : 60
+      return [] if progress <= 0
+
+      purge_btn = ui.buttons.find { |b| b.id == :purge }
+      return [] unless purge_btn
+
+      # Progress fill over the purge button
+      [{
+        x: purge_btn.x, y: purge_btn.y,
+        w: (CELL_SIZE * progress).truncate, h: CELL_SIZE,
+        r: 200, g: 40, b: 40, a: 120,
+        path: :solid
+      }]
+    end
+
+    def render_power_indicators
+      base_x = GRID_X + CELL_SIZE * 2
+      base_y = GRID_Y + CELL_SIZE * 2
 
       output = []
+      POWER_BAR_COUNT.times do |i|
+        y = base_y + (i * POWER_SPRITE_H)
 
-      # Background
-      output << {
-        x: PURGE_BTN_X, y: PURGE_BTN_Y, w: PURGE_BTN_W, h: PURGE_BTN_H,
-        r: 40, g: 10, b: 10, a: base_alpha,
-        primitive_marker: :solid
-      }
-
-      # Progress fill
-      if progress > 0
+        # Always render base bar
         output << {
-          x: PURGE_BTN_X, y: PURGE_BTN_Y,
-          w: (PURGE_BTN_W * progress).truncate, h: PURGE_BTN_H,
-          r: 200, g: 40, b: 40, a: 200,
-          primitive_marker: :solid
+          x: base_x,
+          y: y,
+          w: POWER_SPRITE_W,
+          h: POWER_SPRITE_H,
+          path: "sprites/ui_controls/ui_power_0#{i + 1}.png",
+          a: 255
+        }
+
+        # Overlay lit version when charged
+        threshold = (i + 1) * POWER_TICKS_PER_BAR
+        next if @emp_power < threshold
+
+        output << {
+          x: base_x,
+          y: y,
+          w: POWER_SPRITE_W,
+          h: POWER_SPRITE_H,
+          path: "sprites/ui_controls/ui_power_0#{i + 1}_on.png",
+          blendmode_enum: 2,
+          a: 255
         }
       end
-
-      # Border
-      output << {
-        x: PURGE_BTN_X, y: PURGE_BTN_Y, w: PURGE_BTN_W, h: PURGE_BTN_H,
-        r: 200, g: 60, b: 60, a: base_alpha,
-        primitive_marker: :border
-      }
-
-      # Label
-      output << {
-        x: PURGE_BTN_X + PURGE_BTN_W.half,
-        y: PURGE_BTN_Y + PURGE_BTN_H - 4,
-        text: 'PURGE',
-        size_enum: -2, font: PURGE_FONT,
-        alignment_enum: 1,
-        r: 255, g: 80, b: 80, a: has_data ? 255 : 100
-      }
-
       output
     end
 
-    def create_ui_button(
-      id: nil,
-      x: 0,
-      y: 0,
-      w: 0,
-      h: 0,
-      click_center: nil,
-      click_radius: 0,
-      type: :none
-    )
-      {
-        name: id.to_s,
-        id: id,
-        x: x - w.half,
-        y: y - h.half,
-        w: w,
-        h: h,
-        path_up: "sprites/playercontrols/#{id.to_s}_up.png",
-        path_down: "sprites/playercontrols/#{id.to_s}_down.png",
-        path: "sprites/playercontrols/#{id.to_s}_up.png",
-        state: :up,
-        click_center: click_center.nil? ? [x, y] : click_center.add_2d([x, y]),
-        click_radius: click_radius,
-        type: type,
-        is_pressed: false
-      }
-    end
+    def create_ui_button(id, col, row)
+      sprite_name = SPRITE_NAMES[id]
+      bx = GRID_X + col * CELL_SIZE
+      by = GRID_Y + row * CELL_SIZE
 
-    def create_ui_status(
-      id: nil,
-      x: 0,
-      y: 0,
-      w: 0,
-      h: 0
-    )
       {
         name: id.to_s,
         id: id,
-        x: x - w.half,
-        y: y - h.half,
-        w: w,
-        h: h,
-        path: "sprites/playercontrols/#{id.to_s}_00.png",
+        x: bx,
+        y: by,
+        w: CELL_SIZE,
+        h: CELL_SIZE,
+        path: "sprites/ui_controls/ui_button_#{sprite_name}_up.png",
+        a: 255,
+        type: BUTTON_TYPES[id]
       }
     end
   end
