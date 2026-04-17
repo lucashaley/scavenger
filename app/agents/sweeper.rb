@@ -157,7 +157,8 @@ module HuskGame
 
       scale_px = HuskGame::Constants::SPRITE_SCALES[@scale]
       test_rect = { x: test_x, y: test_y, w: scale_px, h: scale_px }
-      obstacles = @room.dressings + @room.terminals
+      other_agents = @room.agents.reject { |a| a == self || a.is_dead? }
+      obstacles = @room.dressings + @room.terminals + other_agents
       $gtk.args.geometry.find_intersect_rect(test_rect, obstacles) != nil
     end
 
