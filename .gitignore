@@ -9,6 +9,6 @@
 app/.nova/
 
 TODO.md
-/errors
-/logs
-/metadata
+errors/
+logs/
+metadata/
