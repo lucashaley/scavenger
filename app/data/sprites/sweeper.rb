@@ -2,6 +2,7 @@
 {
   name: "sweeper",
   layers: [
+    { name: "shadow", blendmode_enum: HuskGame::Constants::BLENDMODE[:multiply], z: -1 },
     {
       name: "base",
       animations: [

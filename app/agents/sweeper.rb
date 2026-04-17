@@ -5,6 +5,7 @@ module HuskGame
     include HuskEngine::Scaleable
     include HuskEngine::Bufferable
     include HuskEngine::Spatializeable
+    include HuskEngine::Shadowable
     include HuskEngine::Tickable
     include HuskEngine::Empable
     include HuskEngine::Stateable
@@ -66,7 +67,7 @@ module HuskGame
     def perform_tick
       return unless @active
       spatialize(@name.to_sym)
-
+      perform_shadow_tick
       return if @state == :disabled
 
       if @state == :stopped
