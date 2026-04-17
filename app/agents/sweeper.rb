@@ -104,20 +104,6 @@ module HuskGame
         end
       end
 
-      check_ship_collision
-    end
-
-    def check_ship_collision
-      ship = $gtk.args.state.ship
-      return unless ship
-      return unless $gtk.args.geometry.intersect_rect?(self, ship)
-
-      # Determine which side of the ship we hit
-      dx = ship.x - @x
-      dy = ship.y - @y
-      facing = dx.abs > dy.abs ? (dx > 0 ? :west : :east) : (dy > 0 ? :south : :north)
-
-      collide_action(ship, facing)
     end
 
     def shift_perpendicular
