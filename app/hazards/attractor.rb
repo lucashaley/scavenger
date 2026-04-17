@@ -14,7 +14,7 @@ class Attractor < HuskGame::HuskSprite
     x: 0,
     y: 0,
     scale: :large,
-    effect_strength: 50
+    effect_strength: rand(20) + 10 # 50
   )
     super(Zif.unique_name('Attractor'))
     @tracer_service_name = :tracer
