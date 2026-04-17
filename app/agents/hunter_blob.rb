@@ -31,6 +31,8 @@ module HuskGame
     ALERT_DISTANCE = 300
     DEFAULT_SPEED = 18
     MOMENTUM_DAMPING = 0.8
+    TRAIL_DELAY = 90  # ticks behind the player (~1.5 seconds)
+    TRAIL_SIZE = 120  # max positions stored
     EMP_LOW = 60
     EMP_MEDIUM = 120
     EMP_SPEED_DIVISOR_LOW = 20
@@ -43,8 +45,6 @@ module HuskGame
     )
       @tracer_service_name = :tracer
       super(Zif.unique_name("HunterBlob"))
-
-      # mark_and_print("initialize")
 
       set_position(x, y)
       initialize_deadable
@@ -70,6 +70,8 @@ module HuskGame
         x: 0,
         y: 0
       }
+
+      @trail = []
     end
 
     def perform_tick
@@ -77,9 +79,12 @@ module HuskGame
 
       spatialize(@name.to_sym)
 
-      ship_xy = $gtk.args.state.ship.xy
-      dx = ship_xy.x - @x
-      dy = ship_xy.y - @y
+      ship = $gtk.args.state.ship
+      record_trail(ship)
+      target = delayed_target(ship)
+
+      dx = target[:x] - @x
+      dy = target[:y] - @y
       dist_sq = dx * dx + dy * dy
       alert_sq = @alert_threshold * @alert_threshold
 
@@ -91,11 +96,17 @@ module HuskGame
       change_state(:hunting) if @state == :idle
 
       dist = Math.sqrt(dist_sq)
-      diff_normalized = $gtk.args.geometry.vec2_normalize({ x: dx, y: dy })
-      diff_scaled = diff_normalized.merge(diff_normalized) { |_k, v| v * (1 / dist) }
+      # Close enough to target — drift idle until trail advances
+      if dist < 4
+        @momentum[:x] *= MOMENTUM_DAMPING
+        @momentum[:y] *= MOMENTUM_DAMPING
+        return
+      end
 
-      @momentum.x += diff_scaled[:x] * @current_speed
-      @momentum.y += diff_scaled[:y] * @current_speed
+      diff_normalized = $gtk.args.geometry.vec2_normalize({ x: dx, y: dy })
+
+      @momentum.x += diff_normalized[:x] * @current_speed
+      @momentum.y += diff_normalized[:y] * @current_speed
 
       @x += @momentum[:x]
       @y += @momentum[:y]
@@ -106,6 +117,18 @@ module HuskGame
       @momentum[:y] *= MOMENTUM_DAMPING
 
       current_speed = @current_speed + 1 unless @state == :damaged
+    end
+
+    def record_trail(ship)
+      @trail << { x: ship.x, y: ship.y }
+      @trail.shift if @trail.length > TRAIL_SIZE
+    end
+
+    def delayed_target(ship)
+      delay_index = @trail.length - TRAIL_DELAY
+      return @trail[delay_index] if delay_index >= 0
+      # Trail not long enough yet — target oldest known position
+      @trail.first || { x: ship.x, y: ship.y }
     end
 
     def collide_action collidee, facing
