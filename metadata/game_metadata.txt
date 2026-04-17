@@ -2,9 +2,9 @@
 devid=lucashaley
 devtitle=Animatology Studios
 gameid=husk
-gametitle=Husk
-version=0.1.20
-# icon=metadata/icon.png
+gametitle=H.U.S.C.
+version=0.1.23
+icon=metadata/icon.png
 
 # === Flags available at all licensing tiers ===
 
@@ -47,6 +47,12 @@ highdpi=true
 # The orientation can be set to either landscape (1280x720) or portrait (720x1280)
 # orientation=landscape
 orientation=portrait
+
+# === Orientation Override for Mobile ==
+# You can override the orientation of your game for mobile devices. If this value isn't provided, it which will use
+# the value from ~orientation=~. Valid values for the override are portrait, or landscape
+# orientation_android=inherit
+# orientation_ios=inherit
 
 # === HD Mode ===
 # HD Mode: when enabled, will give you 720p, 1080p, 1440p, 4k, and 5k rendering options
