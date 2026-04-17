@@ -273,15 +273,42 @@ module HuskGame
     def populate_agents
       return if @room.threat < 2
 
+      populate_sweepers
+      populate_hunter_blobs
+    end
+
+    def populate_sweepers
       case @room.threat
       when 2
+        sweeper_count = rand(2) == 0 ? 2 : 1
+      when 3
+        sweeper_count = rand(2) + 2
+      else
+        sweeper_count = rand(2) + 3
+      end
+
+      first_axis = [:horizontal, :vertical].sample
+      sweeper_count.times do |i|
+        valid_position = find_empty_position
+        next if valid_position.nil?
+
+        axis = i == 0 ? first_axis : Sweeper::PERPENDICULAR[first_axis]
+        sweeper = Sweeper.new(x: valid_position[:x], y: valid_position[:y], scale: @room.scale, room: @room, axis: axis)
+        sweeper.deactivate
+        @room.agents << sweeper
+        @room.no_populate_buffer << sweeper.buffer
+      end
+    end
+
+    def populate_hunter_blobs
+      case @room.threat
+      when 2
+        return
+      when 3
         return unless rand(3) == 0
         count = 1
-      when 3
-        return unless rand(2) == 0
-        count = 1
       else
-        count = rand(3) == 0 ? 2 : 1
+        count = rand(2) == 0 ? 2 : 1
       end
 
       count.times do
@@ -292,17 +319,6 @@ module HuskGame
         agent.deactivate
         @room.agents << agent
         @room.no_populate_buffer << agent.buffer
-      end
-
-      # Sweepers appear at threat 3+
-      if @room.threat >= 3 && rand(2) == 0
-        valid_position = find_empty_position
-        unless valid_position.nil?
-          sweeper = Sweeper.new(x: valid_position[:x], y: valid_position[:y], scale: @room.scale, room: @room)
-          sweeper.deactivate
-          @room.agents << sweeper
-          @room.no_populate_buffer << sweeper.buffer
-        end
       end
     end
 

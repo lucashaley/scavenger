@@ -32,10 +32,13 @@ module HuskGame
     EMP_LOW = 60
     EMP_MEDIUM = 120
 
-    def initialize(x: 360, y: 960, scale: :large, room: nil)
+    PERPENDICULAR = { horizontal: :vertical, vertical: :horizontal }.freeze
+
+    def initialize(x: 360, y: 960, scale: :large, room: nil, axis: nil)
       @tracer_service_name = :tracer
       super(Zif.unique_name("Sweeper"))
       set_position(x, y)
+      initialize_shadowable
       initialize_deadable
       register_sprites_new
       initialize_scaleable(scale)
@@ -53,7 +56,7 @@ module HuskGame
       @sound_collide = HuskGame::AssetPaths::Audio::THUMP
 
       # Movement state
-      @primary_axis = [:horizontal, :vertical].sample
+      @primary_axis = axis || [:horizontal, :vertical].sample
       @primary_direction = [-1, 1].sample
       @perp_direction = [-1, 1].sample
       @speed = SPEED
