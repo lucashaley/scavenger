@@ -29,7 +29,7 @@ module HuskGame
     }.freeze
 
     ALERT_DISTANCE = 300
-    DEFAULT_SPEED = 18
+    DEFAULT_SPEED = 10
     MOMENTUM_DAMPING = 0.8
     TRAIL_DELAY = 90  # ticks behind the player (~1.5 seconds)
     TRAIL_SIZE = 120  # max positions stored
@@ -104,9 +104,11 @@ module HuskGame
       end
 
       diff_normalized = $gtk.args.geometry.vec2_normalize({ x: dx, y: dy })
+      # Scale force by inverse distance, clamped to prevent spikes up close
+      force = @current_speed / dist.clamp(30, ALERT_DISTANCE)
 
-      @momentum.x += diff_normalized[:x] * @current_speed
-      @momentum.y += diff_normalized[:y] * @current_speed
+      @momentum.x += diff_normalized[:x] * force
+      @momentum.y += diff_normalized[:y] * force
 
       @x += @momentum[:x]
       @y += @momentum[:y]
