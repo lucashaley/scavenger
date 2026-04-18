@@ -13,6 +13,26 @@ require 'app/scenes/game_over_scene'
 require 'app/scenes/game_complete_scene'
 require 'app/scenes/menu_main_scene'
 
+# Amir's hack for audio crashes
+class AudioHash < Hash
+  # alias []= so we can redefine it
+  alias_method :__original_indexor_set__, :[]= if !AudioHash.instance_methods.include?(:__original_indexor_set__)
+
+  def []= key, value
+    # check to see if there's already an entry
+    current = self[key]
+
+    if current
+      # if there is, then set the gain to zero and requeue it so that C can handle clean up
+      current.gain = 0
+      __original_indexor_set__ GTK.create_uuid, current
+    end
+
+    # set the key to the new object
+    __original_indexor_set__ key, value
+  end
+end
+
 def tick args
   # $gtk.trace_nil_punning! # Not sure what this does
 
@@ -32,25 +52,5 @@ end
 module Easing
   def self.ease_in_and_out_cubic x
     return x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) / 2;
-  end
-end
-
-# Amir's hack for audio crashes
-class AudioHash < Hash
-  # alias []= so we can redefine it
-  alias_method :__original_indexor_set__, :[]= if !AudioHash.instance_methods.include?(:__original_indexor_set__)
-
-  def []= key, value
-    # check to see if there's already an entry
-    current = self[key]
-
-    if current
-      # if there is, then set the gain to zero and requeue it so that C can handle clean up
-      current.gain = 0
-      __original_indexor_set__ GTK.create_uuid, current
-    end
-
-    # set the key to the new object
-    __original_indexor_set__ key, value
   end
 end
