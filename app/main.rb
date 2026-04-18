@@ -34,3 +34,23 @@ module Easing
     return x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) / 2;
   end
 end
+
+# Amir's hack for audio crashes
+class AudioHash < Hash
+  # alias []= so we can redefine it
+  alias_method :__original_indexor_set__, :[]= if !AudioHash.instance_methods.include?(:__original_indexor_set__)
+
+  def []= key, value
+    # check to see if there's already an entry
+    current = self[key]
+
+    if current
+      # if there is, then set the gain to zero and requeue it so that C can handle clean up
+      current.gain = 0
+      __original_indexor_set__ GTK.create_uuid, current
+    end
+
+    # set the key to the new object
+    __original_indexor_set__ key, value
+  end
+end
