@@ -83,6 +83,34 @@ module HuskGame
       { x: temp[:x], y: temp[:y] }
     end
 
+    # Lighter placement for agents — checks direct entity overlap, not buffers.
+    # Door/terminal buffers are too large for agents to ever find space in big rooms.
+    def find_agent_position(max_attempts = 100)
+      scale_px = HuskGame::Constants::SPRITE_SCALES[@room.scale]
+      wall = scale_px
+      vs_size = HuskGame::Constants::VIEWSCREEN_SIZE
+      playable_x = vs_size - (wall * 2) - scale_px
+      playable_y = vs_size - (wall * 2) - scale_px
+      margin_x = HuskGame::Constants::VIEWSCREEN_OFFSET_X + wall
+      margin_y = HuskGame::Constants::VIEWSCREEN_OFFSET_Y + wall
+
+      solids = @room.doors + @room.terminals + @room.dressings + @room.hazards + @room.agents
+
+      max_attempts.times do
+        temp = {
+          x: rand(playable_x) + margin_x,
+          y: rand(playable_y) + margin_y,
+          w: scale_px,
+          h: scale_px
+        }
+        next if $gtk.args.geometry.find_intersect_rect(temp, solids)
+        return { x: temp[:x], y: temp[:y] }
+      end
+
+      puts "WARNING: find_agent_position failed after #{max_attempts} attempts"
+      nil
+    end
+
     # Returns a facing direction that doesn't point toward a wall closer than
     # needed for the player to stand in front of the terminal.
     # Accounts for wall thickness (one scale_px), terminal size, and player size.
@@ -289,14 +317,13 @@ module HuskGame
 
       first_axis = [:horizontal, :vertical].sample
       sweeper_count.times do |i|
-        valid_position = find_empty_position
+        valid_position = find_agent_position
         next if valid_position.nil?
 
         axis = i == 0 ? first_axis : Sweeper::PERPENDICULAR[first_axis]
         sweeper = Sweeper.new(x: valid_position[:x], y: valid_position[:y], scale: @room.scale, room: @room, axis: axis)
         sweeper.deactivate
         @room.agents << sweeper
-        @room.no_populate_buffer << sweeper.buffer
       end
     end
 
@@ -312,13 +339,12 @@ module HuskGame
       end
 
       count.times do
-        valid_position = find_empty_position
+        valid_position = find_agent_position
         next if valid_position.nil?
 
         agent = HunterBlob.new(x: valid_position[:x], y: valid_position[:y], scale: @room.scale)
         agent.deactivate
         @room.agents << agent
-        @room.no_populate_buffer << agent.buffer
       end
     end
 
@@ -384,13 +410,13 @@ module HuskGame
     end
 
     def populate_overlays
-      @room.overlays << {
-        x: HuskGame::Constants::VIEWSCREEN_OFFSET_X,
-        y: HuskGame::Constants::VIEWSCREEN_OFFSET_Y,
-        w: HuskGame::Constants::VIEWSCREEN_SIZE,
-        h: HuskGame::Constants::VIEWSCREEN_SIZE,
-        path: HuskGame::AssetPaths::Sprites::OVERLAY_01_LARGE
-      }
+      # @room.overlays << {
+      #   x: HuskGame::Constants::VIEWSCREEN_OFFSET_X,
+      #   y: HuskGame::Constants::VIEWSCREEN_OFFSET_Y,
+      #   w: HuskGame::Constants::VIEWSCREEN_SIZE,
+      #   h: HuskGame::Constants::VIEWSCREEN_SIZE,
+      #   path: HuskGame::AssetPaths::Sprites::OVERLAY_01_LARGE
+      # }
     end
   end
 end
