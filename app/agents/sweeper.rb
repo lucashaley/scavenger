@@ -27,8 +27,10 @@ module HuskGame
       tiny:   1
     }.freeze
     SHIP_DAMAGE = -0.15
-    STOP_MIN_TICKS = 60   # 1 second
-    STOP_MAX_TICKS = 180  # 3 seconds
+    STOP_MIN_TICKS = 60    # 1 second
+    STOP_MAX_TICKS = 180   # 3 seconds
+    EMP_MEDIUM_STOP = 180  # 3 seconds
+    EMP_HIGH_STOP = 420    # 7 seconds
     EMP_LOW = 60
     EMP_MEDIUM = 120
 
@@ -169,11 +171,13 @@ module HuskGame
     end
 
     def handle_emp_medium(_emp_level)
-      change_state(:disabled)
+      change_state(:stopped)
+      @stop_timer = EMP_MEDIUM_STOP
     end
 
     def handle_emp_high(_emp_level)
-      change_state(:disabled)
+      change_state(:stopped)
+      @stop_timer = EMP_HIGH_STOP
     end
   end
 end
