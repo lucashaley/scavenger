@@ -9,7 +9,7 @@ module HuskGame
       west:  :east
     }.freeze
 
-    SCALE_WEIGHTS = ([:large] * 14 + [:medium] * 6 + [:small] * 2 + [:tiny] * 1).freeze
+    SCALE_WEIGHTS = ([:large] * 14 + [:medium] * 6 + [:small] * 2).freeze
 
     def initialize(initial_chaos:, initial_threat:)
       @nodes = {}
